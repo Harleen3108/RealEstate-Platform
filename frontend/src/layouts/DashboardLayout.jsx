@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import API_BASE_URL from '../apiConfig';
 import { useAuth } from '../context/AuthContext';
 import { 
     LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut, 
-    ChevronRight, MessageCircle, Home, Search, Bell, Sun, Moon
+    ChevronRight, MessageCircle, Home, Search, Bell, Sun, Moon, Plus,
+    FileText, BarChart3
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -12,12 +15,27 @@ const DashboardLayout = () => {
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
         if (!loading && !user) {
             navigate('/login');
         }
+        if (user) {
+            fetchUnreadCount();
+            const interval = setInterval(fetchUnreadCount, 30000); // Check every 30s
+            return () => clearInterval(interval);
+        }
     }, [user, loading, navigate]);
+
+    const fetchUnreadCount = async () => {
+        try {
+            const { data } = await axios.get(`${API_BASE_URL}/notifications`);
+            setUnreadCount(data.filter(n => !n.read).length);
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
 
     if (loading) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0a0a0a' }}>
@@ -29,13 +47,24 @@ const DashboardLayout = () => {
 
     const menuItems = {
         Agency: [
-            { label: 'Overview', path: '/dashboard/agency', icon: LayoutDashboard },
-            { label: 'My listings', path: '/dashboard/agency/listings', icon: Building2 },
-            { label: 'Leads CRM', path: '/dashboard/agency/leads', icon: Users },
+            { label: 'Dashboard', path: '/dashboard/agency', icon: LayoutDashboard },
+            { label: 'Inventory', path: '/dashboard/agency/properties', icon: Building2 },
+            { label: 'Add Property', path: '/dashboard/agency/properties/add', icon: Plus },
+            { label: 'CRM Pipeline', path: '/dashboard/agency/leads/pipeline', icon: TrendingUp },
+            { label: 'All Leads', path: '/dashboard/agency/leads', icon: Users },
+            { label: 'Notifications', path: '/dashboard/agency/notifications', icon: Bell },
+            { label: 'My Profile', path: '/dashboard/agency/profile', icon: Users },
+            { label: 'Settings', path: '/dashboard/agency/settings', icon: Settings },
         ],
         Investor: [
-            { label: 'Portfolio', path: '/dashboard/investor', icon: TrendingUp },
-            { label: 'Documents', path: '/dashboard/investor/docs', icon: Settings },
+            { label: 'Dashboard', path: '/dashboard/investor', icon: LayoutDashboard },
+            { section: 'Account Portfolio' },
+            { label: 'All Investments', path: '/dashboard/investor/investments', icon: TrendingUp, indent: true },
+            { label: 'Add Investment', path: '/dashboard/investor/add-investment', icon: Plus, indent: true },
+            { label: 'Documents', path: '/dashboard/investor/docs', icon: FileText },
+            { label: 'Analytics', path: '/dashboard/investor/analytics', icon: BarChart3 },
+            { label: 'Profile', path: '/dashboard/investor/profile', icon: Users },
+            { label: 'Settings', path: '/dashboard/investor/settings', icon: Settings },
         ],
         Buyer: [
             { label: 'Saved', path: '/dashboard/buyer', icon: Building2 },
@@ -59,10 +88,15 @@ const DashboardLayout = () => {
             {/* Sidebar */}
             <aside style={{ 
                 width: '260px', 
+                minWidth: '260px',
                 background: 'var(--sidebar-bg)', 
                 display: 'flex', 
                 flexDirection: 'column',
-                borderRight: '1px solid var(--border)'
+                borderRight: '1px solid var(--border)',
+                position: 'sticky',
+                top: 0,
+                height: '100vh',
+                overflowY: 'auto'
             }}>
                 {/* Logo Area */}
                 <div style={{ padding: '1.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -88,6 +122,13 @@ const DashboardLayout = () => {
                 <div style={{ flex: 1, padding: '0 0.8rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         {currentItems.map((item, index) => {
+                            if (item.section) {
+                                return (
+                                    <div key={`sec-${index}`} style={{ padding: '1.2rem 1rem 0.5rem', fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                        {item.section}
+                                    </div>
+                                );
+                            }
                             const isActive = location.pathname === item.path;
                             return (
                                 <Link 
@@ -99,6 +140,7 @@ const DashboardLayout = () => {
                                         alignItems: 'center',
                                         gap: '12px',
                                         padding: '0.9rem 1rem',
+                                        paddingLeft: item.indent ? '2.5rem' : '1rem',
                                         borderRadius: '8px',
                                         color: isActive ? 'white' : 'var(--text-muted)',
                                         background: isActive ? 'var(--primary)' : 'transparent',
@@ -208,14 +250,37 @@ const DashboardLayout = () => {
                                 }}
                             />
                         </div>
-                        <button style={{ background: 'var(--surface-light)', border: 'none', padding: '8px', borderRadius: '8px', color: 'var(--text-muted)', cursor: 'pointer', position: 'relative' }}>
+                        <button 
+                            onClick={() => navigate(`/dashboard/${user.role.toLowerCase()}/notifications`)}
+                            style={{ background: 'var(--surface-light)', border: 'none', padding: '8px', borderRadius: '8px', color: unreadCount > 0 ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer', position: 'relative' }}
+                        >
                             <Bell size={18} />
-                            <div style={{ position: 'absolute', top: '8px', right: '8px', width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }} />
+                            {unreadCount > 0 && (
+                                <div style={{ 
+                                    position: 'absolute', 
+                                    top: '-4px', 
+                                    right: '-4px', 
+                                    minWidth: '18px', 
+                                    height: '18px', 
+                                    background: 'var(--primary)', 
+                                    color: 'white',
+                                    borderRadius: '50%', 
+                                    fontSize: '0.65rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: '800',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                                    border: '2px solid var(--header-bg)'
+                                }}>
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </div>
+                            )}
                         </button>
                     </div>
                 </header>
 
-                <main style={{ flex: 1, padding: '2.5rem', overflowY: 'auto' }}>
+                <main style={{ flex: 1, padding: '2.5rem' }}>
                     <Outlet />
                 </main>
 

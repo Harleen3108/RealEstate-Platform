@@ -10,13 +10,18 @@ const propertyRoutes = require('./routes/propertyRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const investmentRoutes = require('./routes/investmentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const path = require('path');
 const upload = require('./middleware/uploadMiddleware');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://real-estate-platform-self.vercel.app'],
+    credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -26,11 +31,13 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/users', userRoutes);
 
 // File Upload Route
 app.post('/api/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-    res.json({ url: `http://localhost:5000/uploads/${req.file.filename}` });
+    res.json({ url: `/uploads/${req.file.filename}` });
 });
 
 app.get('/', (req, res) => {

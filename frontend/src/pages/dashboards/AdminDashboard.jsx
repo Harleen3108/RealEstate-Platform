@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL, { BACKEND_URL } from "../../apiConfig";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Users,
@@ -64,6 +65,11 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(tab || "stats");
   const [propertySearch, setPropertySearch] = useState("");
   const [propertyFilterStatus, setPropertyFilterStatus] = useState("All");
+  const [userFilters, setUserFilters] = useState({
+    role: "All Roles",
+    status: "All Status",
+    search: "",
+  });
 
   // Management States
   const [selectedAgency, setSelectedAgency] = useState(null);
@@ -165,11 +171,11 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     try {
       const [statsRes, usersRes, propertiesRes, leadsRes, leadsAnalyticsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/admin/stats"),
-        axios.get("http://localhost:5000/api/admin/users"),
-        axios.get("http://localhost:5000/api/properties"),
-        axios.get("http://localhost:5000/api/leads"),
-        axios.get("http://localhost:5000/api/admin/lead-analytics"),
+        axios.get(`${API_BASE_URL}/admin/stats`),
+        axios.get(`${API_BASE_URL}/admin/users`),
+        axios.get(`${API_BASE_URL}/properties`),
+        axios.get(`${API_BASE_URL}/leads`),
+        axios.get(`${API_BASE_URL}/admin/lead-analytics`),
       ]);
       setStats(statsRes.data);
       setUsers(usersRes.data);
@@ -187,7 +193,7 @@ const AdminDashboard = () => {
     setFetchingDetails(true);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/admin/users/${id}/details`,
+        `${API_BASE_URL}/admin/users/${id}/details`,
       );
       setAgencyDetails(
         data.agencyData
@@ -216,7 +222,7 @@ const AdminDashboard = () => {
     setFetchingDetails(true);
     try {
       const { data } = await axios.get(
-        `http://localhost:5000/api/admin/users/${id}/details`,
+        `${API_BASE_URL}/admin/users/${id}/details`,
       );
       setUserDetails(data);
       setSelectedUser(id);
@@ -229,7 +235,7 @@ const AdminDashboard = () => {
 
   const handleBlockUser = async (id, isBlocked) => {
     try {
-      await axios.patch(`http://localhost:5000/api/admin/users/${id}/block`, {
+      await axios.patch(`${API_BASE_URL}/admin/users/${id}/block`, {
         isBlocked,
       });
       fetchAdminData(); // Refresh list
@@ -252,7 +258,7 @@ const AdminDashboard = () => {
     )
       return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/users/${id}`);
+      await axios.delete(`${API_BASE_URL}/admin/users/${id}`);
       fetchAdminData();
       if (selectedAgency?._id === id) setSelectedAgency(null);
     } catch (error) {
@@ -263,7 +269,7 @@ const AdminDashboard = () => {
   const handleApproveProperty = async (id) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/admin/properties/${id}/approve`,
+        `${API_BASE_URL}/admin/properties/${id}/approve`,
       );
       fetchAdminData();
     } catch (error) {
@@ -275,7 +281,7 @@ const AdminDashboard = () => {
   const handleBlockProperty = async (id) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/admin/properties/${id}/block`,
+        `${API_BASE_URL}/admin/properties/${id}/block`,
       );
       fetchAdminData();
     } catch (error) {
@@ -293,7 +299,7 @@ const AdminDashboard = () => {
     formData.append("file", file);
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/upload",
+        `${API_BASE_URL}/upload`,
         formData,
       );
       if (type === "image") {
@@ -334,11 +340,11 @@ const AdminDashboard = () => {
       };
       if (editingProp) {
         await axios.put(
-          `http://localhost:5000/api/properties/${editingProp._id}`,
+          `${API_BASE_URL}/properties/${editingProp._id}`,
           payload,
         );
       } else {
-        await axios.post("http://localhost:5000/api/properties", payload);
+        await axios.post(`${API_BASE_URL}/properties`, payload);
       }
       setShowPropForm(false);
       setEditingProp(null);
@@ -381,7 +387,7 @@ const AdminDashboard = () => {
     )
       return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/properties/${id}`);
+      await axios.delete(`${API_BASE_URL}/admin/properties/${id}`);
       fetchAdminData();
     } catch (error) {
       console.error("Property Disposal Error:", error);
@@ -392,7 +398,7 @@ const AdminDashboard = () => {
   const handleApproveAgency = async (userId, isApproved) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/admin/users/${userId}/approve`,
+        `${API_BASE_URL}/admin/users/${userId}/approve`,
         { isApproved },
       );
       setUsers(users.map((u) => (u._id === userId ? { ...u, isApproved } : u)));
@@ -410,7 +416,7 @@ const AdminDashboard = () => {
   const handleCreateAgency = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/admin/agencies", newAgency);
+      await axios.post(`${API_BASE_URL}/admin/agencies`, newAgency);
       setShowCreateAgency(false);
       setNewAgency({ name: "", email: "", password: "", phoneNumber: "" });
       fetchAdminData();
@@ -436,7 +442,7 @@ const AdminDashboard = () => {
   const handleAddLead = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/leads", newLeadData);
+      await axios.post(`${API_BASE_URL}/leads`, newLeadData);
       setShowLeadForm(false);
       setNewLeadData({
         name: "",
@@ -453,6 +459,18 @@ const AdminDashboard = () => {
     } catch (error) {
       alert(error.response?.data?.message || "Failed to add lead");
     }
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/400x200?text=No+Image";
+    if (typeof url !== "string") return url;
+    if (url.startsWith("http")) {
+      if (window.location.hostname !== "localhost" && url.includes("localhost:5000")) {
+        return url.replace("http://localhost:5000", BACKEND_URL);
+      }
+      return url;
+    }
+    return `${BACKEND_URL}${url}`;
   };
 
   if (loading)
@@ -492,6 +510,39 @@ const AdminDashboard = () => {
   const activeAgenciesSorted = [...activeAgencies].sort((a, b) =>
     b.createdAt > a.createdAt ? 1 : -1,
   );
+
+  const filteredUsersList = users.filter((u) => {
+    // Base tab filter - determine which users to show based on the active tab
+    const matchesTab =
+      activeTab === "investors"
+        ? u.role?.toLowerCase() === "investor"
+        : activeTab === "users"
+          ? u.role?.toLowerCase() === "buyer"
+          : true;
+
+    // Role select filter
+    const matchesRole =
+      userFilters.role === "All Roles" ||
+      (userFilters.role === "Agents" && u.role?.toLowerCase() === "agency") ||
+      (userFilters.role === "Buyers" && u.role?.toLowerCase() === "buyer") ||
+      (userFilters.role === "Investors" &&
+        u.role?.toLowerCase() === "investor");
+
+    // Status select filter
+    const matchesStatus =
+      userFilters.status === "All Status" ||
+      (userFilters.status === "Active" && !u.isBlocked) ||
+      (userFilters.status === "Suspended" && u.isBlocked);
+
+    // Search filter
+    const matchesSearch =
+      !userFilters.search ||
+      u.name.toLowerCase().includes(userFilters.search.toLowerCase()) ||
+      u.email.toLowerCase().includes(userFilters.search.toLowerCase());
+
+    return matchesTab && matchesRole && matchesStatus && matchesSearch;
+  });
+
   const activeInvestors = users.filter(
     (u) => u.role?.toLowerCase() === "investor",
   );
@@ -525,12 +576,12 @@ const AdminDashboard = () => {
           style={{
             display: "grid",
             gridTemplateColumns: "minmax(0, 3fr) minmax(0, 1fr)",
-            gap: "2rem",
+            gap: "1.2rem",
           }}
         >
           {/* Left Column: Stats and Table */}
           <div
-            style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+            style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}
           >
             <div>
               <h4
@@ -548,7 +599,7 @@ const AdminDashboard = () => {
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                  gap: "1.5rem",
+                  gap: "1rem",
                 }}
               >
                 {[
@@ -588,7 +639,7 @@ const AdminDashboard = () => {
                     key={i}
                     className="glass-card"
                     style={{
-                      padding: "1.5rem",
+                      padding: "1.2rem",
                       display: "flex",
                       flexDirection: "column",
                       gap: "8px",
@@ -660,7 +711,7 @@ const AdminDashboard = () => {
             >
               <div
                 style={{
-                  padding: "1.5rem",
+                  padding: "1rem 1.2rem",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
@@ -690,7 +741,7 @@ const AdminDashboard = () => {
                     <tr style={{ textAlign: "left" }}>
                       <th
                         style={{
-                          padding: "1rem 1.5rem",
+                          padding: "0.8rem 1rem",
                           fontSize: "0.7rem",
                           color: "var(--text-muted)",
                           textTransform: "uppercase",
@@ -700,7 +751,7 @@ const AdminDashboard = () => {
                       </th>
                       <th
                         style={{
-                          padding: "1rem 1.5rem",
+                          padding: "0.8rem 1rem",
                           fontSize: "0.7rem",
                           color: "var(--text-muted)",
                           textTransform: "uppercase",
@@ -710,7 +761,7 @@ const AdminDashboard = () => {
                       </th>
                       <th
                         style={{
-                          padding: "1rem 1.5rem",
+                          padding: "0.8rem 1rem",
                           fontSize: "0.7rem",
                           color: "var(--text-muted)",
                           textTransform: "uppercase",
@@ -720,7 +771,7 @@ const AdminDashboard = () => {
                       </th>
                       <th
                         style={{
-                          padding: "1rem 1.5rem",
+                          padding: "0.8rem 1rem",
                           fontSize: "0.7rem",
                           color: "var(--text-muted)",
                           textTransform: "uppercase",
@@ -730,7 +781,7 @@ const AdminDashboard = () => {
                       </th>
                       <th
                         style={{
-                          padding: "1rem 1.5rem",
+                          padding: "0.8rem 1rem",
                           fontSize: "0.7rem",
                           color: "var(--text-muted)",
                           textTransform: "uppercase",
@@ -748,7 +799,7 @@ const AdminDashboard = () => {
                         style={{ borderBottom: "1px solid var(--border)" }}
                       >
                         <td
-                          style={{ padding: "1rem 1.5rem", cursor: "pointer" }}
+                          style={{ padding: "0.8rem 1rem", cursor: "pointer" }}
                           onClick={() => navigate(`/property/${p._id}`)}
                         >
                           <div
@@ -771,7 +822,7 @@ const AdminDashboard = () => {
                             >
                               {p.images?.[0] ? (
                                 <img
-                                  src={p.images[0]}
+                                  src={getImageUrl(p.images[0])}
                                   style={{
                                     width: "100%",
                                     height: "100%",
@@ -921,7 +972,7 @@ const AdminDashboard = () => {
 
           {/* Right Column: Actions and Status */}
           <div
-            style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+            style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}
           >
             <div>
               <h4
@@ -1225,7 +1276,7 @@ const AdminDashboard = () => {
                 <>
                   <div
                     style={{
-                      padding: "1.5rem",
+                      padding: "1rem 1.2rem",
                       borderBottom: "1px solid var(--border)",
                       display: "flex",
                       gap: "1rem",
@@ -1277,7 +1328,7 @@ const AdminDashboard = () => {
                         >
                           <th
                             style={{
-                              padding: "1rem 1.5rem",
+                              padding: "0.8rem 1.5rem",
                               fontSize: "0.7rem",
                               color: "var(--text-muted)",
                               fontWeight: "800",
@@ -1287,7 +1338,7 @@ const AdminDashboard = () => {
                           </th>
                           <th
                             style={{
-                              padding: "1rem 1.5rem",
+                              padding: "0.8rem 1.5rem",
                               fontSize: "0.7rem",
                               color: "var(--text-muted)",
                               fontWeight: "800",
@@ -1318,7 +1369,7 @@ const AdminDashboard = () => {
                           >
                             <td
                               style={{
-                                padding: "1.2rem 1.5rem",
+                                padding: "0.8rem 1.5rem",
                                 cursor: "pointer",
                               }}
                             >
@@ -1455,8 +1506,8 @@ const AdminDashboard = () => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "350px 1fr",
-                    gap: "2rem",
+                    gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr)",
+                    gap: "1.2rem",
                   }}
                 >
                   <div className="glass-card" style={{ padding: "2rem" }}>
@@ -1727,8 +1778,8 @@ const AdminDashboard = () => {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "1.5rem",
-              marginBottom: "2.5rem",
+              gap: "1rem",
+              marginBottom: "1.5rem",
             }}
           >
             {[
@@ -1771,7 +1822,7 @@ const AdminDashboard = () => {
                 key={i}
                 className="glass-card"
                 style={{
-                  padding: "1.5rem",
+                  padding: "1.2rem",
                   background: "var(--surface)",
                   border: "1px solid var(--border)",
                 }}
@@ -1839,13 +1890,13 @@ const AdminDashboard = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 320px",
-              gap: "2rem",
+              gridTemplateColumns: "1fr 300px",
+              gap: "1.2rem",
               alignItems: "start",
             }}
           >
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+              style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}
             >
               {/* Property Management Form */}
               {showPropForm && (
@@ -2111,19 +2162,46 @@ const AdminDashboard = () => {
                         style={{ fontSize: "0.8rem", marginTop: "5px" }}
                       />
                       <div
-                        style={{ display: "flex", gap: "5px", marginTop: "5px" }}
+                        style={{ display: "flex", gap: "8px", marginTop: "8px", flexWrap: "wrap" }}
                       >
                         {propData.images.map((img, i) => (
-                          <img
-                            key={i}
-                            src={img}
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              borderRadius: "4px",
-                              objectFit: "cover",
-                            }}
-                          />
+                          <div key={i} style={{ position: "relative", width: "60px", height: "60px" }}>
+                            <img
+                              src={getImageUrl(img)}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "8px",
+                                objectFit: "cover",
+                                border: "1px solid var(--border)",
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setPropData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
+                              style={{
+                                position: "absolute",
+                                top: "-6px",
+                                right: "-6px",
+                                width: "22px",
+                                height: "22px",
+                                borderRadius: "50%",
+                                background: "#ef4444",
+                                color: "white",
+                                border: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                fontWeight: "800",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                                zIndex: 10
+                              }}
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -2176,11 +2254,11 @@ const AdminDashboard = () => {
               >
                 <div
                   style={{
-                    padding: "1.5rem",
+                    padding: "1rem 1.2rem",
                     borderBottom: "1px solid var(--border)",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1.2rem",
+                    gap: "1rem",
                   }}
                 >
                   <div style={{ display: "flex", gap: "1rem" }}>
@@ -2301,7 +2379,7 @@ const AdminDashboard = () => {
                       >
                         <th
                           style={{
-                            padding: "1rem 1.5rem",
+                            padding: "0.8rem 1rem",
                             fontSize: "0.7rem",
                             color: "var(--text-muted)",
                             fontWeight: "800",
@@ -2311,7 +2389,7 @@ const AdminDashboard = () => {
                         </th>
                         <th
                           style={{
-                            padding: "1rem 1.5rem",
+                            padding: "0.8rem 1rem",
                             fontSize: "0.7rem",
                             color: "var(--text-muted)",
                             fontWeight: "800",
@@ -2321,7 +2399,7 @@ const AdminDashboard = () => {
                         </th>
                         <th
                           style={{
-                            padding: "1rem 1.5rem",
+                            padding: "0.8rem 1rem",
                             fontSize: "0.7rem",
                             color: "var(--text-muted)",
                             fontWeight: "800",
@@ -2331,7 +2409,7 @@ const AdminDashboard = () => {
                         </th>
                         <th
                           style={{
-                            padding: "1rem 1.5rem",
+                            padding: "0.8rem 1rem",
                             fontSize: "0.7rem",
                             color: "var(--text-muted)",
                             fontWeight: "800",
@@ -2341,7 +2419,7 @@ const AdminDashboard = () => {
                         </th>
                         <th
                           style={{
-                            padding: "1rem 1.5rem",
+                            padding: "0.8rem 1rem",
                             fontSize: "0.7rem",
                             color: "var(--text-muted)",
                             fontWeight: "800",
@@ -2360,7 +2438,7 @@ const AdminDashboard = () => {
                         >
                           <td
                             style={{
-                              padding: "1rem 1.5rem",
+                              padding: "0.8rem 1rem",
                               cursor: "pointer",
                             }}
                             onClick={() => navigate(`/property/${p._id}`)}
@@ -2369,23 +2447,20 @@ const AdminDashboard = () => {
                               style={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: "12px",
+                                gap: "10px",
                               }}
                             >
                               <div
                                 style={{
-                                  width: "45px",
-                                  height: "45px",
+                                  width: "40px",
+                                  height: "40px",
                                   borderRadius: "8px",
                                   background: "var(--surface-light)",
                                   overflow: "hidden",
                                 }}
                               >
                                 <img
-                                  src={
-                                    p.images?.[0] ||
-                                    "https://via.placeholder.com/45"
-                                  }
+                                  src={getImageUrl(p.images?.[0])}
                                   alt=""
                                   style={{
                                     width: "100%",
@@ -2398,7 +2473,7 @@ const AdminDashboard = () => {
                                 <div
                                   style={{
                                     fontWeight: "700",
-                                    fontSize: "0.9rem",
+                                    fontSize: "0.85rem",
                                     color: "var(--text)",
                                   }}
                                 >
@@ -2406,7 +2481,7 @@ const AdminDashboard = () => {
                                 </div>
                                 <div
                                   style={{
-                                    fontSize: "0.75rem",
+                                    fontSize: "0.7rem",
                                     color: "var(--text-muted)",
                                   }}
                                 >
@@ -2417,24 +2492,24 @@ const AdminDashboard = () => {
                           </td>
                           <td
                             style={{
-                              padding: "1rem 1.5rem",
-                              fontSize: "0.85rem",
+                              padding: "0.8rem 1rem",
+                              fontSize: "0.8rem",
                             }}
                           >
                             {p.agency?.name || "Private Seller"}
                           </td>
-                          <td style={{ padding: "1rem 1.5rem" }}>
+                          <td style={{ padding: "0.8rem 1rem" }}>
                             <div
                               style={{
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: "4px",
+                                gap: "2px",
                               }}
                             >
                               <span
                                 style={{
-                                  fontSize: "0.65rem",
-                                  padding: "2px 8px",
+                                  fontSize: "0.6rem",
+                                  padding: "2px 6px",
                                   borderRadius: "4px",
                                   background: p.isApproved
                                     ? "rgba(16, 185, 129, 0.1)"
@@ -2448,7 +2523,7 @@ const AdminDashboard = () => {
                               </span>
                               <span
                                 style={{
-                                  fontSize: "0.65rem",
+                                  fontSize: "0.6rem",
                                   color:
                                     p.status === "Blocked"
                                       ? "#ef4444"
@@ -2456,29 +2531,29 @@ const AdminDashboard = () => {
                                   fontWeight: "700",
                                 }}
                               >
-                                Market Status: {p.status}
+                                Status: {p.status}
                               </span>
                             </div>
                           </td>
                           <td
                             style={{
-                              padding: "1rem 1.5rem",
+                              padding: "0.8rem 1rem",
                               fontWeight: "800",
-                              fontSize: "0.95rem",
+                              fontSize: "0.9rem",
                             }}
                           >
-                            ${p.price?.toLocaleString()}
+                            ₹{p.price?.toLocaleString()}
                           </td>
                           <td
                             style={{
-                              padding: "1rem 1.5rem",
+                              padding: "0.8rem 1rem",
                               textAlign: "right",
                             }}
                           >
                             <div
                               style={{
                                 display: "flex",
-                                gap: "8px",
+                                gap: "6px",
                                 justifyContent: "flex-end",
                               }}
                             >
@@ -2487,8 +2562,8 @@ const AdminDashboard = () => {
                                   title="Approve Listing"
                                   className="btn btn-outline"
                                   style={{
-                                    padding: "6px",
-                                    fontSize: "0.75rem",
+                                    padding: "4px",
+                                    fontSize: "0.7rem",
                                     borderColor: "#10b981",
                                     color: "#10b981",
                                   }}
@@ -2505,8 +2580,8 @@ const AdminDashboard = () => {
                                 }
                                 className="btn btn-outline"
                                 style={{
-                                  padding: "6px",
-                                  fontSize: "0.75rem",
+                                  padding: "4px",
+                                  fontSize: "0.7rem",
                                   borderColor:
                                     p.status === "Blocked"
                                       ? "var(--primary)"
@@ -2528,7 +2603,7 @@ const AdminDashboard = () => {
                                 title="Edit Listing"
                                 className="btn btn-outline"
                                 style={{
-                                  padding: "6px",
+                                  padding: "4px",
                                   fontSize: "0.75rem",
                                   borderColor: "var(--border)",
                                 }}
@@ -2540,7 +2615,7 @@ const AdminDashboard = () => {
                                 title="Delete Listing"
                                 className="btn btn-outline"
                                 style={{
-                                  padding: "6px",
+                                  padding: "4px",
                                   fontSize: "0.75rem",
                                   borderColor: "var(--border)",
                                   color: "#ef4444",
@@ -2553,7 +2628,7 @@ const AdminDashboard = () => {
                                 title="View Live"
                                 className="btn btn-outline"
                                 style={{
-                                  padding: "6px",
+                                  padding: "4px",
                                   fontSize: "0.75rem",
                                   borderColor: "var(--border)",
                                 }}
@@ -2570,7 +2645,7 @@ const AdminDashboard = () => {
                 </div>
                 <div
                   style={{
-                    padding: "1.2rem 1.5rem",
+                    padding: "1rem 1.2rem",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -2754,15 +2829,15 @@ const AdminDashboard = () => {
             </div>
 
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+              style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}
             >
               {/* Top Agencies Sidebar */}
-              <div className="glass-card" style={{ padding: "1.5rem" }}>
+              <div className="glass-card" style={{ padding: "1.2rem" }}>
                 <h4
                   style={{
-                    fontSize: "1rem",
+                    fontSize: "0.9rem",
                     fontWeight: "800",
-                    marginBottom: "1.5rem",
+                    marginBottom: "1rem",
                   }}
                 >
                   Top Agencies
@@ -2887,8 +2962,8 @@ const AdminDashboard = () => {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "1.5rem",
-              marginBottom: "2.5rem",
+              gap: "1rem",
+              marginBottom: "1.5rem",
             }}
           >
             {[
@@ -2941,7 +3016,7 @@ const AdminDashboard = () => {
                 key={i}
                 className="glass-card"
                 style={{
-                  padding: "1.5rem",
+                  padding: "1.2rem",
                   position: "relative",
                   overflow: "hidden",
                   background: "var(--surface)",
@@ -3024,7 +3099,7 @@ const AdminDashboard = () => {
                 }}
               >
                 {/* Left Column: User Brief Profile */}
-                <div className="glass-card" style={{ padding: "2rem" }}>
+                <div className="glass-card" style={{ padding: "1.5rem" }}>
                   <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
                     <div
                       style={{
@@ -3201,7 +3276,7 @@ const AdminDashboard = () => {
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "2rem",
+                    gap: "1.2rem",
                   }}
                 >
                   {/* Investor Specific Section */}
@@ -3870,6 +3945,10 @@ const AdminDashboard = () => {
                 <div style={{ display: "flex", gap: "1rem" }}>
                   <select
                     className="input-control"
+                    value={userFilters.role}
+                    onChange={(e) =>
+                      setUserFilters({ ...userFilters, role: e.target.value })
+                    }
                     style={{
                       background: "var(--surface-light)",
                       border: "1px solid var(--border)",
@@ -3886,6 +3965,10 @@ const AdminDashboard = () => {
                   </select>
                   <select
                     className="input-control"
+                    value={userFilters.status}
+                    onChange={(e) =>
+                      setUserFilters({ ...userFilters, status: e.target.value })
+                    }
                     style={{
                       background: "var(--surface-light)",
                       border: "1px solid var(--border)",
@@ -3897,45 +3980,39 @@ const AdminDashboard = () => {
                   >
                     <option>All Status</option>
                     <option>Active</option>
-                    <option>Inactive</option>
                     <option>Suspended</option>
                   </select>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--text-muted)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      fontSize: "0.85rem",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Filter size={16} /> Advanced Filters
-                  </button>
-                </div>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    className="btn btn-outline"
-                    style={{
-                      padding: "8px",
-                      borderColor: "var(--border)",
-                      color: "var(--text)",
-                    }}
-                  >
-                    <Globe size={16} />
-                  </button>
-                  <button
-                    className="btn btn-outline"
-                    style={{
-                      padding: "8px",
-                      borderColor: "var(--border)",
-                      color: "var(--text)",
-                    }}
-                  >
-                    <Database size={16} />
-                  </button>
+                  <div style={{ position: "relative" }}>
+                    <Search
+                      size={14}
+                      style={{
+                        position: "absolute",
+                        left: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                      }}
+                    />
+                    <input
+                      type="text"
+                      className="input-control"
+                      placeholder="Search users..."
+                      value={userFilters.search}
+                      onChange={(e) =>
+                        setUserFilters({
+                          ...userFilters,
+                          search: e.target.value,
+                        })
+                      }
+                      style={{
+                        paddingLeft: "30px",
+                        background: "var(--surface-light)",
+                        border: "1px solid var(--border)",
+                        width: "200px",
+                        fontSize: "0.85rem",
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -4008,7 +4085,7 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(activeTab === "users" ? activeBuyers : activeInvestors)
+                    {filteredUsersList
                       .slice(0, 5)
                       .map((u) => (
                         <tr
@@ -4195,7 +4272,7 @@ const AdminDashboard = () => {
                 <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
                   Showing 1 to 5 of{" "}
                   {
-                    (activeTab === "users" ? activeBuyers : activeInvestors)
+                    filteredUsersList
                       .length
                   }{" "}
                   users

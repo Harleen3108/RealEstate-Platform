@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { MapPin, Home, Bed, Bath, User, MessageCircle, ArrowLeft, CheckCircle, Heart, Share2, Info, Phone, Mail } from 'lucide-react';
+import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
+import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const PropertyDetail = () => {
@@ -11,6 +12,7 @@ const PropertyDetail = () => {
     const [property, setProperty] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isSaved, setIsSaved] = useState(false);
+    const [activeImage, setActiveImage] = useState(0);
     
     // Enquiry Form State
     const [formData, setFormData] = useState({
@@ -23,13 +25,13 @@ const PropertyDetail = () => {
     const [enquirySent, setEnquirySent] = useState(false);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchProperty = async () => {
             try {
-                const { data: propData } = await axios.get(`http://localhost:5000/api/properties/${id}`);
+                const { data: propData } = await axios.get(`${API_BASE_URL}/properties/${id}`);
                 setProperty(propData);
                 
                 if (user) {
-                    const { data: userData } = await axios.get('http://localhost:5000/api/auth/me');
+                    const { data: userData } = await axios.get(`${API_BASE_URL}/auth/me`);
                     setIsSaved(userData.savedProperties.some(p => p._id === id || p === id));
                 }
                 
@@ -39,13 +41,13 @@ const PropertyDetail = () => {
                 setLoading(false);
             }
         };
-        fetchData();
+        fetchProperty();
     }, [id, user]);
 
     const toggleSave = async () => {
         if (!user) return navigate('/login');
         try {
-            await axios.post(`http://localhost:5000/api/auth/save-property/${id}`);
+            await axios.post(`${API_BASE_URL}/auth/save-property/${id}`);
             setIsSaved(!isSaved);
         } catch (error) {
             console.error(error);
@@ -57,7 +59,7 @@ const PropertyDetail = () => {
         if (!user) return navigate('/login');
         
         try {
-            await axios.post('http://localhost:5000/api/leads', {
+            await axios.post(`${API_BASE_URL}/leads`, {
                 propertyId: property._id,
                 agencyId: property.agency._id,
                 ...formData
@@ -74,13 +76,24 @@ const PropertyDetail = () => {
         </div>
     );
     
+    const getImageUrl = (url) => {
+        if (!url) return 'https://via.placeholder.com/800x520';
+        if (url.startsWith('http')) {
+            if (window.location.hostname !== 'localhost' && url.includes('localhost:5000')) {
+                return url.replace('http://localhost:5000', BACKEND_URL);
+            }
+            return url;
+        }
+        return `${BACKEND_URL}${url}`;
+    };
+
     if (!property) return <div className="container section">Property not found</div>;
 
     return (
         <div className="section container animate-fade">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <button onClick={() => navigate(-1)} className="btn btn-outline" style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem', fontWeight: '700' }}>
-                    <ArrowLeft size={18} /> Back to Marketplace
+                    <ArrowLeft size={18} /> Back
                 </button>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                      <button className="btn btn-outline" style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', borderRadius: '50%', width: '45px', height: '45px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)' }}>
@@ -98,14 +111,42 @@ const PropertyDetail = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '3rem' }}>
                 <div>
-                    <div style={{ height: '520px', borderRadius: '24px', overflow: 'hidden', marginBottom: '2.5rem', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                        <img src={property.images?.[0] || 'https://via.placeholder.com/800x520'} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ height: '520px', borderRadius: '24px', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                        <img src={getImageUrl(property.images?.[activeImage])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
+                    
+                    {/* Image Thumbnails */}
+                    {property.images && property.images.length > 1 && (
+                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                            {property.images.map((img, index) => (
+                                <div 
+                                    key={index}
+                                    onClick={() => setActiveImage(index)}
+                                    style={{ 
+                                        width: '100px', 
+                                        height: '70px', 
+                                        borderRadius: '12px', 
+                                        overflow: 'hidden', 
+                                        cursor: 'pointer',
+                                        border: activeImage === index ? '3px solid var(--primary)' : '1px solid var(--border)',
+                                        opacity: activeImage === index ? 1 : 0.7,
+                                        transition: 'all 0.2s ease',
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    <img src={getImageUrl(img)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
                          <div>
-                            <span style={{ background: 'var(--primary)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase' }}>{property.propertyType}</span>
-                            <h1 style={{ fontSize: '3rem', fontWeight: '900', marginTop: '0.5rem', color: 'var(--text)' }}>{property.title}</h1>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'white', padding: '6px 16px', borderRadius: '30px', width: 'fit-content', boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)' }}>
+                                <Building2 size={16} />
+                                <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{property.propertyType}</span>
+                            </div>
+                            <h1 style={{ fontSize: '3rem', fontWeight: '900', marginTop: '1rem', color: 'var(--text)', lineHeight: '1.1' }}>{property.title}</h1>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', marginTop: '0.8rem', fontSize: '1.1rem' }}>
                                 <MapPin size={22} color="var(--primary)" /> {property.location}
                             </div>

@@ -11,6 +11,11 @@ const userSchema = new mongoose.Schema({
         default: 'Buyer' 
     },
     phoneNumber: { type: String },
+    agencyName: { type: String },
+    location: { type: String },
+    website: { type: String },
+    bio: { type: String },
+    profileImage: { type: String },
     savedProperties: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Property' }],
     isApproved: { type: Boolean, default: false }, // For Agencies
     isBlocked: { type: Boolean, default: false } // Admin can block users

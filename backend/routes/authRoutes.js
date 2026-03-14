@@ -114,4 +114,15 @@ router.post('/save-property/:id', protect, async (req, res) => {
     }
 });
 
+// @desc    Get all verified agencies (Public)
+// @route   GET /api/auth/agencies
+router.get('/agencies', async (req, res) => {
+    try {
+        const agencies = await User.find({ role: 'Agency', isApproved: true }).select('name email');
+        res.json(agencies);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Lead = require('../models/Lead');
+const Notification = require('../models/Notification');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 // @desc    Get all leads (Agency only)
@@ -37,6 +38,16 @@ router.post('/', protect, async (req, res) => {
         };
 
         const lead = await Lead.create(leadData);
+
+        // Notify Agency
+        await Notification.create({
+            recipient: agencyId,
+            type: 'lead',
+            title: 'New Lead Received',
+            message: `${name || req.user.name} has enquired about your property.`,
+            relatedId: lead._id
+        });
+
         res.status(201).json(lead);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -51,7 +62,58 @@ router.patch('/:id/status', protect, authorize('Agency', 'Admin'), async (req, r
         if (lead) {
             lead.status = req.body.status;
             const updatedLead = await lead.save();
+
+            // Notify Agency (Self-notification or for other team members if applicable)
+            await Notification.create({
+                recipient: lead.agency,
+                type: 'status',
+                title: 'Lead Status Updated',
+                message: `Lead for ${lead.name} moved to "${req.body.status}".`,
+                relatedId: lead._id
+            });
+
             res.json(updatedLead);
+        } else {
+            res.status(404).json({ message: 'Lead not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// @desc    Update lead (Agency)
+// @route   PATCH /api/leads/:id
+router.patch('/:id', protect, authorize('Agency', 'Admin'), async (req, res) => {
+    try {
+        const lead = await Lead.findById(req.params.id);
+        if (lead) {
+            const { name, email, phone, propertyId, message, status } = req.body;
+            lead.name = name || lead.name;
+            lead.email = email || lead.email;
+            lead.phone = phone || lead.phone;
+            lead.property = propertyId || lead.property;
+            lead.message = message || lead.message;
+            lead.status = status || lead.status;
+            
+            const updatedLead = await lead.save();
+            const populatedLead = await Lead.findById(updatedLead._id).populate('property', 'title');
+            res.json(populatedLead);
+        } else {
+            res.status(404).json({ message: 'Lead not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// @desc    Delete lead (Agency)
+// @route   DELETE /api/leads/:id
+router.delete('/:id', protect, authorize('Agency', 'Admin'), async (req, res) => {
+    try {
+        const lead = await Lead.findById(req.params.id);
+        if (lead) {
+            await lead.deleteOne();
+            res.json({ message: 'Lead removed' });
         } else {
             res.status(404).json({ message: 'Lead not found' });
         }

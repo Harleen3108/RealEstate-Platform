@@ -4,7 +4,34 @@ const User = require('../models/User');
 const Property = require('../models/Property');
 const Lead = require('../models/Lead');
 const Investment = require('../models/Investment');
+const Notification = require('../models/Notification');
 const { protect, authorize } = require('../middleware/authMiddleware');
+const fs = require('fs');
+const path = require('path');
+
+// @desc    Delete a property listing
+// @route   DELETE /api/admin/properties/:id
+router.delete('/properties/:id', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const property = await Property.findById(req.params.id);
+        if (!property) return res.status(404).json({ message: 'Property not found' });
+
+        // Delete associated image files
+        if (property.images && property.images.length > 0) {
+            property.images.forEach(imgUrl => {
+                if (imgUrl.startsWith('/uploads/')) {
+                    const filePath = path.join(__dirname, '..', imgUrl);
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                }
+            });
+        }
+
+        await property.deleteOne();
+        res.json({ message: 'Property removed successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // @desc    Get global stats
 // @route   GET /api/admin/stats
@@ -188,6 +215,15 @@ router.patch('/users/:id/block', protect, authorize('Admin'), async (req, res) =
 
         user.isBlocked = isBlocked;
         await user.save();
+
+        // Notify User
+        await Notification.create({
+            recipient: user._id,
+            type: 'alert',
+            title: isBlocked ? 'Account Blocked' : 'Account Unblocked',
+            message: isBlocked ? 'Your account has been blocked by the admin.' : 'Your account has been unblocked by the admin.',
+        });
+
         res.json({ message: `User ${isBlocked ? 'blocked' : 'unblocked'} successfully`, isBlocked: user.isBlocked });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -242,6 +278,16 @@ router.patch('/properties/:id/approve', protect, authorize('Admin'), async (req,
             { new: true }
         );
         if (!property) return res.status(404).json({ message: 'Property not found' });
+
+        // Notify Agency
+        await Notification.create({
+            recipient: property.agency,
+            type: 'system',
+            title: 'Property Approved',
+            message: `Your property "${property.title}" has been approved by the admin.`,
+            relatedId: property._id
+        });
+
         res.json(property);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -255,8 +301,20 @@ router.patch('/properties/:id/block', protect, authorize('Admin'), async (req, r
         const property = await Property.findById(req.params.id);
         if (!property) return res.status(404).json({ message: 'Property not found' });
 
-        property.status = property.status === 'Blocked' ? 'Available' : 'Blocked';
+        const newStatus = property.status === 'Blocked' ? 'Available' : 'Blocked';
+        const isBlocking = newStatus === 'Blocked';
+        
+        property.status = newStatus;
         await property.save();
+
+        // Notify Agency
+        await Notification.create({
+            recipient: property.agency,
+            type: 'alert',
+            title: isBlocking ? 'Property Blocked' : 'Property Reactivated',
+            message: isBlocking ? `Your property "${property.title}" has been blocked by the admin.` : `Your property "${property.title}" is now available.`,
+            relatedId: property._id
+        });
 
         res.json(property);
     } catch (error) {
@@ -264,16 +322,6 @@ router.patch('/properties/:id/block', protect, authorize('Admin'), async (req, r
     }
 });
 
-// @desc    Delete a property listing
-// @route   DELETE /api/admin/properties/:id
-router.delete('/properties/:id', protect, authorize('Admin'), async (req, res) => {
-    try {
-        const property = await Property.findByIdAndDelete(req.params.id);
-        if (!property) return res.status(404).json({ message: 'Property not found' });
-        res.json({ message: 'Property removed successfully' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+
 
 module.exports = router;

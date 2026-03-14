@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
 import { Search, MapPin, DollarSign, Home, Filter, Heart, ArrowRight, Building2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -27,8 +28,8 @@ const PropertyMarketplace = () => {
     const fetchInitialData = async () => {
         try {
             const [propRes, userRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/properties'),
-                axios.get('http://localhost:5000/api/admin/users') // To get agencies for the filter
+                axios.get(`${API_BASE_URL}/properties`),
+                axios.get(`${API_BASE_URL}/auth/agencies`) // Public endpoint now used instead of admin
             ]);
             setProperties(propRes.data);
             setAgencies(userRes.data.filter(u => u.role === 'Agency'));
@@ -41,7 +42,7 @@ const PropertyMarketplace = () => {
 
     const fetchSavedProperties = async () => {
         try {
-            const { data } = await axios.get('http://localhost:5000/api/auth/me');
+            const { data } = await axios.get(`${API_BASE_URL}/auth/me`);
             setSavedIds(data.savedProperties.map(p => p._id || p));
         } catch (error) {
             console.error(error);
@@ -54,7 +55,7 @@ const PropertyMarketplace = () => {
         if (!user) return navigate('/login');
 
         try {
-            const { data } = await axios.post(`http://localhost:5000/api/auth/save-property/${id}`);
+            const { data } = await axios.post(`${API_BASE_URL}/auth/save-property/${id}`);
             setSavedIds(data);
         } catch (error) {
             console.error(error);
@@ -69,6 +70,17 @@ const PropertyMarketplace = () => {
         
         return agencyMatch && locationMatch && typeMatch && priceMatch && p.status !== 'Blocked' && p.isApproved;
     });
+
+    const getImageUrl = (url) => {
+        if (!url) return 'https://via.placeholder.com/400x220?text=Premium+Asset';
+        if (url.startsWith('http')) {
+            if (window.location.hostname !== 'localhost' && url.includes('localhost:5000')) {
+                return url.replace('http://localhost:5000', BACKEND_URL);
+            }
+            return url;
+        }
+        return `${BACKEND_URL}${url}`;
+    };
 
     return (
         <div className="section container animate-fade">
@@ -126,7 +138,7 @@ const PropertyMarketplace = () => {
                         return (
                              <div key={property._id} className="glass-card animate-fade" style={{ position: 'relative', background: 'var(--surface)', border: '1px solid var(--border)', padding: '1rem' }}>
                                 <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', marginBottom: '1.5rem', position: 'relative' }}>
-                                    <img src={property.images?.[0] || 'https://via.placeholder.com/400x220?text=Premium+Asset'} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={getImageUrl(property.images?.[0])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     <button 
                                         onClick={(e) => toggleSave(e, property._id)}
                                         style={{ position: 'absolute', top: '15px', right: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.3s' }}
