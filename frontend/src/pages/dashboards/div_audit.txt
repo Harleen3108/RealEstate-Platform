@@ -1,0 +1,20 @@
+Line 353: B=1 | {activeTab === "stats" && !selectedAgency && !selectedLead && (
+Line 886: B=1 | {activeTab === "agencies" && (
+Line 1514: B=1 | {activeTab === "properties" && (
+Line 2340: B=1 | {(activeTab === "users" || activeTab === "investors") && (
+Line 2354: B=3 | activeTab === "users" ? "TOTAL USERS" : "TOTAL INVESTORS",
+Line 2356: B=3 | activeTab === "users"
+Line 2365: B=3 | label: activeTab === "users" ? "ACTIVE AGENTS" : "AUM TOTAL",
+Line 2367: B=3 | activeTab === "users"
+Line 2370: B=3 | icon: activeTab === "users" ? UserPlus : Database,
+Line 2377: B=3 | activeTab === "users" ? "PENDING INVESTORS" : "PROJECTED ROI",
+Line 2378: B=3 | value: activeTab === "users" ? activeInvestors.length : "12.8%",
+Line 2386: B=3 | activeTab === "users" ? "NEW BUYERS" : "PENDING APPROVALS",
+Line 2388: B=3 | activeTab === "users"
+Line 2391: B=3 | icon: activeTab === "users" ? UserCheck : ShieldAlert,
+Line 3468: B=4 | {(activeTab === "users" ? activeBuyers : activeInvestors)
+Line 3655: B=5 | (activeTab === "users" ? activeBuyers : activeInvestors)
+Line 3739: B=1 | {activeTab === "leads" && (
+Line 4867: B=1 | {activeTab === "settings" && (
+
+Final: 1

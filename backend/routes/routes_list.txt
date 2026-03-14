@@ -1,0 +1,12 @@
+11: router.get('/stats', protect, authorize('Admin'), async (req, res) => {
+49: router.get('/users', protect, authorize('Admin'), async (req, res) => {
+60: router.patch('/users/:id/approve', protect, authorize('Admin'), async (req, res) => {
+77: router.patch('/properties/:id/block', protect, authorize('Admin'), async (req, res) => {
+94: router.delete('/properties/:id', protect, authorize('Admin'), async (req, res) => {
+110: router.post('/agencies', protect, authorize('Admin'), async (req, res) => {
+139: router.delete('/users/:id', protect, authorize('Admin'), async (req, res) => {
+162: router.patch('/users/:id/block', protect, authorize('Admin'), async (req, res) => {
+179: router.get('/users/:id/details', protect, authorize('Admin'), async (req, res) => {
+216: router.patch('/properties/:id/approve', protect, authorize('Admin'), async (req, res) => {
+232: router.patch('/properties/:id/block', protect, authorize('Admin'), async (req, res) => {
+248: router.delete('/properties/:id', protect, authorize('Admin'), async (req, res) => {
