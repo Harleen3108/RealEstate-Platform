@@ -322,6 +322,34 @@ router.patch('/properties/:id/block', protect, authorize('Admin'), async (req, r
     }
 });
 
+// @desc    Toggle flag status of a lead
+// @route   PATCH /api/admin/leads/:id/flag
+router.patch('/leads/:id/flag', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const lead = await Lead.findById(req.params.id);
+        if (!lead) return res.status(404).json({ message: 'Lead not found' });
 
+        lead.isFlagged = !lead.isFlagged;
+        await lead.save();
+
+        // Notify Agency
+        const title = lead.isFlagged ? 'Lead Flagged for Review' : 'Lead Review Resolved';
+        const message = lead.isFlagged 
+            ? `Admin has flagged the lead "${lead.name}" for suspicious activity. Please handle with caution.` 
+            : `The review flag on lead "${lead.name}" has been removed.`;
+            
+        await Notification.create({
+            recipient: lead.agency,
+            type: lead.isFlagged ? 'alert' : 'system',
+            title: title,
+            message: message,
+            relatedId: lead._id
+        });
+
+        res.json(lead);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 module.exports = router;

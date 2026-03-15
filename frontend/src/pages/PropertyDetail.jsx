@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
-import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User } from 'lucide-react';
+import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User, ChevronRight, Layout } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const PropertyDetail = () => {
@@ -87,155 +87,262 @@ const PropertyDetail = () => {
         return `${BACKEND_URL}${url}`;
     };
 
+    const getEmbedUrl = (url) => {
+        if (!url) return null;
+        
+        let cleanUrl = url.trim();
+
+        // 1. If the user pasted the entire <iframe> tag, extract only the src
+        if (cleanUrl.includes('<iframe')) {
+            const srcMatch = cleanUrl.match(/src=["']([^"']+)["']/);
+            if (srcMatch && srcMatch[1]) {
+                cleanUrl = srcMatch[1];
+            }
+        }
+
+        // 2. If it's already a proper embed URL, return it
+        if (cleanUrl.includes('/maps/embed') || cleanUrl.includes('output=embed')) {
+            return cleanUrl;
+        }
+
+        // 3. Handle standard "place" or "dir" URLs: .../maps/place/Some+Name/...
+        // We extract the place name or coordinates and build a clean search query
+        const placeMatch = cleanUrl.match(/\/maps\/(search|place)\/([^/@?]+)/);
+        if (placeMatch && placeMatch[2]) {
+            const query = decodeURIComponent(placeMatch[2].replace(/\+/g, ' '));
+            return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+        }
+
+        // 4. Handle coordinate-only URLs: .../maps/@26.345,75.342,15z
+        const coordMatch = cleanUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (coordMatch && coordMatch[1] && coordMatch[2]) {
+            return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&output=embed`;
+        }
+
+        // 5. Fallback for any google maps link: make sure output=embed is there
+        if (cleanUrl.includes('google.com/maps') || cleanUrl.includes('maps.google')) {
+            const separator = cleanUrl.includes('?') ? '&' : '?';
+            return `${cleanUrl}${separator}output=embed`;
+        }
+
+        return cleanUrl;
+    };
+
     if (!property) return <div className="container section">Property not found</div>;
 
     return (
-        <div className="section container animate-fade">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <button onClick={() => navigate(-1)} className="btn btn-outline" style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem', fontWeight: '700' }}>
-                    <ArrowLeft size={18} /> Back
-                </button>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                     <button className="btn btn-outline" style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', borderRadius: '50%', width: '45px', height: '45px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)' }}>
-                        <Share2 size={18} />
-                    </button>
-                    <button 
-                        onClick={toggleSave}
-                        className={`btn ${isSaved ? 'btn-primary' : 'btn-outline'}`} 
-                        style={{ borderRadius: '50%', width: '45px', height: '45px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isSaved ? 'var(--primary)' : 'var(--surface-light)', border: isSaved ? 'none' : '1px solid var(--border)', color: isSaved ? 'white' : 'var(--text)' }}
-                    >
-                        <Heart size={18} fill={isSaved ? 'white' : 'none'} />
-                    </button>
+        <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '4rem' }}>
+            {/* Navigation Header - Breadcrumbs */}
+            <div className="container" style={{ padding: '1.5rem 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
+                    <span onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Home</span>
+                    <ChevronRight size={14} />
+                    <span style={{ color: 'var(--primary)', fontWeight: '600' }}>{property.location}</span>
+                    <ChevronRight size={14} />
+                    <span style={{ color: '#1e293b', fontWeight: '700' }}>{property.title}</span>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '3rem' }}>
-                <div>
-                    <div style={{ height: '520px', borderRadius: '24px', overflow: 'hidden', marginBottom: '1.5rem', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                        <img src={getImageUrl(property.images?.[activeImage])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="container">
+                {/* Image Grid - Masonry style */}
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '2fr 1fr 1fr', 
+                    gridTemplateRows: 'repeat(2, 250px)', 
+                    gap: '12px', 
+                    borderRadius: '24px', 
+                    overflow: 'hidden', 
+                    marginBottom: '2.5rem' 
+                }}>
+                    <div style={{ gridRow: 'span 2' }}>
+                        <img src={getImageUrl(property.images?.[0])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    
-                    {/* Image Thumbnails */}
-                    {property.images && property.images.length > 1 && (
-                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                            {property.images.map((img, index) => (
-                                <div 
-                                    key={index}
-                                    onClick={() => setActiveImage(index)}
-                                    style={{ 
-                                        width: '100px', 
-                                        height: '70px', 
-                                        borderRadius: '12px', 
-                                        overflow: 'hidden', 
-                                        cursor: 'pointer',
-                                        border: activeImage === index ? '3px solid var(--primary)' : '1px solid var(--border)',
-                                        opacity: activeImage === index ? 1 : 0.7,
-                                        transition: 'all 0.2s ease',
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    <img src={getImageUrl(img)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {property.images?.[1] && (
+                        <div>
+                            <img src={getImageUrl(property.images[1])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                    )}
+                    {property.images?.[2] && (
+                        <div>
+                            <img src={getImageUrl(property.images[2])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                    )}
+                    {property.images?.[3] && (
+                        <div>
+                            <img src={getImageUrl(property.images[3])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                    )}
+                    {property.images?.[4] ? (
+                        <div style={{ position: 'relative' }}>
+                            <img src={getImageUrl(property.images[4])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            {property.images.length > 5 && (
+                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(249, 115, 22, 0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
+                                    <Layout size={24} />
+                                    <span style={{ fontWeight: '800', marginTop: '8px' }}>Show all {property.images.length} photos</span>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div style={{ background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                            <Home size={40} />
+                        </div>
+                    )}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) 350px', gap: '4rem' }}>
+                    {/* Left Column: Content */}
+                    <div>
+                        <div style={{ marginBottom: '2.5rem' }}>
+                            <div style={{ background: '#ffedd5', color: '#f97316', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', display: 'inline-block', marginBottom: '1rem' }}>
+                                {property.propertyType?.toUpperCase() || 'PREMIUM PROPERTY'}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a', marginBottom: '0.5rem' }}>{property.title}</h1>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f97316', fontWeight: '700' }}>
+                                        <MapPin size={18} /> {property.location}
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: '2rem', fontWeight: '900', color: '#f97316' }}>
+                                        ₹{property.price?.toLocaleString()}
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', color: '#64748b' }}>per month / total</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Quick Stats */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', marginBottom: '3rem' }}>
+                            {[
+                                { icon: Home, label: 'SQUARE FEET', value: `${property.size} SQFT`, color: '#f97316' },
+                                { icon: Bed, label: 'BEDROOMS', value: `${property.bedrooms} Beds`, color: '#f97316' },
+                                { icon: Bath, label: 'BATHROOMS', value: `${property.bathrooms} Bath`, color: '#f97316' }
+                            ].map((s, i) => (
+                                <div key={i} style={{ background: 'white', padding: '1.5rem', textAlign: 'center' }}>
+                                    <s.icon size={24} color={s.color} style={{ marginBottom: '0.8rem' }} />
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#1e293b' }}>{s.value}</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: '700', marginTop: '4px' }}>{s.label}</div>
                                 </div>
                             ))}
                         </div>
-                    )}
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
-                         <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--primary)', color: 'white', padding: '6px 16px', borderRadius: '30px', width: 'fit-content', boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)' }}>
-                                <Building2 size={16} />
-                                <span style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{property.propertyType}</span>
-                            </div>
-                            <h1 style={{ fontSize: '3rem', fontWeight: '900', marginTop: '1rem', color: 'var(--text)', lineHeight: '1.1' }}>{property.title}</h1>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', marginTop: '0.8rem', fontSize: '1.1rem' }}>
-                                <MapPin size={22} color="var(--primary)" /> {property.location}
+
+                        {/* Description */}
+                        <div style={{ marginBottom: '3rem' }}>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', marginBottom: '1.2rem' }}>The Vision</h3>
+                            <p style={{ fontSize: '1.1rem', color: '#475569', lineHeight: '1.8', whiteSpace: 'pre-line' }}>{property.description}</p>
+                        </div>
+
+                        {/* Amenities */}
+                        <div style={{ marginBottom: '3rem' }}>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', marginBottom: '1.5rem' }}>Key Amenities</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.2rem' }}>
+                                {property.amenities?.map((amenity, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                                        <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '8px', color: '#f97316' }}>
+                                            <CheckCircle2 size={18} />
+                                        </div>
+                                        <span style={{ fontWeight: '700', color: '#1e293b', fontSize: '0.9rem' }}>{amenity}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                             <div style={{ color: 'var(--text)', fontSize: '2.8rem', fontWeight: '900' }}>
-                                <span style={{ fontSize: '1.2rem', verticalAlign: 'top', marginRight: '4px', opacity: 0.7, color: 'var(--text-muted)' }}>₹</span>
-                                {property.price.toLocaleString()}
+
+                        {/* Location / Map */}
+                        <div>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', marginBottom: '1.5rem' }}>Location</h3>
+                            <div style={{ width: '100%', height: '400px', borderRadius: '24px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#f1f5f9' }}>
+                                {property.mapLocation ? (
+                                    property.mapLocation.includes('maps.app.goo.gl') ? (
+                                        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
+                                            <MapPin size={40} color="#94a3b8" style={{ marginBottom: '1rem' }} />
+                                            <p style={{ color: '#64748b', fontWeight: '600' }}>This map link is in a shortened format that cannot be displayed here.</p>
+                                            <a href={property.mapLocation} target="_blank" rel="noopener noreferrer" style={{ marginTop: '1rem', color: 'var(--primary)', fontWeight: '700', textDecoration: 'underline' }}>
+                                                View on Google Maps
+                                            </a>
+                                        </div>
+                                    ) : (
+                                        <iframe 
+                                            src={getEmbedUrl(property.mapLocation)}
+                                            width="100%" 
+                                            height="100%" 
+                                            style={{ border: 0 }} 
+                                            allowFullScreen="" 
+                                            loading="lazy" 
+                                            referrerPolicy="no-referrer-when-downgrade"
+                                        ></iframe>
+                                    )
+                                ) : (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                                        <MapPin size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                        <p style={{ fontWeight: '600' }}>{property.location}</p>
+                                        <p style={{ fontSize: '0.8rem' }}>Map view not available for this property</p>
+                                    </div>
+                                )}
                             </div>
-                            <div style={{ color: 'var(--success)', fontWeight: '700', fontSize: '0.9rem' }}>Market Verified Asset</div>
                         </div>
                     </div>
 
-                     <div className="glass-card" style={{ padding: '2.5rem', marginBottom: '2.5rem', background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.4rem', fontWeight: '800', color: 'var(--text)' }}>The Vision</h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.8', whiteSpace: 'pre-line', fontWeight: '600' }}>{property.description}</p>
-                    </div>
+                    {/* Right Column: Sticky Sidebar */}
+                    <div style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
+                        <div style={{ background: 'white', padding: '2rem', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)', border: '1px solid #f1f5f9' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#0f172a', marginBottom: '4px' }}>Express Interest</h3>
+                            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '2rem' }}>Schedule a visitor get more details.</p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
-                        {[
-                            { icon: Home, label: 'Area', value: `${property.size} SQFT` },
-                            { icon: Bed, label: 'Beds', value: property.bedrooms },
-                            { icon: Bath, label: 'Baths', value: property.bathrooms },
-                            { icon: CheckCircle, label: 'Status', value: property.status }
-                        ].map((amenity, i) => (
-                             <div key={i} className="glass-card" style={{ textAlign: 'center', padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                                <amenity.icon size={28} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-                                <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--text)' }}>{amenity.value}</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: '4px', fontWeight: '700' }}>{amenity.label}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                            {enquirySent ? (
+                                <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                                    <div style={{ width: '64px', height: '64px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                                        <CheckCircle size={32} color="#10b981" />
+                                    </div>
+                                    <h4 style={{ color: '#0f172a', fontWeight: '800' }}>Inquiry Sent!</h4>
+                                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem' }}>We'll be in touch shortly.</p>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleEnquiry}>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>FULL NAME</label>
+                                        <input type="text" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" required />
+                                    </div>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>EMAIL ADDRESS</label>
+                                        <input type="email" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600' }} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" required />
+                                    </div>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>PHONE NUMBER</label>
+                                        <input type="text" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600' }} value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+91 00000 00000" required />
+                                    </div>
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>MESSAGE</label>
+                                        <textarea rows="3" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600', resize: 'none' }} value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} placeholder="I am interested in this villa..." required></textarea>
+                                    </div>
+                                    <button type="submit" style={{ width: '100%', padding: '1rem', background: '#f97316', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(249, 115, 22, 0.3)' }}>
+                                        Send Inquiry
+                                    </button>
+                                </form>
+                            )}
 
-                <div style={{ position: 'sticky', top: '120px', height: 'fit-content' }}>
-                    <div className="glass-card" style={{ border: '2px solid var(--primary)', padding: '2.5rem' }}>
-                        <h3 style={{ marginBottom: '1.8rem', display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '1.4rem' }}>
-                            <MessageCircle size={28} color="var(--primary)" /> Express Interest
-                        </h3>
-                        
-                        {enquirySent ? (
-                            <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-                                <div style={{ width: '80px', height: '80px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                                    <CheckCircle size={40} color="var(--success)" />
+                            {/* Agent Info */}
+                            <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: '#f8fafc', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {property.agency?.profileImage ? (
+                                            <img src={getImageUrl(property.agency.profileImage)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                                        ) : (
+                                            <User size={24} color="#f97316" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: '800', color: '#0f172a' }}>{property.agency?.name}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>Property Advisor • Active partner</div>
+                                    </div>
                                 </div>
-                                <h4 style={{ fontSize: '1.2rem' }}>Interest Logged!</h4>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.8rem' }}>The Listing Agency has been notified and will reach out to you shortly.</p>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleEnquiry}>
-                                 <div className="input-group">
-                                    <label style={{ color: 'var(--text-muted)', fontWeight: '700' }}>Full Name</label>
-                                    <input type="text" className="input-control" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                                </div>
-                                <div className="input-group">
-                                    <label style={{ color: 'var(--text-muted)', fontWeight: '700' }}>Email Address</label>
-                                    <input type="email" className="input-control" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                                </div>
-                                <div className="input-group">
-                                    <label style={{ color: 'var(--text-muted)', fontWeight: '700' }}>Phone Number</label>
-                                    <input type="text" className="input-control" required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                                </div>
-                                <div className="input-group">
-                                    <label style={{ color: 'var(--text-muted)', fontWeight: '700' }}>Message</label>
-                                    <textarea 
-                                        className="input-control" 
-                                        rows="4" 
-                                        placeholder="Discuss viewing times or requirements..."
-                                        value={formData.message}
-                                        onChange={(e) => setFormData({...formData, message: e.target.value})}
-                                        required
-                                        style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                                    ></textarea>
-                                </div>
-                                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '1.1rem', fontSize: '1rem', fontWeight: '800', marginTop: '1rem' }}>
-                                    Submit Enquiry
-                                </button>
-                                {!user && <p style={{ textAlign: 'center', marginTop: '1.2rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Login to start negotiating</p>}
-                            </form>
-                        )}
-                        
-                         <div style={{ borderTop: '1px solid var(--border)', marginTop: '2.5rem', paddingTop: '2rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-                                <div style={{ width: '55px', height: '55px', borderRadius: '50%', background: 'var(--surface-light)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <User size={26} color="var(--primary)" />
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '800' }}>Managing Agency</div>
-                                    <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text)' }}>{property.agency?.name}</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    <button onClick={() => window.location.href = `tel:${property.agency?.phoneNumber}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.6rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#1e293b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                                        <Phone size={14} /> Call
+                                    </button>
+                                    <button onClick={() => window.location.href = `mailto:${property.agency?.email}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.6rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#1e293b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                                        <Mail size={14} /> Email
+                                    </button>
                                 </div>
                             </div>
                         </div>

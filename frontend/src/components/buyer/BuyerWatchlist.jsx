@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
 import { Heart, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import AnimatedCounter from '../common/AnimatedCounter';
 
 const BuyerWatchlist = ({ savedProperties, handleRemoveSaved, getImageUrl }) => {
     if (savedProperties.length === 0) {
@@ -37,7 +37,7 @@ const BuyerWatchlist = ({ savedProperties, handleRemoveSaved, getImageUrl }) => 
                             <MapPin size={12} color="var(--primary)" /> {p.location}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--text)' }}>₹{p.price.toLocaleString()}</div>
+                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--text)' }}><AnimatedCounter value={`₹${p.price}`} /></div>
                             <Link to={`/property/${p._id}`} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', borderColor: 'var(--border)', color: 'var(--text)' }}>Explore Case</Link>
                         </div>
                     </div>

@@ -37,6 +37,7 @@ const AgencyDashboard = () => {
         title: '',
         description: '',
         location: '',
+        mapLocation: '',
         propertyType: 'Apartment',
         price: '',
         size: '',
@@ -126,7 +127,7 @@ const AgencyDashboard = () => {
             setShowPropForm(false);
             setEditingProp(null);
             setPropData({
-                title: '', description: '', location: '', propertyType: 'Apartment',
+                title: '', description: '', location: '', mapLocation: '', propertyType: 'Apartment',
                 price: '', size: '', bedrooms: '', bathrooms: '', amenities: '',
                 status: 'Available', images: [], documents: []
             });

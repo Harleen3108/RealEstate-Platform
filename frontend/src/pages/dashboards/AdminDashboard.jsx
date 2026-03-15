@@ -39,10 +39,13 @@ import {
   Save,
   Upload,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import AnimatedCounter from "../../components/common/AnimatedCounter";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { tab } = useParams();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalInvestors: 0,
     totalLeads: 0,
@@ -95,6 +98,7 @@ const AdminDashboard = () => {
     title: "",
     description: "",
     location: "",
+    mapLocation: "",
     propertyType: "Apartment",
     price: "",
     size: "",
@@ -128,6 +132,26 @@ const AdminDashboard = () => {
     minPrice: "",
     maxPrice: "",
   });
+
+  // Settings State
+  const [adminProfile, setAdminProfile] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setAdminProfile((prev) => ({
+        ...prev,
+        name: user.name,
+        email: user.email,
+      }));
+    }
+  }, [user]);
 
   const filteredProperties = properties.filter((p) => {
     const matchesType =
@@ -166,7 +190,9 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchAdminData();
-  }, []);
+    const intervalId = setInterval(fetchAdminData, 30000);
+    return () => clearInterval(intervalId);
+  }, [tab]);
 
   const fetchAdminData = async () => {
     try {
@@ -233,6 +259,38 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateSettings = async (e) => {
+    e.preventDefault();
+    if (adminProfile.newPassword && adminProfile.newPassword !== adminProfile.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    setSaveLoading(true);
+    try {
+      // 1. Update Profile (Name/Email - although email is read-only in UI, we still send it)
+      await axios.patch(`${API_BASE_URL}/users/profile`, {
+        name: adminProfile.name,
+      });
+
+      // 2. Update Password if provided
+      if (adminProfile.currentPassword && adminProfile.newPassword) {
+        await axios.patch(`${API_BASE_URL}/users/profile/password`, {
+          currentPassword: adminProfile.currentPassword,
+          newPassword: adminProfile.newPassword,
+        });
+      }
+
+      alert("Settings updated successfully! Please re-login if you changed your password.");
+      setAdminProfile(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || "Failed to update settings");
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
   const handleBlockUser = async (id, isBlocked) => {
     try {
       await axios.patch(`${API_BASE_URL}/admin/users/${id}/block`, {
@@ -247,6 +305,22 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       alert("Failed to update block status");
+    }
+  };
+
+  const handleFlagLead = async (id) => {
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/admin/leads/${id}/flag`);
+      fetchAdminData(); // Refresh leads table
+      if (selectedLead?._id === id) {
+        setSelectedLead({
+          ...selectedLead,
+          isFlagged: response.data.isFlagged
+        });
+      }
+    } catch (error) {
+      console.error("Failed to flag lead", error);
+      alert("Failed to update lead flag status");
     }
   };
 
@@ -352,6 +426,7 @@ const AdminDashboard = () => {
         title: "",
         description: "",
         location: "",
+        mapLocation: "",
         propertyType: "Apartment",
         price: "",
         size: "",
@@ -473,6 +548,30 @@ const AdminDashboard = () => {
     return `${BACKEND_URL}${url}`;
   };
 
+  const getEmbedUrl = (url) => {
+    if (!url) return null;
+    let cleanUrl = url.trim();
+    if (cleanUrl.includes('<iframe')) {
+      const srcMatch = cleanUrl.match(/src=["']([^"']+)["']/);
+      if (srcMatch && srcMatch[1]) cleanUrl = srcMatch[1];
+    }
+    if (cleanUrl.includes('/maps/embed') || cleanUrl.includes('output=embed')) return cleanUrl;
+    const placeMatch = cleanUrl.match(/\/maps\/(search|place)\/([^/@?]+)/);
+    if (placeMatch && placeMatch[2]) {
+      const query = decodeURIComponent(placeMatch[2].replace(/\+/g, ' '));
+      return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+    }
+    const coordMatch = cleanUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (coordMatch && coordMatch[1] && coordMatch[2]) {
+      return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&output=embed`;
+    }
+    if (cleanUrl.includes('google.com/maps') || cleanUrl.includes('maps.google')) {
+      const separator = cleanUrl.includes('?') ? '&' : '?';
+      return `${cleanUrl}${separator}output=embed`;
+    }
+    return cleanUrl;
+  };
+
   if (loading)
     return (
       <div
@@ -548,6 +647,13 @@ const AdminDashboard = () => {
   );
   const activeBuyers = users.filter((u) => u.role?.toLowerCase() === "buyer");
   const pendingAgenciesList = activeAgencies.filter((a) => !a.isApproved);
+
+  // Quick Stats for other tabs
+  const agencyCount = users.filter(u => u.role === 'Agency').length;
+  const investorCount = users.filter(u => u.role === 'Investor').length;
+  const buyerCount = users.filter(u => u.role === 'Buyer').length;
+  const propertyCount = properties.length;
+  const totalLeadCount = leads.length;
 
   return (
     <div className="animate-fade">
@@ -671,7 +777,7 @@ const AdminDashboard = () => {
                           color: "var(--text)",
                         }}
                       >
-                        {item.value}
+                        <AnimatedCounter value={item.value} />
                       </div>
                       <div
                         style={{
@@ -1165,7 +1271,7 @@ const AdminDashboard = () => {
                 Agency Management
               </h3>
               <p style={{ color: "var(--text-muted)" }}>
-                Oversee and regulate {activeAgencies.length} registered firms
+                Oversee and regulate <AnimatedCounter value={activeAgencies.length} /> registered firms
                 across the network.
               </p>
             </div>
@@ -1666,6 +1772,13 @@ const AdminDashboard = () => {
                       </button>
                       <button
                         className="btn btn-outline"
+                        onClick={() => {
+                          if (agencyDetails.agency.phoneNumber) {
+                            window.location.href = `tel:${agencyDetails.agency.phoneNumber}`;
+                          } else {
+                            alert("No phone number provided for this agency.");
+                          }
+                        }}
                         style={{
                           width: "100%",
                           border: "none",
@@ -1694,7 +1807,7 @@ const AdminDashboard = () => {
                           color: "var(--text-muted)",
                         }}
                       >
-                        {agencyDetails.properties.length} total listings
+                        <AnimatedCounter value={agencyDetails.properties.length} /> total listings
                       </span>
                     </div>
                     <div
@@ -1861,7 +1974,7 @@ const AdminDashboard = () => {
                     color: "var(--text)",
                   }}
                 >
-                  {card.value}
+                  <AnimatedCounter value={card.value} />
                 </div>
                 <div
                   style={{
@@ -2015,6 +2128,44 @@ const AdminDashboard = () => {
                           color: "var(--text)",
                         }}
                       />
+                    </div>
+                    <div className="input-group">
+                      <label style={{ color: "var(--text-muted)" }}>
+                        Map Embed URL
+                      </label>
+                      <input
+                        type="url"
+                        className="input-control"
+                        placeholder="https://www.google.com/maps/embed?..."
+                        value={propData.mapLocation}
+                        onChange={(e) =>
+                          setPropData({ ...propData, mapLocation: e.target.value })
+                        }
+                        style={{
+                          background: "var(--surface-light)",
+                          border: "1px solid var(--border)",
+                          color: "var(--text)",
+                        }}
+                      />
+                      <small style={{ color: "var(--text-muted)", fontSize: "0.7rem", display: "block", marginTop: "4px" }}>
+                        Paste Google Maps URL or Embed `src`. <b>Avoid shortened `maps.app.goo.gl` links.</b>
+                      </small>
+                      {propData.mapLocation && propData.mapLocation.includes('maps.app.goo.gl') && (
+                        <div style={{ color: 'var(--error)', fontSize: '0.75rem', marginTop: '8px', fontWeight: '700', background: 'rgba(239, 68, 68, 0.1)', padding: '8px', borderRadius: '6px' }}>
+                          ⚠️ Shortened links (maps.app.goo.gl) are blocked by Google. Please open the link in your browser and copy the FULL URL from the address bar.
+                        </div>
+                      )}
+                      {propData.mapLocation && !propData.mapLocation.includes('maps.app.goo.gl') && (
+                        <div style={{ marginTop: '10px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', height: '120px' }}>
+                          <iframe 
+                            src={getEmbedUrl(propData.mapLocation)} 
+                            width="100%" 
+                            height="100%" 
+                            style={{ border: 0 }}
+                            title="Map Preview"
+                          ></iframe>
+                        </div>
+                      )}
                     </div>
                     <div className="input-group">
                       <label style={{ color: "var(--text-muted)" }}>
@@ -2898,7 +3049,7 @@ const AdminDashboard = () => {
                                 color: "var(--text-muted)",
                               }}
                             >
-                              {agencyListingCount} listings
+                              <AnimatedCounter value={agencyListingCount} /> listings
                             </div>
                           </div>
                         </div>
@@ -2915,18 +3066,6 @@ const AdminDashboard = () => {
                     );
                   })}
                 </div>
-                <button
-                  className="btn btn-outline"
-                  style={{
-                    width: "100%",
-                    marginTop: "1.5rem",
-                    border: "1px solid var(--primary)",
-                    color: "var(--primary)",
-                    fontWeight: "700",
-                  }}
-                >
-                  Analyze Agency Data
-                </button>
               </div>
 
               {/* Create New Listing Button (Reference style) */}
@@ -3054,9 +3193,7 @@ const AdminDashboard = () => {
                     color: "var(--text)",
                   }}
                 >
-                  {typeof card.value === "number"
-                    ? card.value.toLocaleString()
-                    : card.value}
+                  <AnimatedCounter value={card.value} />
                 </div>
                 <div
                   style={{
@@ -3106,7 +3243,7 @@ const AdminDashboard = () => {
                         width: "100px",
                         height: "100px",
                         borderRadius: "2rem",
-                        background: "var(--surface-light)",
+                        background: userDetails.user.profileImage ? `url(${getImageUrl(userDetails.user.profileImage)}) center/cover no-repeat` : "var(--surface-light)",
                         margin: "0 auto 1.5rem",
                         display: "flex",
                         alignItems: "center",
@@ -3117,7 +3254,7 @@ const AdminDashboard = () => {
                         border: "1px solid var(--border)",
                       }}
                     >
-                      {userDetails.user.name.slice(0, 2).toUpperCase()}
+                      {!userDetails.user.profileImage ? userDetails.user.name.slice(0, 2).toUpperCase() : ""}
                     </div>
                     <h4
                       style={{
@@ -3622,16 +3759,41 @@ const AdminDashboard = () => {
                   {/* Agency Specific Section */}
                   {userDetails.user.role === "Agency" &&
                     userDetails.agencyData && (
-                      <div className="glass-card" style={{ padding: "2rem" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "1.5rem",
-                          }}
-                        >
-                          <h4 style={{ fontSize: "1.2rem", fontWeight: "800" }}>
+                      <>
+                        <div className="glass-card" style={{ padding: "2rem" }}>
+                          <h4 style={{ fontSize: "1.2rem", fontWeight: "800", marginBottom: "1.5rem" }}>Company Profile</h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>
+                            <div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)' }}>AGENCY NAME</div>
+                                <div style={{ fontSize: '1rem', fontWeight: '700' }}>{userDetails.user.agencyName || 'Not Provided'}</div>
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)' }}>LOCATION</div>
+                                <div style={{ fontSize: '1rem', fontWeight: '700' }}>{userDetails.user.location || 'Not Provided'}</div>
+                            </div>
+                            <div style={{ gridColumn: 'span 2' }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)' }}>WEBSITE</div>
+                                <div style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--primary)' }}>
+                                    {userDetails.user.website ? <a href={userDetails.user.website.startsWith('http') ? userDetails.user.website : `https://${userDetails.user.website}`} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{userDetails.user.website}</a> : 'Not Provided'}
+                                </div>
+                            </div>
+                            <div style={{ gridColumn: 'span 2' }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)' }}>BIOGRAPHY</div>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'pre-line', lineHeight: '1.5' }}>{userDetails.user.bio || 'No biography provided.'}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="glass-card" style={{ padding: "2rem" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginBottom: "1.5rem",
+                            }}
+                          >
+                            <h4 style={{ fontSize: "1.2rem", fontWeight: "800" }}>
                             Management Inventory
                           </h4>
                           <span
@@ -3688,6 +3850,7 @@ const AdminDashboard = () => {
                           ))}
                         </div>
                       </div>
+                      </>
                     )}
 
                   {/* Enquiry History */}
@@ -4519,9 +4682,10 @@ const AdminDashboard = () => {
                         fontSize: "2.2rem",
                         fontWeight: "900",
                         color: "var(--text)",
+                        letterSpacing: "-1px",
                       }}
                     >
-                      {card.value}
+                      <AnimatedCounter value={card.value} />
                     </div>
                   </div>
                 ))}
@@ -5011,6 +5175,20 @@ const AdminDashboard = () => {
                                       ? "Commercial Lease"
                                       : "Residential Buying"}
                                 </div>
+                                {lead.isFlagged && (
+                                  <div style={{
+                                    fontSize: "0.65rem",
+                                    background: "#ef4444",
+                                    color: "white",
+                                    padding: "2px 6px",
+                                    borderRadius: "4px",
+                                    fontWeight: "800",
+                                    display: "inline-block",
+                                    marginTop: "4px"
+                                  }}>
+                                    FLAGGED
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -5303,13 +5481,7 @@ const AdminDashboard = () => {
                       >
                         {selectedLead.phoneNumber || "+1 (555) 000-0000"}
                       </div>
-                    </div>
-                    <button
-                      className="btn btn-primary"
-                      style={{ marginTop: "1rem", width: "100%" }}
-                    >
-                      Direct Message
-                    </button>
+                    </div>                   
                   </div>
                 </div>
 
@@ -5399,6 +5571,7 @@ const AdminDashboard = () => {
                     </div>
                     <button
                       className="btn btn-outline"
+                      onClick={() => navigate(`/property/${selectedLead.property?._id}`)}
                       style={{
                         width: "100%",
                         borderColor: "var(--border)",
@@ -5510,13 +5683,14 @@ const AdminDashboard = () => {
                     </div>
                     <button
                       className="btn btn-outline"
+                      onClick={() => handleFlagLead(selectedLead._id)}
                       style={{
                         width: "100%",
-                        borderColor: "#ef4444",
-                        color: "#ef4444",
+                        borderColor: selectedLead.isFlagged ? "#10b981" : "#ef4444",
+                        color: selectedLead.isFlagged ? "#10b981" : "#ef4444",
                       }}
                     >
-                      Flag for Review
+                      {selectedLead.isFlagged ? "Resolve Audit Flag" : "Flag for Review"}
                     </button>
                   </div>
                 </div>
@@ -5658,7 +5832,8 @@ const AdminDashboard = () => {
                   <input
                     type="text"
                     className="input-control"
-                    defaultValue="Registry Master Node"
+                    value={adminProfile.name}
+                    onChange={(e) => setAdminProfile({ ...adminProfile, name: e.target.value })}
                     style={{
                       background: "var(--surface-light)",
                       border: "1px solid var(--border)",
@@ -5677,20 +5852,55 @@ const AdminDashboard = () => {
                       display: "block",
                     }}
                   >
-                    RECOVERY CHANNEL
+                    RECOVERY CHANNEL (EMAIL)
                   </label>
                   <input
                     type="email"
                     className="input-control"
-                    defaultValue="ops@estate-hq.pro"
+                    value={adminProfile.email}
+                    readOnly
                     style={{
-                      background: "var(--surface-light)",
+                      background: "rgba(226, 232, 240, 0.4)",
                       border: "1px solid var(--border)",
-                      color: "var(--text)",
+                      color: "var(--text-muted)",
                       padding: "12px 1rem",
+                      cursor: "not-allowed",
                     }}
                   />
+                  <small style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                    Email is locked for administrative security.
+                  </small>
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                    <div className="input-group">
+                        <label style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>
+                            CURRENT PASSWORD
+                        </label>
+                        <input
+                            type="password"
+                            className="input-control"
+                            placeholder="Required for any changes"
+                            value={adminProfile.currentPassword}
+                            onChange={(e) => setAdminProfile({ ...adminProfile, currentPassword: e.target.value })}
+                            style={{ background: "var(--surface-light)", border: "1px solid var(--border)", color: "var(--text)", padding: "12px 1rem" }}
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>
+                            NEW PASSWORD
+                        </label>
+                        <input
+                            type="password"
+                            className="input-control"
+                            placeholder="Leave blank to keep current"
+                            value={adminProfile.newPassword}
+                            onChange={(e) => setAdminProfile({ ...adminProfile, newPassword: e.target.value })}
+                            style={{ background: "var(--surface-light)", border: "1px solid var(--border)", color: "var(--text)", padding: "12px 1rem" }}
+                        />
+                    </div>
+                </div>
+
                 <div
                   style={{
                     padding: "1.5rem",
@@ -5716,19 +5926,21 @@ const AdminDashboard = () => {
                       lineHeight: "1.5",
                     }}
                   >
-                    Multi-factor authentication is currently enforced for all
-                    administrative level access points.
+                    Updating sensitive credentials requires the current administrative 
+                    passphrase to verify node ownership.
                   </p>
                 </div>
                 <button
                   className="btn btn-primary"
+                  onClick={handleUpdateSettings}
+                  disabled={saveLoading}
                   style={{
                     padding: "1rem",
                     fontWeight: "800",
                     boxShadow: "0 10px 20px -5px rgba(194, 65, 12, 0.4)",
                   }}
                 >
-                  Encrypt & Save Changes
+                  {saveLoading ? "Synchronizing..." : "Encrypt & Save Changes"}
                 </button>
               </div>
             </div>

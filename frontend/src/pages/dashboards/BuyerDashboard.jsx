@@ -27,7 +27,7 @@ const BuyerDashboard = () => {
         try {
             const [userRes, leadRes] = await Promise.all([
                 axios.get(`${API_BASE_URL}/auth/me`),
-                axios.get(`${API_BASE_URL}/leads`)
+                axios.get(`${API_BASE_URL}/leads/my-enquiries`)
             ]);
             setSavedProperties(userRes.data.savedProperties || []);
             setEnquiries(leadRes.data || []);

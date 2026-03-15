@@ -1,5 +1,5 @@
-import React from 'react';
 import { Building2, Plus, Edit, Trash2, MapPin, Upload, FileText, X, Save } from 'lucide-react';
+import AnimatedCounter from '../common/AnimatedCounter';
 
 const AgencyInventory = ({ 
     properties, 
@@ -18,6 +18,30 @@ const AgencyInventory = ({
     handleFileUpload, 
     getImageUrl 
 }) => {
+    const getEmbedUrl = (url) => {
+        if (!url) return null;
+        let cleanUrl = url.trim();
+        if (cleanUrl.includes('<iframe')) {
+            const srcMatch = cleanUrl.match(/src=["']([^"']+)["']/);
+            if (srcMatch && srcMatch[1]) cleanUrl = srcMatch[1];
+        }
+        if (cleanUrl.includes('/maps/embed') || cleanUrl.includes('output=embed')) return cleanUrl;
+        const placeMatch = cleanUrl.match(/\/maps\/(search|place)\/([^/@?]+)/);
+        if (placeMatch && placeMatch[2]) {
+            const query = decodeURIComponent(placeMatch[2].replace(/\+/g, ' '));
+            return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+        }
+        const coordMatch = cleanUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (coordMatch && coordMatch[1] && coordMatch[2]) {
+            return `https://maps.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&output=embed`;
+        }
+        if (cleanUrl.includes('google.com/maps') || cleanUrl.includes('maps.google')) {
+            const separator = cleanUrl.includes('?') ? '&' : '?';
+            return `${cleanUrl}${separator}output=embed`;
+        }
+        return cleanUrl;
+    };
+
     return (
         <div className="animate-fade">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -98,6 +122,29 @@ const AgencyInventory = ({
                         <div className="input-group">
                             <label style={{ color: 'var(--text-muted)' }}>Location / City</label>
                             <input type="text" className="input-control" required value={propData.location} onChange={e => setPropData({...propData, location: e.target.value})} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                        </div>
+                        <div className="input-group">
+                            <label style={{ color: 'var(--text-muted)' }}>Map Embed URL</label>
+                            <input type="url" className="input-control" placeholder="https://www.google.com/maps/embed?..." value={propData.mapLocation} onChange={e => setPropData({...propData, mapLocation: e.target.value})} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                            <small style={{ color: 'var(--text-muted)', fontSize: '0.7rem', display: 'block', marginTop: '4px' }}>
+                                Paste Google Maps URL or Embed `src`. <b>Avoid shortened `maps.app.goo.gl` links.</b>
+                            </small>
+                            {propData.mapLocation && propData.mapLocation.includes('maps.app.goo.gl') && (
+                                <div style={{ color: 'var(--error)', fontSize: '0.75rem', marginTop: '8px', fontWeight: '700', background: 'rgba(239, 68, 68, 0.1)', padding: '8px', borderRadius: '6px' }}>
+                                    ⚠️ Shortened links (maps.app.goo.gl) are blocked by Google. Please open the link in your browser and copy the FULL URL from the address bar.
+                                </div>
+                            )}
+                            {propData.mapLocation && !propData.mapLocation.includes('maps.app.goo.gl') && (
+                                <div style={{ marginTop: '10px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', height: '120px' }}>
+                                    <iframe 
+                                        src={getEmbedUrl(propData.mapLocation)} 
+                                        width="100%" 
+                                        height="100%" 
+                                        style={{ border: 0 }}
+                                        title="Map Preview"
+                                    ></iframe>
+                                </div>
+                            )}
                         </div>
                         <div className="input-group">
                             <label style={{ color: 'var(--text-muted)' }}>Property Category</label>
@@ -187,7 +234,7 @@ const AgencyInventory = ({
                         <div style={{ padding: '1.2rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                                 <h5 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text)' }}>{p.title}</h5>
-                                <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--primary)' }}>₹{p.price.toLocaleString()}</div>
+                                <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--primary)' }}><AnimatedCounter value={`₹${p.price}`} /></div>
                             </div>
                             <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
                                 <MapPin size={12} /> {p.location}

@@ -1,5 +1,5 @@
-import React from 'react';
 import { Mail, Phone, MessageSquare, X } from 'lucide-react';
+import AnimatedCounter from '../common/AnimatedCounter';
 
 const AgencyCRM = ({ 
     leads, 
@@ -34,7 +34,7 @@ const AgencyCRM = ({
                                 alignItems: 'center'
                             }}>
                                 <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--text)' }}>{stage.toUpperCase()}</span>
-                                <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{stageLeads.length}</span>
+                                <span style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', color: 'var(--text-muted)' }}><AnimatedCounter value={stageLeads.length} /></span>
                             </div>
                             
                             <div style={{ 
@@ -69,7 +69,7 @@ const AgencyCRM = ({
                                             >
                                                 {stages.map(s => <option key={s} value={s}>{s}</option>)}
                                             </select>
-                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{lead.notes?.length || 0} notes</div>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}><AnimatedCounter value={lead.notes?.length || 0} /> notes</div>
                                         </div>
                                     </div>
                                 ))}

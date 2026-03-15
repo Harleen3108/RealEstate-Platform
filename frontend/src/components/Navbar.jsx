@@ -141,7 +141,7 @@ const Navbar = () => {
                     
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-                            <Link to={`/dashboard/${user.role.toLowerCase()}`} style={{ width: '45px', height: '45px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                            <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} style={{ width: '45px', height: '45px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                                 <div style={{ width: '100%', height: '100%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '800' }}>
                                     {user.name.slice(0,1).toUpperCase()}
                                 </div>

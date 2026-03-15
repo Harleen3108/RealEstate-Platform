@@ -19,6 +19,19 @@ router.get('/', protect, authorize('Agency', 'Admin'), async (req, res) => {
     }
 });
 
+// @desc    Get buyer's own enquiries
+// @route   GET /api/leads/my-enquiries
+router.get('/my-enquiries', protect, async (req, res) => {
+    try {
+        const leads = await Lead.find({ buyer: req.user._id })
+            .populate('property', 'title price location images')
+            .populate('agency', 'name email phoneNumber');
+        res.json(leads);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // @desc    Create a new lead (Buyer)
 // @route   POST /api/leads
 router.post('/', protect, async (req, res) => {

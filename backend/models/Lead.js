@@ -21,7 +21,8 @@ const leadSchema = new mongoose.Schema({
     notes: [{ 
         content: String, 
         date: { type: Date, default: Date.now } 
-    }]
+    }],
+    isFlagged: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Lead', leadSchema);

@@ -67,8 +67,10 @@ const DashboardLayout = () => {
             { label: 'Settings', path: '/dashboard/investor/settings', icon: Settings },
         ],
         Buyer: [
-            { label: 'Saved', path: '/dashboard/buyer', icon: Building2 },
-            { label: 'Enquiries', path: '/dashboard/buyer/enquiries', icon: Users },
+            { label: 'Dashboard', path: '/dashboard/user/dashboard', icon: LayoutDashboard },
+            { label: 'Browse', path: '/dashboard/user/browse', icon: Search },
+            { label: 'Saved', path: '/dashboard/user/saved', icon: Building2 },
+            { label: 'Enquiries', path: '/dashboard/user/enquiries', icon: Users },
         ],
         Admin: [
             { label: 'Overview', path: '/dashboard/admin', icon: LayoutDashboard },

@@ -23,6 +23,7 @@ const propertySchema = new mongoose.Schema({
     images: [{ type: String }],
     documents: [{ type: String }],
     amenities: [{ type: String }],
+    mapLocation: { type: String },
     builder: { type: String }
 }, { timestamps: true });
 

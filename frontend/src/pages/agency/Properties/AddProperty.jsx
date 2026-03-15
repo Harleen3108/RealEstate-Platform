@@ -19,6 +19,7 @@ const AddProperty = () => {
         title: '',
         description: '',
         location: '',
+        mapLocation: '',
         propertyType: 'Apartment',
         price: '',
         size: '',
@@ -131,6 +132,18 @@ const AddProperty = () => {
                     <div className="input-group">
                         <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Location / City</label>
                         <input type="text" className="input-control" required value={propData.location} onChange={e => setPropData({...propData, location: e.target.value})} style={{ background: 'var(--surface-light)', color: 'var(--text)' }} />
+                    </div>
+                    <div className="input-group">
+                        <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Map Embed URL</label>
+                        <input type="url" className="input-control" placeholder="https://www.google.com/maps/embed?..." value={propData.mapLocation} onChange={e => setPropData({...propData, mapLocation: e.target.value})} style={{ background: 'var(--surface-light)', color: 'var(--text)' }} />
+                        <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '4px' }}>
+                            Paste Google Maps URL or Embed `src`. <b>Avoid shortened `maps.app.goo.gl` links.</b>
+                        </small>
+                        {propData.mapLocation && propData.mapLocation.includes('maps.app.goo.gl') && (
+                            <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '10px', fontWeight: '700', background: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                ⚠️ Shortened links (maps.app.goo.gl) are blocked from being embedded by Google. Please open the link, then copy the FULL URL from your browser's address bar.
+                            </div>
+                        )}
                     </div>
                     <div className="input-group">
                         <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Property Category</label>

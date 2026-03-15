@@ -21,7 +21,11 @@ const AllProperties = () => {
     const propertyTypes = ['Apartment', 'Villa', 'Commercial', 'Land'];
 
     useEffect(() => {
-        if (user) fetchProperties();
+        if (user) {
+            fetchProperties();
+            const intervalId = setInterval(fetchProperties, 30000);
+            return () => clearInterval(intervalId);
+        }
     }, [user]);
 
     const fetchProperties = async () => {

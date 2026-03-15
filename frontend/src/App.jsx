@@ -19,6 +19,13 @@ import AgencySettings from './pages/agency/Settings';
 import InvestorDashboard from './pages/dashboards/InvestorDashboard';
 import AdminDashboard from './pages/dashboards/AdminDashboard';
 import BuyerDashboard from './pages/dashboards/BuyerDashboard';
+import UserLayout from './layouts/UserLayout';
+import UserDashboard from './pages/user/Dashboard';
+import BrowseProperties from './pages/user/BrowseProperties';
+import SavedProperties from './pages/user/SavedProperties';
+import MyEnquiries from './pages/user/MyEnquiries';
+import UserProfile from './pages/user/Profile';
+import UserSettings from './pages/user/Settings';
 
 function App() {
   return (
@@ -49,6 +56,16 @@ function App() {
               <Route path="investor/:tab?" element={<InvestorDashboard />} />
               <Route path="admin/:tab?" element={<AdminDashboard />} />
               <Route path="buyer/:tab?" element={<BuyerDashboard />} />
+            </Route>
+
+            {/* New User Panel Portal */}
+            <Route path="/dashboard/user" element={<UserLayout />}>
+              <Route path="dashboard" element={<UserDashboard />} />
+              <Route path="browse" element={<BrowseProperties />} />
+              <Route path="saved" element={<SavedProperties />} />
+              <Route path="enquiries" element={<MyEnquiries />} />
+              <Route path="profile" element={<UserProfile />} />
+              <Route path="settings" element={<UserSettings />} />
             </Route>
           </Routes>
         </main>

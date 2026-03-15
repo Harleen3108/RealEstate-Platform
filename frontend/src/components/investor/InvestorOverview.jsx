@@ -1,5 +1,5 @@
-import React from 'react';
 import { Wallet, Landmark, TrendingUp, Building2, ArrowUpRight } from 'lucide-react';
+import AnimatedCounter from '../common/AnimatedCounter';
 
 const InvestorOverview = ({ stats, investments, setActiveTab }) => {
     return (
@@ -14,7 +14,9 @@ const InvestorOverview = ({ stats, investments, setActiveTab }) => {
                 ].map((s, i) => (
                     <div key={i} className="glass-card" style={{ padding: '1.5rem', position: 'relative', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px' }}>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: '800', marginBottom: '0.6rem', letterSpacing: '0.5px' }}>{s.label}</div>
-                        <div style={{ fontSize: '1.8rem', fontWeight: '900', color: s.color, marginBottom: '0.4rem' }}>{s.value}</div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: '900', color: s.color, marginBottom: '0.4rem' }}>
+                            <AnimatedCounter value={s.value} />
+                        </div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             {s.sub}
                         </div>
@@ -33,7 +35,7 @@ const InvestorOverview = ({ stats, investments, setActiveTab }) => {
                     </div>
                     <div style={{ position: 'relative', height: '220px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <div style={{ width: '160px', height: '160px', borderRadius: '50%', border: '15px solid var(--primary)', borderRightColor: 'var(--accent)', borderBottomColor: 'var(--success)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-                            <div style={{ fontSize: '1.5rem', fontWeight: '900' }}>{stats.count}</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '900' }}><AnimatedCounter value={stats.count} /></div>
                             <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Units</div>
                         </div>
                     </div>
@@ -48,7 +50,7 @@ const InvestorOverview = ({ stats, investments, setActiveTab }) => {
                                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: colors[idx] }}></div>
                                         <span style={{ color: 'var(--text-muted)' }}>{type}</span>
                                     </div>
-                                    <span style={{ fontWeight: '800' }}>{pct}%</span>
+                                    <span style={{ fontWeight: '800' }}><AnimatedCounter value={`${pct}%`} /></span>
                                 </div>
                             );
                         })}
