@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
 import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User, ChevronRight, Layout } from 'lucide-react';
@@ -131,15 +131,18 @@ const PropertyDetail = () => {
     if (!property) return <div className="container section">Property not found</div>;
 
     return (
-        <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '4rem' }}>
+        <div style={{ background: 'var(--background)', minHeight: '100vh', paddingBottom: '4rem', color: 'var(--text)' }}>
             {/* Navigation Header - Breadcrumbs */}
             <div className="container" style={{ padding: '1.5rem 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
+                <Link to={user?.role === 'Buyer' ? '/dashboard/user/browse' : '/marketplace'} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                    <ArrowLeft size={18} /> Back to Properties
+                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
                     <span onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Home</span>
                     <ChevronRight size={14} />
                     <span style={{ color: 'var(--primary)', fontWeight: '600' }}>{property.location}</span>
                     <ChevronRight size={14} />
-                    <span style={{ color: '#1e293b', fontWeight: '700' }}>{property.title}</span>
+                    <span style={{ color: 'var(--text)', fontWeight: '700' }}>{property.title}</span>
                 </div>
             </div>
 
@@ -183,7 +186,7 @@ const PropertyDetail = () => {
                             )}
                         </div>
                     ) : (
-                        <div style={{ background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                        <div style={{ background: 'var(--surface-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                             <Home size={40} />
                         </div>
                     )}
@@ -198,51 +201,51 @@ const PropertyDetail = () => {
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
-                                    <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a', marginBottom: '0.5rem' }}>{property.title}</h1>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f97316', fontWeight: '700' }}>
+                                    <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text)', marginBottom: '0.5rem' }}>{property.title}</h1>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', fontWeight: '700' }}>
                                         <MapPin size={18} /> {property.location}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '2rem', fontWeight: '900', color: '#f97316' }}>
+                                    <div style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--primary)' }}>
                                         ₹{property.price?.toLocaleString()}
                                     </div>
-                                    <div style={{ fontSize: '0.85rem', color: '#64748b' }}>per month / total</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>per month / total</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Quick Stats */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: '#e2e8f0', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', marginBottom: '3rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', marginBottom: '3rem' }}>
                             {[
-                                { icon: Home, label: 'SQUARE FEET', value: `${property.size} SQFT`, color: '#f97316' },
-                                { icon: Bed, label: 'BEDROOMS', value: `${property.bedrooms} Beds`, color: '#f97316' },
-                                { icon: Bath, label: 'BATHROOMS', value: `${property.bathrooms} Bath`, color: '#f97316' }
+                                { icon: Home, label: 'SQUARE FEET', value: `${property.size} SQFT`, color: 'var(--primary)' },
+                                { icon: Bed, label: 'BEDROOMS', value: `${property.bedrooms} Beds`, color: 'var(--primary)' },
+                                { icon: Bath, label: 'BATHROOMS', value: `${property.bathrooms} Bath`, color: 'var(--primary)' }
                             ].map((s, i) => (
-                                <div key={i} style={{ background: 'white', padding: '1.5rem', textAlign: 'center' }}>
+                                <div key={i} style={{ background: 'var(--surface)', padding: '1.5rem', textAlign: 'center' }}>
                                     <s.icon size={24} color={s.color} style={{ marginBottom: '0.8rem' }} />
-                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#1e293b' }}>{s.value}</div>
-                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: '700', marginTop: '4px' }}>{s.label}</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text)' }}>{s.value}</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '700', marginTop: '4px' }}>{s.label}</div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Description */}
                         <div style={{ marginBottom: '3rem' }}>
-                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', marginBottom: '1.2rem' }}>The Vision</h3>
-                            <p style={{ fontSize: '1.1rem', color: '#475569', lineHeight: '1.8', whiteSpace: 'pre-line' }}>{property.description}</p>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text)', marginBottom: '1.2rem' }}>The Vision</h3>
+                            <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', lineHeight: '1.8', whiteSpace: 'pre-line' }}>{property.description}</p>
                         </div>
 
                         {/* Amenities */}
                         <div style={{ marginBottom: '3rem' }}>
-                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', marginBottom: '1.5rem' }}>Key Amenities</h3>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text)', marginBottom: '1.5rem' }}>Key Amenities</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.2rem' }}>
                                 {property.amenities?.map((amenity, i) => (
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                                        <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '8px', color: '#f97316' }}>
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                                        <div style={{ background: 'var(--surface-light)', padding: '8px', borderRadius: '8px', color: 'var(--primary)' }}>
                                             <CheckCircle2 size={18} />
                                         </div>
-                                        <span style={{ fontWeight: '700', color: '#1e293b', fontSize: '0.9rem' }}>{amenity}</span>
+                                        <span style={{ fontWeight: '700', color: 'var(--text)', fontSize: '0.9rem' }}>{amenity}</span>
                                     </div>
                                 ))}
                             </div>
@@ -250,8 +253,8 @@ const PropertyDetail = () => {
 
                         {/* Location / Map */}
                         <div>
-                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', marginBottom: '1.5rem' }}>Location</h3>
-                            <div style={{ width: '100%', height: '400px', borderRadius: '24px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#f1f5f9' }}>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text)', marginBottom: '1.5rem' }}>Location</h3>
+                            <div style={{ width: '100%', height: '400px', borderRadius: '24px', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface-light)' }}>
                                 {property.mapLocation ? (
                                     property.mapLocation.includes('maps.app.goo.gl') ? (
                                         <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem', textAlign: 'center' }}>
@@ -285,9 +288,9 @@ const PropertyDetail = () => {
 
                     {/* Right Column: Sticky Sidebar */}
                     <div style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
-                        <div style={{ background: 'white', padding: '2rem', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)', border: '1px solid #f1f5f9' }}>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#0f172a', marginBottom: '4px' }}>Express Interest</h3>
-                            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '2rem' }}>Schedule a visitor get more details.</p>
+                        <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '24px', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text)', marginBottom: '4px' }}>Express Interest</h3>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>Schedule a visitor get more details.</p>
 
                             {enquirySent ? (
                                 <div style={{ textAlign: 'center', padding: '2rem 0' }}>
@@ -300,47 +303,47 @@ const PropertyDetail = () => {
                             ) : (
                                 <form onSubmit={handleEnquiry}>
                                     <div style={{ marginBottom: '1rem' }}>
-                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>FULL NAME</label>
-                                        <input type="text" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" required />
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>FULL NAME</label>
+                                        <input type="text" style={{ width: '100%', padding: '0.8rem 1rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontWeight: '600' }} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" required />
                                     </div>
                                     <div style={{ marginBottom: '1rem' }}>
-                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>EMAIL ADDRESS</label>
-                                        <input type="email" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600' }} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" required />
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>EMAIL ADDRESS</label>
+                                        <input type="email" style={{ width: '100%', padding: '0.8rem 1rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontWeight: '600' }} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" required />
                                     </div>
                                     <div style={{ marginBottom: '1rem' }}>
-                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>PHONE NUMBER</label>
-                                        <input type="text" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600' }} value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+91 00000 00000" required />
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>PHONE NUMBER</label>
+                                        <input type="text" style={{ width: '100%', padding: '0.8rem 1rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontWeight: '600' }} value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+91 00000 00000" required />
                                     </div>
                                     <div style={{ marginBottom: '1.5rem' }}>
-                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>MESSAGE</label>
-                                        <textarea rows="3" style={{ width: '100%', padding: '0.8rem 1rem', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: '8px', color: '#1e293b', fontWeight: '600', resize: 'none' }} value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} placeholder="I am interested in this villa..." required></textarea>
+                                        <label style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '6px' }}>MESSAGE</label>
+                                        <textarea rows="3" style={{ width: '100%', padding: '0.8rem 1rem', background: 'var(--input-bg)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontWeight: '600', resize: 'none' }} value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} placeholder="I am interested in this villa..." required></textarea>
                                     </div>
-                                    <button type="submit" style={{ width: '100%', padding: '1rem', background: '#f97316', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(249, 115, 22, 0.3)' }}>
+                                    <button type="submit" style={{ width: '100%', padding: '1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(229, 90, 22, 0.3)' }}>
                                         Send Inquiry
                                     </button>
                                 </form>
                             )}
 
                             {/* Agent Info */}
-                            <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid #f1f5f9' }}>
+                            <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
-                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: '#f8fafc', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: 'var(--surface-light)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         {property.agency?.profileImage ? (
                                             <img src={getImageUrl(property.agency.profileImage)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                                         ) : (
-                                            <User size={24} color="#f97316" />
+                                            <User size={24} color="var(--primary)" />
                                         )}
                                     </div>
                                     <div>
-                                        <div style={{ fontWeight: '800', color: '#0f172a' }}>{property.agency?.name}</div>
-                                        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>Property Advisor • Active partner</div>
+                                        <div style={{ fontWeight: '800', color: 'var(--text)' }}>{property.agency?.name}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Property Advisor • Active partner</div>
                                     </div>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                    <button onClick={() => window.location.href = `tel:${property.agency?.phoneNumber}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.6rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#1e293b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                                    <button onClick={() => window.location.href = `tel:${property.agency?.phoneNumber}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.6rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
                                         <Phone size={14} /> Call
                                     </button>
-                                    <button onClick={() => window.location.href = `mailto:${property.agency?.email}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.6rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', color: '#1e293b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
+                                    <button onClick={() => window.location.href = `mailto:${property.agency?.email}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.6rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}>
                                         <Mail size={14} /> Email
                                     </button>
                                 </div>

@@ -60,7 +60,7 @@ const UserLayout = () => {
             <aside style={{ 
                 width: '280px', 
                 minWidth: '280px',
-                background: '#120d0b', // Specific dark brown from image
+                background: 'var(--sidebar-bg)', 
                 display: 'flex', 
                 flexDirection: 'column',
                 borderRight: '1px solid var(--border)',
@@ -68,25 +68,25 @@ const UserLayout = () => {
                 top: 0,
                 height: '100vh',
                 overflowY: 'auto',
-                color: 'white'
+                color: 'var(--text)'
             }}>
                 {/* Logo Area */}
-                <div style={{ padding: '2rem 1.5rem', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ padding: '1.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ 
-                        width: '45px',
-                        height: '45px',
-                        borderRadius: '10px',
-                        background: 'var(--primary)',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(229, 90, 22, 0.3)'
+                        background: 'white'
                     }}>
-                        <Plus color="white" size={24} />
+                        <img src="/logo.jpg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <div>
-                        <div style={{ fontWeight: '800', fontSize: '1.1rem', letterSpacing: '0.2px' }}>Avani Enterprises</div>
-                        <div style={{ fontSize: '0.7rem', color: '#8c847e', letterSpacing: '1px', textTransform: 'uppercase' }}>Real Estate Platform</div>
+                        <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text)', letterSpacing: '0.2px' }}>Avani Enterprises</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>Real Estate Platform</div>
                     </div>
                 </div>
 
@@ -96,7 +96,7 @@ const UserLayout = () => {
                         {menuItems.map((item, index) => {
                             if (item.section) {
                                 return (
-                                    <div key={`sec-${index}`} style={{ padding: '1.5rem 0.5rem 0.5rem', fontSize: '0.7rem', fontWeight: '700', color: '#5e5650', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+                                    <div key={`sec-${index}`} style={{ padding: '1.5rem 0.5rem 0.5rem', fontSize: '0.7rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
                                         {item.section}
                                     </div>
                                 );
@@ -113,13 +113,13 @@ const UserLayout = () => {
                                         gap: '12px',
                                         padding: '1rem 1.2rem',
                                         borderRadius: '12px',
-                                        color: isActive ? 'white' : '#8c847e',
-                                        background: isActive ? '#241a16' : 'transparent',
+                                        color: isActive ? 'white' : 'var(--text-muted)',
+                                        background: isActive ? 'var(--primary)' : 'transparent',
                                         transition: 'all 0.3s ease',
                                         position: 'relative'
                                     }}
                                 >
-                                    <item.icon size={20} color={isActive ? 'var(--primary)' : '#8c847e'} />
+                                    <item.icon size={20} color={isActive ? 'white' : 'var(--text-muted)'} />
                                     <span style={{ fontWeight: isActive ? '600' : '500', fontSize: '0.95rem' }}>{item.label}</span>
                                     {isActive && (
                                         <div style={{ 
@@ -138,30 +138,34 @@ const UserLayout = () => {
                     </div>
                 </div>
 
-                {/* User Profile Card */}
-                <div style={{ padding: '1.5rem' }}>
+                {/* User Profile */}
+                <div style={{ 
+                    padding: '1.5rem', 
+                    borderTop: '1px solid var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                }}>
                     <div style={{ 
-                        background: '#1a1411',
-                        padding: '12px',
-                        borderRadius: '16px',
+                        width: '38px', 
+                        height: '38px', 
+                        borderRadius: '50%', 
+                        background: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px'
+                        justifyContent: 'center',
+                        fontWeight: '700',
+                        fontSize: '0.8rem'
                     }}>
-                        <div style={{ 
-                            width: '44px', 
-                            height: '44px', 
-                            borderRadius: '50%', 
-                            overflow: 'hidden',
-                            border: '2px solid #241a16'
-                        }}>
-                             <img src={`https://ui-avatars.com/api/?name=${user.name}&background=e55a16&color=fff`} alt="User" style={{ width: '100%', height: '100%' }} />
-                        </div>
-                        <div style={{ overflow: 'hidden', flex: 1 }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: '#8c847e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Premium Member</div>
-                        </div>
+                        {user.name.slice(0, 2).toUpperCase()}
                     </div>
+                        <div style={{ overflow: 'hidden' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
+                        </div>
+                    <button onClick={logout} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                        <LogOut size={16} />
+                    </button>
                 </div>
             </aside>
 
@@ -169,11 +173,13 @@ const UserLayout = () => {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
                 {/* HeaderBar */}
                 <header style={{ 
-                    height: '80px', 
+                    height: '70px', 
+                    background: 'var(--header-bg)', 
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'space-between',
-                    padding: '0 3rem'
+                    padding: '0 2.5rem',
+                    borderBottom: '1px solid var(--border)'
                 }}>
                     <div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>
@@ -217,21 +223,7 @@ const UserLayout = () => {
                                     border: '2px solid var(--background)'
                                 }} />
                             )}
-                        </button>
-
-                        <button 
-                            className="btn btn-primary"
-                            style={{ 
-                                padding: '0.8rem 1.5rem', 
-                                borderRadius: '12px', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '10px',
-                                fontSize: '0.9rem'
-                            }}
-                        >
-                            <Plus size={18} /> Post Property
-                        </button>
+                        </button>                       
                     </div>
                 </header>
 

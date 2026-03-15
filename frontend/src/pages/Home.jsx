@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
-import { Search, MapPin, Bed, Bath, Move, ArrowRight, ShieldCheck, UserCheck, Wallet, Instagram, Twitter, Facebook, Send, User, Building2 } from 'lucide-react';
+import { Search, MapPin, Bed, Bath, Move, ArrowRight, ShieldCheck, UserCheck, Wallet, Instagram, Twitter, Facebook, Linkedin, Send, User, Building2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const heroImages = [
@@ -70,7 +70,7 @@ const Home = () => {
         .filter(p => p.isApproved && p.status !== 'Blocked')
         .filter(p => activeCategory === 'All' || p.propertyType === activeCategory)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 3);
+        .slice(0, 10);
 
     const getImageUrl = (url) => {
         if (!url) return 'https://via.placeholder.com/400x180?text=Premium+Asset';
@@ -204,35 +204,48 @@ const Home = () => {
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--primary)', fontWeight: '700' }} className="animate-pulse">Fetching premium listings...</div>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
-                        {filteredProperties.length > 0 ? filteredProperties.map((property) => (
-                            <div key={property._id} className="glass-card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface)', borderRadius: '20px' }}>
-                                <div style={{ height: '180px', overflow: 'hidden', position: 'relative' }}>
-                                    <img src={getImageUrl(property.images?.[0])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'var(--primary)', color: 'white', padding: '3px 10px', fontSize: '0.65rem', fontWeight: '800', borderRadius: '4px' }}>{property.propertyType?.toUpperCase()}</div>
-                                    <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', color: 'var(--primary)', padding: '5px 12px', borderRadius: '6px', fontWeight: '800', fontSize: '0.9rem' }}>
-                                        ₹{property.price.toLocaleString()}
+                    <div className="marquee-container">
+                        <div className="marquee-content">
+                            {filteredProperties.length > 0 ? [...filteredProperties, ...filteredProperties].map((property, index) => (
+                                <div 
+                                    key={`${property._id}-${index}`} 
+                                    className="glass-card marquee-item" 
+                                    style={{ 
+                                        padding: 0, 
+                                        overflow: 'hidden', 
+                                        border: '1px solid var(--border)', 
+                                        background: 'var(--surface)', 
+                                        borderRadius: '20px'
+                                    }}
+                                >
+                                    <div style={{ height: '180px', overflow: 'hidden', position: 'relative' }}>
+                                        <img src={getImageUrl(property.images?.[0])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'var(--primary)', color: 'white', padding: '3px 10px', fontSize: '0.65rem', fontWeight: '800', borderRadius: '4px' }}>{property.propertyType?.toUpperCase()}</div>
+                                        <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', color: 'var(--primary)', padding: '5px 12px', borderRadius: '6px', fontWeight: '800', fontSize: '0.9rem' }}>
+                                            ₹{property.price.toLocaleString()}
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '1.2rem' }}>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text)', marginBottom: '0.4rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{property.title}</h3>
+                                        <div style={{ display: 'flex', gap: '0.8rem', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.8rem', flexWrap: 'wrap' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Move size={12} /> {property.size} SQFT</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Bed size={12} /> {property.bedrooms || 0}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Bath size={12} /> {property.bathrooms || 0}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1.2rem' }}>
+                                            <MapPin size={12} color="var(--primary)" /> <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{property.location}</span>
+                                        </div>
+                                        <Link to={`/property/${property._id}`} className="btn btn-outline" style={{ width: '100%', justifyContent: 'center', borderColor: 'var(--border)', color: 'var(--text)', padding: '0.6rem', fontSize: '0.85rem' }}>
+                                            View Details
+                                        </Link>
                                     </div>
                                 </div>
-                                <div style={{ padding: '1.2rem' }}>
-                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text)', marginBottom: '0.4rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{property.title}</h3>
-                                    <div style={{ display: 'flex', gap: '0.8rem', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.8rem' }}>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Move size={12} /> {property.size} SQFT</span>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><Building2 size={12} /> {property.agency?.name || 'Partner'}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1.2rem' }}>
-                                        <MapPin size={12} color="var(--primary)" /> <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{property.location}</span>
-                                    </div>
-                                    <Link to={`/property/${property._id}`} className="btn btn-outline" style={{ width: '100%', justifyContent: 'center', borderColor: 'var(--border)', color: 'var(--text)', padding: '0.6rem', fontSize: '0.85rem' }}>
-                                        View Details
-                                    </Link>
+                            )) : (
+                                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)', width: '100%' }}>
+                                    No listings found for this category.
                                 </div>
-                            </div>
-                        )) : (
-                            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-                                No listings found for this category.
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 )}
             </section>
@@ -288,10 +301,35 @@ const Home = () => {
                             Our platform is designed to simplify property management and lead tracking for real estate agencies, helping teams stay organized and productive.
                         </p>
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            {[Instagram, Twitter, Facebook].map((Icon, i) => (
-                                <div key={i} style={{ width: '35px', height: '35px', borderRadius: '8px', background: 'var(--surface-light)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                                    <Icon size={16} />
-                                </div>
+                            {[
+                                { Icon: Instagram, url: 'https://www.instagram.com/avanienterprises.branding/' },
+                                { Icon: Linkedin, url: 'https://www.linkedin.com/in/avani-enterprises-137448390?utm_source=share_via&utm_content=profile&utm_medium=member_android' },
+                                { Icon: Facebook, url: 'https://www.facebook.com/share/1AXpRTxpoH/' },
+                                { Icon: Twitter, url: 'https://x.com/avanienterprises' }
+                            ].map((social, i) => (
+                                <a 
+                                    key={i} 
+                                    href={social.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    style={{ 
+                                        width: '35px', 
+                                        height: '35px', 
+                                        borderRadius: '8px', 
+                                        background: 'var(--surface-light)', 
+                                        border: '1px solid var(--border)', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        color: 'var(--text-muted)', 
+                                        cursor: 'pointer',
+                                        transition: 'var(--transition)'
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary)'}
+                                    onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                                >
+                                    <social.Icon size={16} />
+                                </a>
                             ))}
                         </div>
                     </div>

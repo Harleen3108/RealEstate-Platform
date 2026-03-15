@@ -4,7 +4,7 @@ import PropertyMarketplace from '../PropertyMarketplace';
 const BrowseProperties = () => {
     return (
         <div className="animate-fade">
-            <PropertyMarketplace />
+            <PropertyMarketplace compact={true} />
         </div>
     );
 };

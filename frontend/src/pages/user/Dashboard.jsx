@@ -54,37 +54,47 @@ const UserDashboard = () => {
             </div>
 
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
-                <div className="glass-card" style={{ padding: '1.8rem', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem' }}>
-                        <div style={{ background: 'rgba(229, 90, 22, 0.1)', padding: '10px', borderRadius: '12px' }}>
-                            <Heart size={24} color="var(--primary)" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
+                <div className="glass-card" style={{ padding: '1.2rem', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
+                        <div style={{ background: 'rgba(229, 90, 22, 0.1)', padding: '8px', borderRadius: '10px' }}>
+                            <Heart size={20} color="var(--primary)" />
                         </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 10px', borderRadius: '20px' }}>+2 new</span>
+                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '20px' }}>+2 new</span>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>Total Saved</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '800', marginTop: '0.2rem' }}>{user?.savedProperties?.length || 0}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '500' }}>Total Saved</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: '800', marginTop: '0.2rem' }}>{user?.savedProperties?.length || 0}</div>
                 </div>
 
-                <div className="glass-card" style={{ padding: '1.8rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem' }}>
-                        <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '10px', borderRadius: '12px' }}>
-                            <MessageCircle size={24} color="#6366f1" />
+                <div className="glass-card" style={{ padding: '1.2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
+                        <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '8px', borderRadius: '10px' }}>
+                            <MessageCircle size={20} color="#6366f1" />
                         </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#6366f1', background: 'rgba(99, 102, 241, 0.1)', padding: '4px 10px', borderRadius: '20px' }}>Active</span>
+                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#6366f1', background: 'rgba(99, 102, 241, 0.1)', padding: '2px 8px', borderRadius: '20px' }}>Active</span>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>Active Enquiries</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '800', marginTop: '0.2rem' }}>{enquiries.length}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '500' }}>Enquiries</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: '800', marginTop: '0.2rem' }}>{enquiries.length}</div>
                 </div>
 
-                <div className="glass-card" style={{ padding: '1.8rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem' }}>
-                        <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '10px', borderRadius: '12px' }}>
-                            <Clock size={24} color="#f59e0b" />
+                <div className="glass-card" style={{ padding: '1.2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
+                        <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '8px', borderRadius: '10px' }}>
+                            <Clock size={20} color="#f59e0b" />
                         </div>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>Last Activity</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: '800', marginTop: '0.7rem' }}>2 HOURS AGO</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '500' }}>Activity</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '0.5rem' }}>2 HOURS AGO</div>
+                </div>
+
+                <div className="glass-card" style={{ padding: '1.2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
+                        <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '8px', borderRadius: '10px' }}>
+                            <Bell size={20} color="var(--success)" />
+                        </div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '500' }}>Alerts</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: '800', marginTop: '0.2rem' }}>0</div>
                 </div>
             </div>
 
@@ -111,14 +121,14 @@ const UserDashboard = () => {
                                 <div style={{ padding: '1.2rem' }}>
                                     <h4 style={{ fontSize: '1.05rem', fontWeight: '700', marginBottom: '0.4rem' }}>{prop.title}</h4>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                                        <MapPin size={14} /> {prop.location?.address}, {prop.location?.city}
+                                        <MapPin size={14} /> {prop.location}
                                     </div>
                                     <div style={{ display: 'flex', gap: '15px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                                            <Bed size={16} color="var(--text-muted)" /> <span>{prop.details?.bedrooms || 0}</span>
+                                            <Bed size={16} color="var(--text-muted)" /> <span>{prop.bedrooms || 0}</span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>
-                                            <Bath size={16} color="var(--text-muted)" /> <span>{prop.details?.bathrooms || 0}</span>
+                                            <Bath size={16} color="var(--text-muted)" /> <span>{prop.bathrooms || 0}</span>
                                         </div>
                                     </div>
                                 </div>

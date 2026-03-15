@@ -5,7 +5,7 @@ import { Search, MapPin, DollarSign, Home, Filter, Heart, ArrowRight, Building2 
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const PropertyMarketplace = () => {
+const PropertyMarketplace = ({ compact = false }) => {
     const [properties, setProperties] = useState([]);
     const [agencies, setAgencies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -84,30 +84,70 @@ const PropertyMarketplace = () => {
 
     return (
         <div className="section container animate-fade">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: compact ? 'row' : 'row', 
+                justifyContent: 'space-between', 
+                alignItems: compact ? 'center' : 'center', 
+                marginBottom: compact ? '1.5rem' : '3rem',
+                gap: '1.5rem',
+                flexWrap: 'wrap'
+            }}>
                 <div>
-                    <h2 style={{ fontSize: '2.5rem', fontWeight: '800' }}>Global <span className="text-gradient">Marketplace</span></h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Discover premium real estate opportunities</p>
+                    <h2 style={{ fontSize: compact ? '1.5rem' : '2.5rem', fontWeight: '800' }}>
+                        {compact ? 'Browse' : 'Global'} <span className="text-gradient">Marketplace</span>
+                    </h2>
+                    {!compact && <p style={{ color: 'var(--text-muted)' }}>Discover premium real estate opportunities</p>}
                 </div>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div className="glass-card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface-light)', border: '1px solid var(--border)' }}>
-                        <Search size={18} color="var(--text-muted)" />
+                <div style={{ 
+                    display: 'flex', 
+                    gap: compact ? '0.8rem' : '1rem', 
+                    alignItems: 'center',
+                    flexWrap: 'nowrap' 
+                }}>
+                    <div className="glass-card" style={{ 
+                        padding: compact ? '0.4rem 0.8rem' : '0.5rem 1rem', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem', 
+                        background: 'var(--surface-light)', 
+                        border: '1px solid var(--border)',
+                        borderRadius: compact ? '10px' : 'var(--radius)'
+                    }}>
+                        <Search size={compact ? 16 : 18} color="var(--text-muted)" />
                         <input 
                             type="text" 
-                            placeholder="City or Address..." 
+                            placeholder="Search..." 
                             className="input-control" 
-                            style={{ border: 'none', background: 'transparent', padding: '0.2rem', width: '180px', color: 'var(--text)' }}
+                            style={{ 
+                                border: 'none', 
+                                background: 'transparent', 
+                                padding: '2px', 
+                                width: compact ? '120px' : '180px', 
+                                color: 'var(--text)',
+                                fontSize: compact ? '0.85rem' : '0.9rem' 
+                            }}
                             value={filters.location}
                             onChange={(e) => setFilters({...filters, location: e.target.value})}
                         />
                     </div>
                     <select 
                         className="btn btn-outline" 
-                        style={{ padding: '0.7rem 1.2rem', background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: '700' }}
+                        style={{ 
+                            padding: compact ? '0.4rem 0.8rem' : '0.7rem 1.2rem', 
+                            background: 'var(--surface-light)', 
+                            border: '1px solid var(--border)', 
+                            color: 'var(--text)', 
+                            fontWeight: '600',
+                            fontSize: compact ? '0.85rem' : '0.9rem',
+                            height: 'auto',
+                            minHeight: '0',
+                            borderRadius: compact ? '10px' : 'var(--radius)'
+                        }}
                         value={filters.type}
                         onChange={(e) => setFilters({...filters, type: e.target.value})}
                     >
-                        <option value="">All Categories</option>
+                        <option value="">Categories</option>
                         <option value="Apartment">Apartments</option>
                         <option value="Villa">Villas</option>
                         <option value="Commercial">Commercial</option>
@@ -115,11 +155,21 @@ const PropertyMarketplace = () => {
                     </select>
                     <select 
                         className="btn btn-outline" 
-                        style={{ padding: '0.7rem 1.2rem', background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: '700' }}
+                        style={{ 
+                            padding: compact ? '0.4rem 0.8rem' : '0.7rem 1.2rem', 
+                            background: 'var(--surface-light)', 
+                            border: '1px solid var(--border)', 
+                            color: 'var(--text)', 
+                            fontWeight: '600',
+                            fontSize: compact ? '0.85rem' : '0.9rem',
+                            height: 'auto',
+                            minHeight: '0',
+                            borderRadius: compact ? '10px' : 'var(--radius)'
+                        }}
                         value={filters.agency}
                         onChange={(e) => setFilters({...filters, agency: e.target.value})}
                     >
-                        <option value="">All Agencies</option>
+                        <option value="">Agencies</option>
                         {agencies.map(a => (
                             <option key={a._id} value={a._id}>{a.name}</option>
                         ))}
@@ -132,45 +182,51 @@ const PropertyMarketplace = () => {
                     <div className="animate-pulse" style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>Scanning marketplace...</div>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '2.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(auto-fill, minmax(280px, 1fr))' : 'repeat(auto-fill, minmax(350px, 1fr))', gap: compact ? '1.5rem' : '2.5rem' }}>
                     {filteredProperties.map(property => {
                         const isSaved = savedIds.includes(property._id);
                         return (
-                             <div key={property._id} className="glass-card animate-fade" style={{ position: 'relative', background: 'var(--surface)', border: '1px solid var(--border)', padding: '1rem' }}>
-                                <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', marginBottom: '1.5rem', position: 'relative' }}>
+                             <div key={property._id} className="glass-card animate-fade" style={{ position: 'relative', background: 'var(--surface)', border: '1px solid var(--border)', padding: compact ? '0.8rem' : '1rem' }}>
+                                <div style={{ height: compact ? '160px' : '220px', borderRadius: '12px', overflow: 'hidden', marginBottom: compact ? '1rem' : '1.5rem', position: 'relative' }}>
                                     <img src={getImageUrl(property.images?.[0])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     <button 
                                         onClick={(e) => toggleSave(e, property._id)}
-                                        style={{ position: 'absolute', top: '15px', right: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.3s' }}
+                                        style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '50%', width: compact ? '32px' : '40px', height: compact ? '32px' : '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.3s' }}
                                     >
-                                        <Heart size={20} fill={isSaved ? 'var(--secondary)' : 'none'} color={isSaved ? 'var(--secondary)' : 'var(--text)'} />
+                                        <Heart size={compact ? 16 : 20} fill={isSaved ? 'var(--secondary)' : 'none'} color={isSaved ? 'var(--secondary)' : 'var(--text)'} />
                                     </button>
-                                    <div style={{ position: 'absolute', bottom: '15px', left: '15px', background: 'var(--primary)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '800' }}>
+                                    <div style={{ position: 'absolute', bottom: '10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '3px 10px', borderRadius: '20px', fontSize: '0.6rem', fontWeight: '800' }}>
                                         {property.status.toUpperCase()}
                                     </div>
                                 </div>
-                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: compact ? '0.7rem' : '1rem' }}>
                                     <div>
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase' }}>{property.propertyType}</span>
-                                        <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginTop: '0.2rem', maxWidth: '200px', color: 'var(--text)' }}>{property.title}</h3>
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase' }}>{property.propertyType}</span>
+                                        <h3 style={{ fontSize: compact ? '1.1rem' : '1.3rem', fontWeight: '800', marginTop: '0.1rem', maxWidth: compact ? '160px' : '200px', color: 'var(--text)' }}>{property.title}</h3>
                                     </div>
-                                    <div style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--text)' }}>
-                                        <span style={{ fontSize: '0.9rem', verticalAlign: 'top', color: 'var(--text-muted)' }}>₹</span>{property.price.toLocaleString()}
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '1.2rem', color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.85rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                        <MapPin size={16} color="var(--primary)" /> {property.location}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                        <Home size={16} color="var(--primary)" /> {property.size} SQFT
+                                    <div style={{ fontSize: compact ? '1.2rem' : '1.4rem', fontWeight: '900', color: 'var(--text)' }}>
+                                        <span style={{ fontSize: '0.8rem', verticalAlign: 'top', color: 'var(--text-muted)' }}>₹</span>{property.price.toLocaleString()}
                                     </div>
                                 </div>
-                                <div style={{ marginBottom: '1.8rem', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                    <Building2 size={14} color="var(--accent)" /> Listing by {property.agency?.name}
+                                <div style={{ display: 'flex', gap: compact ? '0.8rem' : '1.2rem', color: 'var(--text-muted)', marginBottom: compact ? '0.8rem' : '1rem', fontSize: compact ? '0.75rem' : '0.85rem', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <MapPin size={compact ? 14 : 16} color="var(--primary)" /> {property.location}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <Home size={compact ? 14 : 16} color="var(--primary)" /> {property.size} SQFT
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <Bed size={compact ? 14 : 16} color="var(--primary)" /> {property.bedrooms || 0}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                        <Bath size={compact ? 14 : 16} color="var(--primary)" /> {property.bathrooms || 0}
+                                    </div>
                                 </div>
-                                <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
-                                    View Premium Details <ArrowRight size={18} />
+                                <div style={{ marginBottom: compact ? '1.2rem' : '1.8rem', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                    <Building2 size={12} color="var(--accent)" /> Listing by {property.agency?.name}
+                                </div>
+                                <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: compact ? '0.5rem' : '0.75rem 1.5rem', fontSize: compact ? '0.85rem' : '1rem' }}>
+                                    View Details <ArrowRight size={compact ? 16 : 18} />
                                 </Link>
                             </div>
                         );
