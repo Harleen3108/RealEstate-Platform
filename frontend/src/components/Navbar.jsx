@@ -99,17 +99,7 @@ const Navbar = () => {
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
                             }}>
-                                RealEstate <span style={{ color: 'var(--primary)' }}>Platform</span>
-                            </div>
-                            <div style={{ 
-                                fontSize: isMobile ? '0.65rem' : '0.75rem', 
-                                fontWeight: '700', 
-                                color: 'var(--text-muted)', 
-                                textTransform: 'uppercase', 
-                                letterSpacing: isMobile ? '1px' : '1.5px',
-                                whiteSpace: 'nowrap'
-                            }}>
-                                Millionaire Club
+                                Millionaire <span style={{ color: 'var(--primary)' }}>Club</span>
                             </div>
                         </div>
                     </Link>
@@ -309,12 +299,6 @@ const Navbar = () => {
                         </Link>
                         <Link to="/marketplace" className="mobile-menu-item">
                             <LayoutGrid size={20} /> Properties
-                        </Link>
-                        <Link to="#" className="mobile-menu-item">
-                            <Info size={20} /> Our Story
-                        </Link>
-                        <Link to="#" className="mobile-menu-item">
-                            <Phone size={20} /> Contact
                         </Link>
                     </div>
                 </div>

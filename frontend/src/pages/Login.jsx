@@ -71,7 +71,7 @@ const Login = () => {
                         padding: '3rem',
                         minHeight: '400px'
                     }}>
-                        <h1 style={{ color: 'white', fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>RealEstate Platform</h1>
+                        <h1 style={{ color: 'white', fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>Millionaire Club</h1>
                         <p style={{ color: 'var(--primary)', fontSize: '1.1rem', fontWeight: '700', opacity: 0.9 }}>Managing luxury assets with precision.</p>
                         
                         <div style={{ display: 'flex', gap: '8px', marginTop: '2rem' }}>

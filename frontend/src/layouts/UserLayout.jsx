@@ -17,6 +17,13 @@ const UserLayout = () => {
     const location = useLocation();
     const [unreadCount, setUnreadCount] = useState(0);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (!loading && !user) {
@@ -85,7 +92,7 @@ const UserLayout = () => {
                 display: 'flex', 
                 flexDirection: 'column',
                 borderRight: '1px solid var(--border)',
-                position: window.innerWidth <= 768 ? 'fixed' : 'sticky',
+                position: windowWidth <= 768 ? 'fixed' : 'sticky',
                 top: 0,
                 bottom: 0,
                 left: 0,
@@ -93,7 +100,7 @@ const UserLayout = () => {
                 overflowY: 'auto',
                 color: 'var(--text)',
                 zIndex: 1002,
-                transform: window.innerWidth <= 768 ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
+                transform: windowWidth <= 768 ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
                 transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}>
                 {/* Logo Area */}
@@ -112,7 +119,6 @@ const UserLayout = () => {
                     </div>
                     <div>
                         <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text)', letterSpacing: '0.2px' }}>Millionaire Club</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>Real Estate Platform</div>
                     </div>
                     <button className="mobile-only" onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)' }}>
                         <CloseIcon size={20} />

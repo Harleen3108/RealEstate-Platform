@@ -173,9 +173,8 @@ const DashboardLayout = () => {
                             <img src="/logo.png" alt="Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
                         </div>
                         {!isCollapsed && (
-                            <div style={{ fontWeight: '800', fontSize: '1rem', letterSpacing: '0.2px', lineHeight: '1.2', flex: 1, color: 'var(--text)' }}>
-                                RealEstate <span style={{ color: 'var(--primary)', display: 'block', fontSize: '0.85rem' }}>Platform</span>
-                                <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px', fontWeight: '500', opacity: 0.8 }}>Millionaire Club</span>
+                            <div style={{ fontWeight: '800', fontSize: '1.1rem', letterSpacing: '0.2px', lineHeight: '1.2', flex: 1, color: 'var(--text)' }}>
+                                Millionaire <span style={{ color: 'var(--primary)' }}>Club</span>
                             </div>
                         )}
 
@@ -427,7 +426,7 @@ const DashboardLayout = () => {
                     fontSize: '0.75rem',
                     color: 'var(--text-muted)'
                 }}>
-                    <div>Avani Enterprises - RealEstate Platform © 2026</div>
+                    <div>Avani Enterprises - Millionaire Club © 2026</div>
                     {/* <div style={{ letterSpacing: '0.5px', textTransform: 'uppercase' }}>Powered by DataStore Snapshot v2.0</div> */}
                 </footer>
             </div>

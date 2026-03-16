@@ -188,3 +188,6 @@ Stack: MongoServerSelectionError: connect ETIMEDOUT 159.41.183.218:27017
     at async Collection.findOne (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\collection.js:313:24)
     at async model.Query._findOne (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongoose\lib\query.js:2731:15)
     at async model.Query.exec (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongoose\lib\query.js:4726:63)
+2026-03-16T10:07:30.466Z - Login attempt for: harleen@admin.com
+2026-03-16T10:07:30.817Z - User found, comparing password...
+2026-03-16T10:07:31.027Z - Password match, generating token...

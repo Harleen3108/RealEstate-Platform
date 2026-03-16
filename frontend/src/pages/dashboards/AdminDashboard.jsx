@@ -142,6 +142,8 @@ const AdminDashboard = () => {
     minPrice: "",
     maxPrice: "",
   });
+  const [propPage, setPropPage] = useState(1);
+  const propsPerPage = 5;
 
   // Settings State
   const [adminProfile, setAdminProfile] = useState({
@@ -947,16 +949,21 @@ const AdminDashboard = () => {
                         Action
                       </th>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {properties.slice(0, 5).map((p) => (
-                      <tr
-                        key={p._id}
-                        style={{ borderBottom: "1px solid var(--border)" }}
-                      >
-                        <td
-                          style={{ padding: "0.8rem 1rem", cursor: "pointer" }}
+                  </thead>                  <tbody>
+                    {filteredProperties
+                      .slice((propPage - 1) * propsPerPage, propPage * propsPerPage)
+                      .map((p) => (
+                        <tr
+                          key={p._id}
+                          style={{
+                            borderBottom: "1px solid var(--border)",
+                            cursor: "pointer",
+                          }}
+                          className="hover-light"
                           onClick={() => p?._id && navigate(`/property/${p._id}`)}
+                        >
+                        <td
+                          style={{ padding: "0.8rem 1rem" }}
                         >
                           <div
                             style={{
@@ -2862,16 +2869,22 @@ const AdminDashboard = () => {
                   <div
                     style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
                   >
-                    Showing 1-5 of {filteredProperties.length} listings
+                    Showing {(propPage - 1) * propsPerPage + 1}-
+                    {Math.min(propPage * propsPerPage, filteredProperties.length)} of{" "}
+                    {filteredProperties.length} listings
                   </div>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <button
                       className={`btn btn-outline`}
+                      disabled={propPage === 1}
+                      onClick={() => setPropPage(p => Math.max(1, p - 1))}
                       style={{
                         padding: "4px 10px",
                         fontSize: "0.8rem",
                         borderColor: "var(--border)",
                         color: "var(--text)",
+                        opacity: propPage === 1 ? 0.5 : 1,
+                        cursor: propPage === 1 ? "not-allowed" : "pointer"
                       }}
                     >
                       <ChevronRight
@@ -2879,37 +2892,34 @@ const AdminDashboard = () => {
                         style={{ transform: "rotate(180deg)" }}
                       />
                     </button>
-                    <button
-                      className={`btn btn-primary`}
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        padding: "0",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      1
-                    </button>
-                    <button
-                      className={`btn btn-outline`}
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        padding: "0",
-                        fontSize: "0.8rem",
-                        borderColor: "var(--border)",
-                        color: "var(--text)",
-                      }}
-                    >
-                      2
-                    </button>
+                    {Array.from({ length: Math.ceil(filteredProperties.length / propsPerPage) }, (_, i) => i + 1).map(n => (
+                      <button
+                        key={n}
+                        className={`btn ${propPage === n ? "btn-primary" : "btn-outline"}`}
+                        onClick={() => setPropPage(n)}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          padding: "0",
+                          fontSize: "0.8rem",
+                          borderColor: propPage === n ? "transparent" : "var(--border)",
+                          color: propPage === n ? "white" : "var(--text)",
+                        }}
+                      >
+                        {n}
+                      </button>
+                    ))}
                     <button
                       className={`btn btn-outline`}
+                      disabled={propPage === Math.ceil(filteredProperties.length / propsPerPage)}
+                      onClick={() => setPropPage(p => Math.min(Math.ceil(filteredProperties.length / propsPerPage), p + 1))}
                       style={{
                         padding: "4px 10px",
                         fontSize: "0.8rem",
                         borderColor: "var(--border)",
                         color: "var(--text)",
+                        opacity: propPage === Math.ceil(filteredProperties.length / propsPerPage) ? 0.5 : 1,
+                        cursor: propPage === Math.ceil(filteredProperties.length / propsPerPage) ? "not-allowed" : "pointer"
                       }}
                     >
                       <ChevronRight size={16} />

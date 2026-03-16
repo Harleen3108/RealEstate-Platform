@@ -29,6 +29,13 @@ const Home = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [currentTextIndex, setCurrentTextIndex] = useState(0);
     const [textFade, setTextFade] = useState(true);
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchProperties = async () => {
@@ -68,9 +75,14 @@ const Home = () => {
 
     const filteredProperties = properties
         .filter(p => p.isApproved && p.status !== 'Blocked')
-        .filter(p => activeCategory === 'All' || p.propertyType === activeCategory)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 10);
+
+    const gridProperties = properties
+        .filter(p => p.isApproved && p.status !== 'Blocked')
+        .filter(p => activeCategory === 'All' || p.propertyType === activeCategory)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 8); // Show top 8 in grid
 
     const getImageUrl = (url) => {
         if (!url) return 'https://via.placeholder.com/400x180?text=Premium+Asset';
@@ -208,35 +220,6 @@ const Home = () => {
                         <p style={{ color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.75rem', marginBottom: '0.5rem' }}>Handpicked</p>
                         <h2 style={{ fontSize: 'clamp(2rem, 6vw, 3rem)', fontWeight: '900', color: 'var(--text)', lineHeight: '1.1' }}>Featured Listings</h2>
                     </div>
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '1.5rem', 
-                        overflowX: 'auto', 
-                        paddingBottom: '10px',
-                        width: '100%',
-                        msOverflowStyle: 'none',
-                        scrollbarWidth: 'none',
-                        WebkitOverflowScrolling: 'touch'
-                    }}>
-                        {categories.map((cat) => (
-                            <span 
-                                key={cat} 
-                                onClick={() => setActiveCategory(cat)}
-                                style={{ 
-                                    fontWeight: '700', 
-                                    color: activeCategory === cat ? 'var(--primary)' : 'var(--text-muted)', 
-                                    cursor: 'pointer',
-                                    borderBottom: activeCategory === cat ? '3px solid var(--primary)' : '3px solid transparent',
-                                    paddingBottom: '8px',
-                                    transition: 'all 0.3s ease',
-                                    whiteSpace: 'nowrap',
-                                    fontSize: '1rem'
-                                }}
-                            >
-                                {cat === 'All' ? 'All' : cat + 's'}
-                            </span>
-                        ))}
-                    </div>
                 </div>
 
                 {loading ? (
@@ -287,6 +270,95 @@ const Home = () => {
                     </div>
                 )}
             </section>
+            
+            {/* Top Properties Grid Section */}
+            <section className="container" style={{ padding: '0 1.5rem clamp(3rem, 10vw, 6rem)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'clamp(1.5rem, 4vw, 2.5rem)', flexWrap: 'wrap', gap: '1.5rem' }}>
+                    <div>
+                        <p style={{ color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.7rem', marginBottom: '0.3rem' }}>Investment Grade</p>
+                        <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.2rem)', fontWeight: '900', color: 'var(--text)', lineHeight: '1.2' }}>Top Investment Opportunities</h2>
+                    </div>
+                    <div style={{ 
+                        display: 'flex', 
+                        gap: '1rem', 
+                        overflowX: 'auto', 
+                        paddingBottom: '5px',
+                        msOverflowStyle: 'none',
+                        scrollbarWidth: 'none'
+                    }}>
+                        {categories.map((cat) => (
+                            <span 
+                                key={cat} 
+                                onClick={() => setActiveCategory(cat)}
+                                style={{ 
+                                    fontWeight: '700', 
+                                    color: activeCategory === cat ? 'var(--primary)' : 'var(--text-muted)', 
+                                    cursor: 'pointer',
+                                    borderBottom: activeCategory === cat ? '2px solid var(--primary)' : '2px solid transparent',
+                                    paddingBottom: '4px',
+                                    transition: 'all 0.3s ease',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                {cat === 'All' ? 'All' : cat + 's'}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--primary)', fontWeight: '700' }} className="animate-pulse">Loading opportunities...</div>
+                ) : (
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: windowWidth <= 768 ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(240px, 1fr))', 
+                        gap: windowWidth <= 768 ? '0.75rem' : '1.5rem' 
+                    }}>
+                        {gridProperties.length > 0 ? gridProperties.map((property) => (
+                            <div 
+                                key={property._id} 
+                                className="glass-card" 
+                                style={{ 
+                                    padding: 0, 
+                                    overflow: 'hidden', 
+                                    border: '1px solid var(--border)', 
+                                    background: 'var(--surface)', 
+                                    borderRadius: '16px',
+                                    transition: 'transform 0.3s ease'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                                onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                            >
+                                <div style={{ height: '140px', overflow: 'hidden', position: 'relative' }}>
+                                    <img src={getImageUrl(property.images?.[0])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'var(--primary)', color: 'white', padding: '2px 8px', fontSize: '0.6rem', fontWeight: '800', borderRadius: '4px' }}>{property.propertyType?.toUpperCase()}</div>
+                                    <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '6px', fontWeight: '900', fontSize: '0.9rem' }}>
+                                        ₹{property.price.toLocaleString()}
+                                    </div>
+                                </div>
+                                <div style={{ padding: windowWidth <= 480 ? '0.75rem' : '1rem' }}>
+                                    <h3 style={{ fontSize: windowWidth <= 480 ? '0.85rem' : '1rem', fontWeight: '800', color: 'var(--text)', marginBottom: '0.4rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{property.title}</h3>
+                                    <div style={{ display: 'flex', gap: windowWidth <= 480 ? '0.5rem' : '0.8rem', color: 'var(--text-muted)', fontSize: windowWidth <= 480 ? '0.65rem' : '0.75rem', marginBottom: '0.8rem', flexWrap: 'wrap' }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Move size={12} /> {property.size} SQFT</span>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Bed size={12} /> {property.bedrooms || 0}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: windowWidth <= 480 ? '0.7rem' : '0.8rem', marginBottom: '1rem' }}>
+                                        <MapPin size={12} color="var(--primary)" /> <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{property.location}</span>
+                                    </div>
+                                    <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.5rem', fontSize: '0.75rem', borderRadius: '8px', textDecoration: 'none', textAlign: 'center', display: 'block' }}>
+                                        Invest Now
+                                    </Link>
+                                </div>
+                            </div>
+                        )) : (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                                No investment opportunities available in this category.
+                            </div>
+                        )}
+                    </div>
+                )}
+            </section>
 
             {/* About Us Section */}
             <section className="container" style={{ padding: 'clamp(3rem, 10vw, 6rem) 1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'clamp(2rem, 8vw, 5rem)', alignItems: 'center' }}>
@@ -305,35 +377,38 @@ const Home = () => {
                     <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: '1.7', marginBottom: '2rem' }}>
                         At Millionaire Club, we go beyond traditional real estate services by providing advanced CRM solutions designed specifically for the real estate industry. Our platform helps agencies manage property listings, track leads, and streamline client interactions efficiently. With a focus on innovation and usability, we enable real estate professionals to manage their operations, nurture leads, and grow their business through a centralized and intelligent system.
                     </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', marginTop: '2.5rem' }}>
                     <div style={{ 
-                        flex: '1 1 280px',
+                        display: 'grid', 
+                        gridTemplateColumns: windowWidth <= 600 ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)', 
+                        gap: windowWidth <= 600 ? '1rem' : '2rem', 
+                        marginTop: '2.5rem' 
+                    }}>
+                    <div style={{ 
                         background: 'rgba(255, 255, 255, 0.03)', 
-                        padding: '1.5rem', 
+                        padding: windowWidth <= 480 ? '1.2rem' : '1.5rem', 
                         borderRadius: '1.5rem',
                         border: '1px solid var(--border)',
                         transition: 'var(--transition)'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                            <div style={{ background: 'var(--primary)', padding: '0.8rem', borderRadius: '1rem' }}><Users size={24} color="white" /></div>
-                            <h3 style={{ fontSize: '1.2rem', marginBottom: 0 }}>Certified Agents</h3>
+                            <div style={{ background: 'var(--primary)', padding: windowWidth <= 480 ? '0.6rem' : '0.8rem', borderRadius: '1rem' }}><Users size={windowWidth <= 480 ? 20 : 24} color="white" /></div>
+                            <h3 style={{ fontSize: windowWidth <= 480 ? '1rem' : '1.2rem', marginBottom: 0 }}>Certified Agents</h3>
                         </div>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>Professional experts at your service every step of the way.</p>
+                        <p style={{ color: 'var(--text-muted)', fontSize: windowWidth <= 480 ? '0.8rem' : '0.9rem', lineHeight: '1.6' }}>Professional experts at your service every step of the way.</p>
                     </div>
 
                     <div style={{ 
-                        flex: '1 1 280px',
                         background: 'rgba(255, 255, 255, 0.03)', 
-                        padding: '1.5rem', 
+                        padding: windowWidth <= 480 ? '1.2rem' : '1.5rem', 
                         borderRadius: '1.5rem',
                         border: '1px solid var(--border)',
                         transition: 'var(--transition)'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                            <div style={{ background: 'var(--primary)', padding: '0.8rem', borderRadius: '1rem' }}><TrendingUp size={24} color="white" /></div>
-                            <h3 style={{ fontSize: '1.2rem', marginBottom: 0 }}>Smart Financing</h3>
+                            <div style={{ background: 'var(--primary)', padding: windowWidth <= 480 ? '0.6rem' : '0.8rem', borderRadius: '1rem' }}><TrendingUp size={windowWidth <= 480 ? 20 : 24} color="white" /></div>
+                            <h3 style={{ fontSize: windowWidth <= 480 ? '1rem' : '1.2rem', marginBottom: 0 }}>Smart Financing</h3>
                         </div>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>Flexible payment options and expert financial planning.</p>
+                        <p style={{ color: 'var(--text-muted)', fontSize: windowWidth <= 480 ? '0.8rem' : '0.9rem', lineHeight: '1.6' }}>Flexible payment options and expert financial planning.</p>
                     </div>
                 </div>
                 </div>
