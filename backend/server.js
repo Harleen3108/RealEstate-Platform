@@ -19,7 +19,7 @@ const upload = require('./middleware/uploadMiddleware');
 const app = express();
 
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://real-estate-platform-self.vercel.app'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'https://real-estate-platform-self.vercel.app'],
     credentials: true
 }));
 app.use(express.json());
@@ -49,7 +49,7 @@ const PORT = process.env.PORT || 5000;
 const connectDB = async () => {
     try {
         const conn = await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+            serverSelectionTimeoutMS: 30000, // Timeout after 30s instead of 5s
         });
         console.log(`MongoDB Connected: ${conn.connection.host}`);
         app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

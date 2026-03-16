@@ -26,6 +26,10 @@ const PropertyDetail = () => {
 
     useEffect(() => {
         const fetchProperty = async () => {
+            if (!id || id === 'undefined') {
+                setLoading(false);
+                return;
+            }
             try {
                 const { data: propData } = await axios.get(`${API_BASE_URL}/properties/${id}`);
                 setProperty(propData);
@@ -150,32 +154,32 @@ const PropertyDetail = () => {
                 {/* Image Grid - Masonry style */}
                 <div style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: '2fr 1fr 1fr', 
-                    gridTemplateRows: 'repeat(2, 250px)', 
+                    gridTemplateColumns: window.innerWidth > 768 ? '2fr 1fr 1fr' : '1fr', 
+                    gridTemplateRows: window.innerWidth > 768 ? 'repeat(2, 250px)' : 'auto', 
                     gap: '12px', 
                     borderRadius: '24px', 
                     overflow: 'hidden', 
                     marginBottom: '2.5rem' 
                 }}>
-                    <div style={{ gridRow: 'span 2' }}>
+                    <div style={{ gridRow: window.innerWidth > 768 ? 'span 2' : 'auto', height: window.innerWidth > 768 ? '100%' : '300px' }}>
                         <img src={getImageUrl(property.images?.[0])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    {property.images?.[1] && (
+                    {(window.innerWidth > 768) && property.images?.[1] && (
                         <div>
                             <img src={getImageUrl(property.images[1])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                     )}
-                    {property.images?.[2] && (
+                    {(window.innerWidth > 768) && property.images?.[2] && (
                         <div>
                             <img src={getImageUrl(property.images[2])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                     )}
-                    {property.images?.[3] && (
+                    {(window.innerWidth > 768) && property.images?.[3] && (
                         <div>
                             <img src={getImageUrl(property.images[3])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                     )}
-                    {property.images?.[4] ? (
+                    {(window.innerWidth > 768) && property.images?.[4] ? (
                         <div style={{ position: 'relative' }}>
                             <img src={getImageUrl(property.images[4])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             {property.images.length > 5 && (
@@ -192,22 +196,26 @@ const PropertyDetail = () => {
                     )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) 350px', gap: '4rem' }}>
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: window.innerWidth > 1024 ? 'minmax(0, 2fr) 350px' : '1fr', 
+                    gap: window.innerWidth > 768 ? '4rem' : '2.5rem' 
+                }}>
                     {/* Left Column: Content */}
                     <div>
                         <div style={{ marginBottom: '2.5rem' }}>
                             <div style={{ background: '#ffedd5', color: '#f97316', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', display: 'inline-block', marginBottom: '1rem' }}>
                                 {property.propertyType?.toUpperCase() || 'PREMIUM PROPERTY'}
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexDirection: window.innerWidth > 768 ? 'row' : 'column', gap: '1rem' }}>
                                 <div>
-                                    <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text)', marginBottom: '0.5rem' }}>{property.title}</h1>
+                                    <h1 style={{ fontSize: window.innerWidth > 768 ? '2.5rem' : '1.8rem', fontWeight: '900', color: 'var(--text)', marginBottom: '0.5rem' }}>{property.title}</h1>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', fontWeight: '700' }}>
                                         <MapPin size={18} /> {property.location}
                                     </div>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--primary)' }}>
+                                <div style={{ textAlign: window.innerWidth > 768 ? 'right' : 'left' }}>
+                                    <div style={{ fontSize: window.innerWidth > 768 ? '2rem' : '1.8rem', fontWeight: '900', color: 'var(--primary)' }}>
                                         ₹{property.price?.toLocaleString()}
                                     </div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>per month / total</div>
@@ -216,16 +224,16 @@ const PropertyDetail = () => {
                         </div>
 
                         {/* Quick Stats */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', marginBottom: '3rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth > 600 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', marginBottom: '3rem' }}>
                             {[
                                 { icon: Home, label: 'SQUARE FEET', value: `${property.size} SQFT`, color: 'var(--primary)' },
                                 { icon: Bed, label: 'BEDROOMS', value: `${property.bedrooms} Beds`, color: 'var(--primary)' },
                                 { icon: Bath, label: 'BATHROOMS', value: `${property.bathrooms} Bath`, color: 'var(--primary)' }
                             ].map((s, i) => (
-                                <div key={i} style={{ background: 'var(--surface)', padding: '1.5rem', textAlign: 'center' }}>
-                                    <s.icon size={24} color={s.color} style={{ marginBottom: '0.8rem' }} />
-                                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text)' }}>{s.value}</div>
-                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '700', marginTop: '4px' }}>{s.label}</div>
+                                <div key={i} style={{ background: 'var(--surface)', padding: '1.2rem 1rem', textAlign: 'center' }}>
+                                    <s.icon size={20} color={s.color} style={{ marginBottom: '0.5rem' }} />
+                                    <div style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--text)' }}>{s.value}</div>
+                                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: '700', marginTop: '4px' }}>{s.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -239,7 +247,7 @@ const PropertyDetail = () => {
                         {/* Amenities */}
                         <div style={{ marginBottom: '3rem' }}>
                             <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text)', marginBottom: '1.5rem' }}>Key Amenities</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.2rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth > 600 ? 'repeat(3, 1fr)' : 'repeat(1, 1fr)', gap: '1.2rem' }}>
                                 {property.amenities?.map((amenity, i) => (
                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                         <div style={{ background: 'var(--surface-light)', padding: '8px', borderRadius: '8px', color: 'var(--primary)' }}>
@@ -287,7 +295,7 @@ const PropertyDetail = () => {
                     </div>
 
                     {/* Right Column: Sticky Sidebar */}
-                    <div style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
+                    <div style={{ position: window.innerWidth > 1024 ? 'sticky' : 'static', top: '2rem', height: 'fit-content' }}>
                         <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '24px', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
                             <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text)', marginBottom: '4px' }}>Express Interest</h3>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>Schedule a visitor get more details.</p>

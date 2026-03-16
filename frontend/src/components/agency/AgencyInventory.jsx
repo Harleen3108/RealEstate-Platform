@@ -1,4 +1,5 @@
-import { Building2, Plus, Edit, Trash2, MapPin, Upload, FileText, X, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building2, Plus, Edit, Trash2, MapPin, Upload, FileText, X as CloseIcon, Save } from 'lucide-react';
 import AnimatedCounter from '../common/AnimatedCounter';
 
 const AgencyInventory = ({ 
@@ -18,6 +19,13 @@ const AgencyInventory = ({
     handleFileUpload, 
     getImageUrl 
 }) => {
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     const getEmbedUrl = (url) => {
         if (!url) return null;
         let cleanUrl = url.trim();
@@ -52,7 +60,7 @@ const AgencyInventory = ({
             </div>
 
             {!showPropForm && (
-                <div className="glass-card" style={{ padding: '1.2rem', background: 'var(--surface)', border: '1px solid var(--border)', marginBottom: '2rem', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+                <div className="glass-card" style={{ padding: '1.2rem', background: 'var(--surface)', border: '1px solid var(--border)', marginBottom: '2rem', display: 'grid', gridTemplateColumns: windowWidth > 1024 ? 'repeat(4, 1fr)' : windowWidth > 600 ? 'repeat(2, 1fr)' : '1fr', gap: '1rem' }}>
                     <div className="input-group">
                         <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block' }}>LOCATION</label>
                         <input 
@@ -106,7 +114,7 @@ const AgencyInventory = ({
                     <h5 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text)', fontWeight: '800' }}>
                         <Edit size={20} color="var(--primary)" /> {editingProp ? 'Edit Listing Data' : 'New Property Details'}
                     </h5>
-                    <form onSubmit={handlePropSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                    <form onSubmit={handlePropSubmit} style={{ display: 'grid', gridTemplateColumns: windowWidth > 992 ? 'repeat(3, 1fr)' : windowWidth > 600 ? 'repeat(2, 1fr)' : '1fr', gap: '1.5rem' }}>
                         <div className="input-group" style={{ gridColumn: 'span 2' }}>
                             <label style={{ color: 'var(--text-muted)' }}>Headline Title</label>
                             <input type="text" className="input-control" required value={propData.title} onChange={e => setPropData({...propData, title: e.target.value})} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }} />
@@ -193,7 +201,7 @@ const AgencyInventory = ({
                                                 boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
                                             }}
                                         >
-                                            <X size={12} />
+                                            <CloseIcon size={12} />
                                         </button>
                                     </div>
                                 ))}
@@ -213,7 +221,7 @@ const AgencyInventory = ({
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 600 ? "repeat(2, 1fr)" : "1fr", gap: '1.5rem' }}>
                 {properties
                     .filter(p => {
                         const matchesLocation = p.location.toLowerCase().includes(inventoryFilters.location.toLowerCase());

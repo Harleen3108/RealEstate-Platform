@@ -26,7 +26,7 @@ import {
   MapPin,
   Search,
   Filter,
-  X,
+  X as CloseIcon,
   PlusCircle,
   UserCheck,
   Activity,
@@ -38,6 +38,7 @@ import {
   Edit,
   Save,
   Upload,
+  Menu, // Added Menu as per instruction
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AnimatedCounter from "../../components/common/AnimatedCounter";
@@ -73,6 +74,15 @@ const AdminDashboard = () => {
     status: "All Status",
     search: "",
   });
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Responsive UI management
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Management States
   const [selectedAgency, setSelectedAgency] = useState(null);
@@ -142,6 +152,46 @@ const AdminDashboard = () => {
     confirmPassword: "",
   });
   const [saveLoading, setSaveLoading] = useState(false);
+  const [engineParameters, setEngineParameters] = useState([
+    {
+      id: "neural-search",
+      label: "Neural Search Indexing",
+      desc: "Enable semantic search for property matching",
+      active: true,
+    },
+    {
+      id: "blockchain",
+      label: "Blockchain Verification",
+      desc: "Immutable records for investor identities",
+      active: true,
+    },
+    {
+      id: "auto-approval",
+      label: "Agency Auto-Approval",
+      desc: "Bypass manual audit for registered firms",
+      active: false,
+    },
+    {
+      id: "stealth",
+      label: "Marketplace Stealth",
+      desc: "Hide listings from non-registered visitors",
+      active: false,
+    },
+    {
+      id: "data-leak",
+      label: "Data Leak Protection",
+      desc: "Mask sensitive PII in public exports",
+      active: true,
+    },
+  ]);
+
+  const handleToggleEngineParameter = (id) => {
+    setEngineParameters((prev) =>
+      prev.map((opt) =>
+        opt.id === id ? { ...opt, active: !opt.active } : opt,
+      ),
+    );
+  };
 
   useEffect(() => {
     if (user) {
@@ -681,7 +731,7 @@ const AdminDashboard = () => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0, 3fr) minmax(0, 1fr)",
+            gridTemplateColumns: windowWidth > 1024 ? "minmax(0, 3fr) minmax(0, 1fr)" : "1fr",
             gap: "1.2rem",
           }}
         >
@@ -704,7 +754,7 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gridTemplateColumns: windowWidth > 600 ? "repeat(auto-fit, minmax(180px, 1fr))" : "1fr",
                   gap: "1rem",
                 }}
               >
@@ -906,7 +956,7 @@ const AdminDashboard = () => {
                       >
                         <td
                           style={{ padding: "0.8rem 1rem", cursor: "pointer" }}
-                          onClick={() => navigate(`/property/${p._id}`)}
+                          onClick={() => p?._id && navigate(`/property/${p._id}`)}
                         >
                           <div
                             style={{
@@ -1009,7 +1059,7 @@ const AdminDashboard = () => {
                             }}
                           >
                             <button
-                              onClick={() => navigate(`/property/${p._id}`)}
+                              onClick={() => p?._id && navigate(`/property/${p._id}`)}
                               style={{
                                 background: "transparent",
                                 border: "none",
@@ -1296,14 +1346,14 @@ const AdminDashboard = () => {
           {!selectedAgency ? (
             <div className="glass-card" style={{ padding: "0" }}>
               {showCreateAgency ? (
-                <div style={{ padding: "2rem" }} className="animate-fade">
+                <div style={{ padding: windowWidth <= 768 ? "1rem" : "2rem" }} className="animate-fade">
                   <form
                     onSubmit={handleCreateAgency}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(2, 1fr)",
-                      gap: "1.5rem",
-                      padding: "2rem",
+                      gridTemplateColumns: windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
+                      gap: windowWidth <= 768 ? "1rem" : "1.5rem",
+                      padding: windowWidth <= 768 ? "1.2rem" : "2rem",
                       background: "var(--surface-light)",
                       borderRadius: "12px",
                       border: "1px solid var(--border)",
@@ -1612,8 +1662,8 @@ const AdminDashboard = () => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr)",
-                    gap: "1.2rem",
+                    gridTemplateColumns: windowWidth > 1024 ? "minmax(0, 1fr) minmax(0, 2fr)" : "1fr",
+                    gap: "2rem",
                   }}
                 >
                   <div className="glass-card" style={{ padding: "2rem" }}>
@@ -1821,7 +1871,7 @@ const AdminDashboard = () => {
                       {agencyDetails.properties.map((p) => (
                         <div
                           key={p._id}
-                          onClick={() => navigate(`/property/${p._id}`)}
+                          onClick={() => p?._id && navigate(`/property/${p._id}`)}
                           className="hover-card"
                           style={{
                             background: "rgba(255,255,255,0.03)",
@@ -1854,9 +1904,13 @@ const AdminDashboard = () => {
                                 fontSize: "0.9rem",
                                 color: "var(--primary)",
                                 fontWeight: "900",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "2px"
                               }}
                             >
-                              ₹${p.price.toLocaleString()}
+                              <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>₹</span>
+                              {p.price.toLocaleString()}
                             </div>
                             <span
                               style={{
@@ -1890,7 +1944,7 @@ const AdminDashboard = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
               gap: "1rem",
               marginBottom: "1.5rem",
             }}
@@ -2003,7 +2057,7 @@ const AdminDashboard = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 300px",
+              gridTemplateColumns: windowWidth > 1024 ? "1fr 300px" : "1fr",
               gap: "1.2rem",
               alignItems: "start",
             }}
@@ -2019,7 +2073,7 @@ const AdminDashboard = () => {
                     marginBottom: "3rem",
                     border: "1px solid var(--primary)",
                     background: "var(--surface)",
-                    padding: "2rem",
+                    padding: windowWidth <= 768 ? "1.2rem" : "2rem",
                     borderRadius: "1.2rem",
                   }}
                 >
@@ -2031,6 +2085,7 @@ const AdminDashboard = () => {
                       gap: "10px",
                       color: "var(--text)",
                       fontWeight: "800",
+                      fontSize: windowWidth <= 768 ? "1rem" : "1.25rem",
                     }}
                   >
                     <PlusCircle size={20} color="var(--primary)" />{" "}
@@ -2040,13 +2095,13 @@ const AdminDashboard = () => {
                     onSubmit={handlePropSubmit}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(3, 1fr)",
-                      gap: "1.5rem",
+                      gridTemplateColumns: windowWidth > 768 ? "repeat(3, 1fr)" : windowWidth > 480 ? "repeat(2, 1fr)" : "1fr",
+                      gap: windowWidth <= 768 ? "1rem" : "1.5rem",
                     }}
                   >
                     <div
                       className="input-group"
-                      style={{ gridColumn: "span 2" }}
+                      style={{ gridColumn: windowWidth > 480 ? "span 2" : "span 1" }}
                     >
                       <label style={{ color: "var(--text-muted)" }}>
                         Headline Title
@@ -2087,7 +2142,7 @@ const AdminDashboard = () => {
                     </div>
                     <div
                       className="input-group"
-                      style={{ gridColumn: "span 3" }}
+                      style={{ gridColumn: windowWidth > 768 ? "span 3" : windowWidth > 480 ? "span 2" : "span 1" }}
                     >
                       <label style={{ color: "var(--text-muted)" }}>
                         Description
@@ -2283,7 +2338,7 @@ const AdminDashboard = () => {
                     </div>
                     <div
                       className="input-group"
-                      style={{ gridColumn: "span 3" }}
+                      style={{ gridColumn: windowWidth > 768 ? "span 3" : windowWidth > 480 ? "span 2" : "span 1" }}
                     >
                       <label style={{ color: "var(--text-muted)" }}>
                         Amenities (comma separated)
@@ -2350,7 +2405,7 @@ const AdminDashboard = () => {
                                 zIndex: 10
                               }}
                             >
-                              <X size={12} />
+                              <CloseIcon size={12} />
                             </button>
                           </div>
                         ))}
@@ -2358,7 +2413,7 @@ const AdminDashboard = () => {
                     </div>
                     <div
                       className="input-group"
-                      style={{ gridColumn: "span 2" }}
+                      style={{ gridColumn: windowWidth > 480 ? "span 2" : "span 1" }}
                     >
                       <label style={{ color: "var(--text)" }}>
                         <FileText size={14} /> Property Documents
@@ -2372,7 +2427,7 @@ const AdminDashboard = () => {
                         {propData.documents.length} files attached
                       </div>
                     </div>
-                    <div style={{ gridColumn: "span 3", display: "flex", gap: "1rem" }}>
+                    <div style={{ gridColumn: windowWidth > 768 ? "span 3" : windowWidth > 480 ? "span 2" : "span 1", display: "flex", flexDirection: windowWidth <= 480 ? "column" : "row", gap: "1rem" }}>
                       <button
                         type="submit"
                         className="btn btn-primary"
@@ -2592,7 +2647,7 @@ const AdminDashboard = () => {
                               padding: "0.8rem 1rem",
                               cursor: "pointer",
                             }}
-                            onClick={() => navigate(`/property/${p._id}`)}
+                            onClick={() => p?._id && navigate(`/property/${p._id}`)}
                           >
                             <div
                               style={{
@@ -2783,7 +2838,7 @@ const AdminDashboard = () => {
                                   fontSize: "0.75rem",
                                   borderColor: "var(--border)",
                                 }}
-                                onClick={() => navigate(`/property/${p._id}`)}
+                                onClick={() => p?._id && navigate(`/property/${p._id}`)}
                               >
                                 <ExternalLink size={14} />
                               </button>
@@ -3072,6 +3127,7 @@ const AdminDashboard = () => {
               <button
                 className="btn btn-primary"
                 onClick={() => {
+                  setActiveTab("properties");
                   setShowPropForm(true);
                   setEditingProp(null);
                 }}
@@ -3100,7 +3156,7 @@ const AdminDashboard = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
               gap: "1rem",
               marginBottom: "1.5rem",
             }}
@@ -3231,7 +3287,7 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(0, 1fr) minmax(0, 2fr)",
+                  gridTemplateColumns: windowWidth > 992 ? "minmax(0, 1fr) minmax(0, 2fr)" : "1fr",
                   gap: "2rem",
                 }}
               >
@@ -3434,7 +3490,7 @@ const AdminDashboard = () => {
                           <div
                             style={{
                               display: "grid",
-                              gridTemplateColumns: "repeat(3, 1fr)",
+                              gridTemplateColumns: windowWidth > 600 ? "repeat(3, 1fr)" : "1fr",
                               gap: "1.5rem",
                             }}
                           >
@@ -3817,7 +3873,7 @@ const AdminDashboard = () => {
                           {userDetails.agencyData.properties.map((p) => (
                             <div
                               key={p._id}
-                              onClick={() => navigate(`/property/${p._id}`)}
+                              onClick={() => p?._id && navigate(`/property/${p._id}`)}
                               className="hover-card"
                               style={{
                                 background: "rgba(255,255,255,0.03)",
@@ -4011,7 +4067,7 @@ const AdminDashboard = () => {
                         userDetails.savedProperties.map((p) => (
                           <div
                             key={p._id}
-                            onClick={() => navigate(`/property/${p._id}`)}
+                            onClick={() => p?._id && navigate(`/property/${p._id}`)}
                             className="hover-card"
                             style={{
                               background: "rgba(255,255,255,0.03)",
@@ -4527,15 +4583,17 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "flex",
+                  flexDirection: windowWidth <= 768 ? "column" : "row",
                   justifyContent: "space-between",
-                  alignItems: "flex-end",
+                  alignItems: windowWidth <= 768 ? "flex-start" : "flex-end",
+                  gap: windowWidth <= 768 ? "1.5rem" : "1rem",
                   marginBottom: "2.5rem",
                 }}
               >
                 <div>
                   <h2
                     style={{
-                      fontSize: "2rem",
+                      fontSize: windowWidth <= 768 ? "1.5rem" : "2rem",
                       fontWeight: "900",
                       marginBottom: "0.4rem",
                       letterSpacing: "-0.5px",
@@ -4543,23 +4601,31 @@ const AdminDashboard = () => {
                   >
                     Global Lead Tracking
                   </h2>
-                  <p style={{ color: "var(--text-muted)", fontSize: "1rem" }}>
+                  <p style={{ color: "var(--text-muted)", fontSize: windowWidth <= 768 ? "0.9rem" : "1rem" }}>
                     Monitor multi-agency performance and distribution metrics.
                   </p>
                 </div>
-                <div style={{ display: "flex", gap: "12px" }}>
+                <div style={{ 
+                  display: "flex", 
+                  gap: "10px",
+                  width: windowWidth <= 768 ? "100%" : "auto",
+                  flexDirection: windowWidth <= 480 ? "column" : "row"
+                }}>
                   <button
                     className="btn btn-outline"
                     style={{
                       display: "flex",
                       alignItems: "center",
+                      justifyContent: "center",
                       gap: "8px",
-                      padding: "0.8rem 1.5rem",
+                      padding: "0.8rem 1.2rem",
                       fontWeight: "700",
                       border: "1px solid rgba(255,255,255,0.1)",
+                      flex: windowWidth <= 480 ? 1 : "initial",
+                      fontSize: "0.85rem"
                     }}
                   >
-                    <TrendingUp size={18} /> Export Data
+                    <TrendingUp size={16} /> Export Data
                   </button>
                   <button
                     className="btn btn-primary"
@@ -4574,12 +4640,15 @@ const AdminDashboard = () => {
                     style={{
                       display: "flex",
                       alignItems: "center",
+                      justifyContent: "center",
                       gap: "8px",
-                      padding: "0.8rem 1.5rem",
+                      padding: "0.8rem 1.2rem",
                       fontWeight: "800",
+                      flex: windowWidth <= 480 ? 1 : "initial",
+                      fontSize: "0.85rem"
                     }}
                   >
-                    <PlusCircle size={18} /> Add New Lead
+                    <PlusCircle size={16} /> Add New Lead
                   </button>
                 </div>
               </div>
@@ -4588,7 +4657,7 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
                   gap: "1.5rem",
                   marginBottom: "2.5rem",
                 }}
@@ -4627,11 +4696,11 @@ const AdminDashboard = () => {
                     trendDir: "up",
                   },
                 ].map((card, i) => (
-                  <div
+                    <div
                     key={i}
                     className="glass-card"
                     style={{
-                      padding: "2rem",
+                      padding: windowWidth <= 768 ? "1.2rem" : "2rem",
                       background: "var(--surface)",
                       border: "1px solid var(--border)",
                     }}
@@ -4695,7 +4764,7 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1.5fr 1fr",
+                  gridTemplateColumns: windowWidth > 1024 ? "1.5fr 1fr" : "1fr",
                   gap: "1.5rem",
                   marginBottom: "2.5rem",
                 }}
@@ -5384,7 +5453,7 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gridTemplateColumns: windowWidth > 1024 ? "repeat(3, 1fr)" : "1fr",
                   gap: "1.5rem",
                 }}
               >
@@ -5571,7 +5640,7 @@ const AdminDashboard = () => {
                     </div>
                     <button
                       className="btn btn-outline"
-                      onClick={() => navigate(`/property/${selectedLead.property?._id}`)}
+                      onClick={() => selectedLead.property?._id && navigate(`/property/${selectedLead.property._id}`)}
                       style={{
                         width: "100%",
                         borderColor: "var(--border)",
@@ -5698,7 +5767,7 @@ const AdminDashboard = () => {
                 <div
                   className="glass-card"
                   style={{
-                    gridColumn: "span 3",
+                    gridColumn: windowWidth > 1024 ? "span 3" : "span 1",
                     padding: "2rem",
                     background: "var(--surface-light)",
                     border: "1px solid var(--border)",
@@ -5770,7 +5839,7 @@ const AdminDashboard = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
+              gridTemplateColumns: windowWidth > 1024 ? "repeat(2, 1fr)" : "1fr",
               gap: "2.5rem",
             }}
           >
@@ -5872,7 +5941,7 @@ const AdminDashboard = () => {
                   </small>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 600 ? 'repeat(2, 1fr)' : '1fr', gap: '1.5rem' }}>
                     <div className="input-group">
                         <label style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>
                             CURRENT PASSWORD
@@ -5988,35 +6057,9 @@ const AdminDashboard = () => {
                   gap: "1.2rem",
                 }}
               >
-                {[
-                  {
-                    label: "Neural Search Indexing",
-                    desc: "Enable semantic search for property matching",
-                    active: true,
-                  },
-                  {
-                    label: "Blockchain Verification",
-                    desc: "Immutable records for investor identities",
-                    active: true,
-                  },
-                  {
-                    label: "Agency Auto-Approval",
-                    desc: "Bypass manual audit for registered firms",
-                    active: false,
-                  },
-                  {
-                    label: "Marketplace Stealth",
-                    desc: "Hide listings from non-registered visitors",
-                    active: false,
-                  },
-                  {
-                    label: "Data Leak Protection",
-                    desc: "Mask sensitive PII in public exports",
-                    active: true,
-                  },
-                ].map((opt, i) => (
+                {engineParameters.map((opt) => (
                   <div
-                    key={i}
+                    key={opt.id}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -6049,13 +6092,16 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div
+                      role="button"
+                      aria-pressed={opt.active}
+                      onClick={() => handleToggleEngineParameter(opt.id)}
                       style={{
                         width: "44px",
                         height: "24px",
                         borderRadius: "24px",
                         background: opt.active
                           ? "var(--primary)"
-                          : "var(--surface)",
+                          : "#334155",
                         padding: "3px",
                         cursor: "pointer",
                         border: "1px solid var(--border)",
@@ -6094,7 +6140,7 @@ const AdminDashboard = () => {
             alignItems: "center",
             justifyContent: "center",
             zIndex: 1000,
-            padding: "2rem",
+            padding: windowWidth <= 768 ? "1rem" : "2rem",
             backdropFilter: "blur(10px)",
           }}
         >
@@ -6105,8 +6151,10 @@ const AdminDashboard = () => {
               maxWidth: "800px",
               background: "var(--surface)",
               border: "1px solid var(--border)",
-              borderRadius: "2rem",
-              overflow: "hidden",
+              borderRadius: windowWidth <= 768 ? "1.2rem" : "2rem",
+              maxHeight: windowWidth <= 768 ? "95vh" : "auto",
+              overflowY: "auto",
+              overflowX: "hidden",
             }}
           >
             <div
@@ -6119,11 +6167,11 @@ const AdminDashboard = () => {
                 background: "var(--surface-light)",
               }}
             >
-              <div>
-                <h3 style={{ fontSize: "1.5rem", fontWeight: "900" }}>
+              <div style={{ paddingRight: "10px" }}>
+                <h3 style={{ fontSize: windowWidth <= 768 ? "1.2rem" : "1.5rem", fontWeight: "900", lineHeight: 1.2 }}>
                   Add New Lead Manually
                 </h3>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                <p style={{ color: "var(--text-muted)", fontSize: windowWidth <= 768 ? "0.8rem" : "0.9rem" }}>
                   Create a lead entry for external inquiries or walk-ins.
                 </p>
               </div>
@@ -6132,16 +6180,16 @@ const AdminDashboard = () => {
                 onClick={() => setShowLeadForm(false)}
                 style={{ padding: "8px", border: "none" }}
               >
-                <X size={24} />
+                <CloseIcon size={24} />
               </button>
             </div>
 
-            <form onSubmit={handleAddLead} style={{ padding: "2.5rem" }}>
+            <form onSubmit={handleAddLead} style={{ padding: windowWidth <= 768 ? "1.5rem" : "2.5rem" }}>
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: "1.5rem",
+                  gridTemplateColumns: windowWidth > 768 ? "repeat(2, 1fr)" : "1fr",
+                  gap: windowWidth <= 768 ? "1rem" : "1.5rem",
                 }}
               >
                 <div className="input-group">
@@ -6288,7 +6336,7 @@ const AdminDashboard = () => {
                   </select>
                 </div>
                 
-                <div className="input-group" style={{ gridColumn: "span 2" }}>
+                <div className="input-group" style={{ gridColumn: windowWidth > 768 ? "span 2" : "span 1" }}>
                   <label>Notes</label>
                   <textarea
                     name="message"
@@ -6308,8 +6356,9 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "flex",
+                  flexDirection: windowWidth <= 480 ? "column" : "row",
                   gap: "1rem",
-                  marginTop: "2.5rem",
+                  marginTop: windowWidth <= 768 ? "1.5rem" : "2.5rem",
                 }}
               >
                 <button

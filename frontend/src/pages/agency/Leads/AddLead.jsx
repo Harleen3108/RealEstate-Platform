@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Save, X, User, Mail, Phone, MessageSquare, Building2, TrendingUp } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Briefcase, Plus, X as CloseIcon, Save, Building2, TrendingUp, MessageSquare } from 'lucide-react';
 import API_BASE_URL from '../../../apiConfig';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -58,7 +58,7 @@ const AddLead = () => {
                     <p style={{ color: 'var(--text-muted)' }}>Manually record a new prospect for your CRM.</p>
                 </div>
                 <button className="btn btn-outline" onClick={() => navigate(-1)} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-                    <X size={18} /> Cancel
+                    <CloseIcon size={18} /> Cancel
                 </button>
             </div>
 

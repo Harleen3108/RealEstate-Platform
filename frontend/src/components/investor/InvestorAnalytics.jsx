@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, DollarSign, PieChart, Building2 } from 'lucide-react';
 
 const InvestorAnalytics = ({ stats, investments }) => {
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Calculate Property Distribution
     const distribution = investments.reduce((acc, inv) => {
         const type = inv.propertyType || 'Other';
@@ -45,7 +53,7 @@ const InvestorAnalytics = ({ stats, investments }) => {
 
     return (
         <div className="animate-fade">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 1024 ? 'repeat(4, 1fr)' : windowWidth > 600 ? 'repeat(2, 1fr)' : '1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
                 <div className="glass-card" style={{ padding: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1rem', fontWeight: '700', textTransform: 'uppercase' }}>
                         <DollarSign size={16} color="var(--primary)" /> Portfolio Value
@@ -81,7 +89,7 @@ const InvestorAnalytics = ({ stats, investments }) => {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr)', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 1024 ? 'minmax(0, 1.5fr) minmax(0, 1fr)' : '1fr', gap: '1.5rem' }}>
                 <div className="glass-card" style={{ padding: '2.5rem', background: 'var(--surface)', border: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <div>

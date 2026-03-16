@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Save, Edit, Trash2 } from 'lucide-react';
 
 const InvestorPortfolio = ({ 
@@ -14,6 +14,14 @@ const InvestorPortfolio = ({
     setEditingRecord,
     propertyTypes 
 }) => {
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -26,7 +34,7 @@ const InvestorPortfolio = ({
             {showForm && (
                 <div className="glass-card animate-fade" style={{ marginBottom: '3rem', border: '1px solid var(--primary)', background: 'var(--surface)', padding: '2rem' }}>
                     <h5 style={{ marginBottom: '1.5rem', color: 'var(--text)', fontWeight: '800', fontSize: '1.2rem' }}>{editingRecord ? 'Update Asset Valuation' : 'New Portfolio Entry'}</h5>
-                    <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                    <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: windowWidth > 768 ? 'repeat(3, 1fr)' : windowWidth > 480 ? 'repeat(2, 1fr)' : '1fr', gap: '1.5rem' }}>
                         <div className="input-group">
                             <label style={{ color: 'var(--text-muted)' }}>Property Name</label>
                             <input type="text" className="input-control" required value={formData.propertyName} onChange={e => setFormData({...formData, propertyName: e.target.value})} style={{ background: 'var(--surface-light)', border: '1px solid var(--border)', color: 'var(--text)' }} />

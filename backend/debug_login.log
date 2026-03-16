@@ -161,3 +161,30 @@
 2026-03-15T10:37:21.025Z - Login attempt for: harleen@admin.com
 2026-03-15T10:37:21.317Z - User found, comparing password...
 2026-03-15T10:37:21.472Z - Password match, generating token...
+2026-03-15T15:55:34.046Z - Login attempt for: harleen@admin.com
+2026-03-15T15:55:34.092Z - User found, comparing password...
+2026-03-15T15:55:34.187Z - Password match, generating token...
+2026-03-15T16:01:02.883Z - Login attempt for: admin@example.com
+2026-03-15T16:01:02.944Z - User not found
+2026-03-16T05:20:30.613Z - Login attempt for: harshkumarhk525@gmail.com
+2026-03-16T05:20:31.003Z - User found, comparing password...
+2026-03-16T05:20:31.161Z - Password mismatch
+2026-03-16T05:20:38.363Z - Login attempt for: harshkumarhk525@gmail.com
+2026-03-16T05:20:38.542Z - User found, comparing password...
+2026-03-16T05:20:38.687Z - Password mismatch
+2026-03-16T05:20:44.933Z - Login attempt for: harshkumarhk525@gmail.com
+2026-03-16T05:20:45.076Z - User found, comparing password...
+2026-03-16T05:20:45.220Z - Password match, generating token...
+2026-03-16T06:07:57.584Z - Login attempt for: agency@test.com
+2026-03-16T06:08:03.104Z - Login error: connect ETIMEDOUT 159.41.183.218:27017
+Stack: MongoServerSelectionError: connect ETIMEDOUT 159.41.183.218:27017
+    at Topology.selectServer (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\sdam\topology.js:347:38)
+    at async tryOperation (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\operations\execute_operation.js:150:18)
+    at async executeOperation (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\operations\execute_operation.js:80:16)
+    at async FindCursor._initialize (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\cursor\find_cursor.js:62:26)
+    at async FindCursor.cursorInit (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\cursor\abstract_cursor.js:620:27)
+    at async FindCursor.fetchBatch (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\cursor\abstract_cursor.js:654:13)
+    at async FindCursor.next (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\cursor\abstract_cursor.js:326:17)
+    at async Collection.findOne (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongodb\lib\collection.js:313:24)
+    at async model.Query._findOne (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongoose\lib\query.js:2731:15)
+    at async model.Query.exec (D:\Avani Projects\RealEstate-Platform\backend\node_modules\mongoose\lib\query.js:4726:63)

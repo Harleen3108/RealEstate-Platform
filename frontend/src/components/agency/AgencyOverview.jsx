@@ -1,10 +1,18 @@
+import React, { useState, useEffect } from 'react';
 import { Building2, CheckCircle, TrendingUp, Users } from 'lucide-react';
 import AnimatedCounter from '../common/AnimatedCounter';
 
 const AgencyOverview = ({ stats }) => {
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     return (
         <div className="animate-fade">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 768 ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)', gap: '1rem', marginBottom: '3rem' }}>
                 {[
                     { label: 'Platform Listings', value: stats.totalProperties, color: 'var(--text)', icon: Building2 },
                     { label: 'Active Assets', value: stats.available, color: 'var(--success)', icon: CheckCircle },

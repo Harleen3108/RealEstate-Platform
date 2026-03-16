@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
+const logFile = path.join(__dirname, '../debug_temp_log.txt');
 const Property = require('../models/Property');
+const User = require('../models/User');
+const mongoose = require('mongoose');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 // @desc    Get all properties
@@ -18,17 +23,32 @@ router.get('/', async (req, res) => {
 // @route   GET /api/properties/agency/:agencyId
 router.get('/agency/:agencyId', async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.agencyId)) {
+            console.log('Invalid agency ID passed:', req.params.agencyId);
+            return res.status(400).json({ message: 'Invalid agency ID' });
+        }
+        console.log('Fetching properties for agency:', req.params.agencyId);
+        fs.appendFileSync(logFile, `[${new Date().toISOString()}] Fetching properties for agency: ${req.params.agencyId}\n`);
         const properties = await Property.find({ agency: req.params.agencyId }).populate('agency', 'name email');
+        console.log(`Found ${properties.length} properties for agency ${req.params.agencyId}`);
+        fs.appendFileSync(logFile, `[${new Date().toISOString()}] Found ${properties.length} properties\n`);
         res.json(properties);
     } catch (error) {
+        console.error('CRITICAL: Agency Properties Error:', error);
+        fs.appendFileSync(logFile, `[${new Date().toISOString()}] ERROR in /agency/:agencyId: ${error.stack}\n`);
         res.status(500).json({ message: error.message });
     }
 });
+
+
 
 // @desc    Get property by ID
 // @route   GET /api/properties/:id
 router.get('/:id', async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ message: 'Invalid property ID' });
+        }
         const property = await Property.findById(req.params.id).populate('agency', 'name email');
         if (property) {
             res.json(property);
@@ -67,9 +87,6 @@ router.post('/', protect, authorize('Agency', 'Admin'), async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
-
-const fs = require('fs');
-const path = require('path');
 
 // @desc    Update a property
 // @route   PUT /api/properties/:id

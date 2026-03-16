@@ -8,13 +8,16 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 // @route   GET /api/leads
 router.get('/', protect, authorize('Agency', 'Admin'), async (req, res) => {
     try {
+        console.log(`User ${req.user._id} (${req.user.role}) fetching leads`);
         const query = req.user.role === 'Admin' ? {} : { agency: req.user._id };
         const leads = await Lead.find(query)
             .populate('property', 'title price location')
             .populate('buyer', 'name email phoneNumber')
             .populate('agency', 'name email phoneNumber');
+        console.log(`Found ${leads.length} leads for user ${req.user._id}`);
         res.json(leads);
     } catch (error) {
+        console.error('Lead Fetching Error:', error);
         res.status(500).json({ message: error.message });
     }
 });

@@ -19,7 +19,7 @@ const BuyerWatchlist = ({ savedProperties, handleRemoveSaved, getImageUrl }) => 
     }
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
             {savedProperties.map(p => (
                 <div key={p._id} className="glass-card animate-fade" style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '1rem' }}>
                     <div style={{ height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '1.2rem', position: 'relative' }}>

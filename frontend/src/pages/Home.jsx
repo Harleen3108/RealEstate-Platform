@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
-import { Search, MapPin, Bed, Bath, Move, ArrowRight, ShieldCheck, UserCheck, Wallet, Instagram, Twitter, Facebook, Linkedin, Send, User, Building2 } from 'lucide-react';
+import { Search, MapPin, Bed, Bath, Move, ArrowRight, ShieldCheck, UserCheck, Wallet, Instagram, Twitter, Facebook, Linkedin, Send, User, Building2, Users, TrendingUp } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const heroImages = [
@@ -87,18 +87,17 @@ const Home = () => {
         <div className="animate-fade" style={{ background: 'var(--background)' }}>
             {/* Hero Section */}
             <section style={{ 
-                height: '85vh', 
-                margin: '1rem', 
-                borderRadius: '30px',
-                position: 'relative',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
+                height: 'clamp(550px, 85vh, 750px)',
+                position: 'relative', 
+                overflow: 'hidden', 
+                marginTop: '1.2rem',
+                marginInline: 'clamp(0.5rem, 3vw, 1.5rem)',
+                borderRadius: 'clamp(1.5rem, 5vw, 3rem)',
+                display: 'flex', 
+                alignItems: 'center', 
                 textAlign: 'center',
                 color: 'white',
-                padding: '2rem'
+                padding: '1rem'
             }}>
                 {/* Slideshow Images */}
                 {heroImages.map((img, index) => (
@@ -116,46 +115,74 @@ const Home = () => {
                         }}
                     />
                 ))}
-                {/* Theme-Aware Overlay */}
+                {/* Modern Gradient Overlay */}
                 <div style={{
                     position: 'absolute',
                     inset: 0,
-                    background: theme === 'dark'
-                        ? 'linear-gradient(to bottom, rgba(10,10,20,0.7) 0%, rgba(10,10,20,0.5) 50%, rgba(10,10,20,0.8) 100%)'
-                        : 'linear-gradient(to bottom, rgba(15,15,25,0.65) 0%, rgba(15,15,25,0.45) 50%, rgba(15,15,25,0.75) 100%)',
-                    zIndex: 1,
-                    transition: 'background 0.5s ease'
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.8) 100%)',
+                    zIndex: 1
                 }} />
 
                 {/* Hero Content */}
-                <div style={{ position: 'relative', zIndex: 2 }}>
-                    <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: '900', marginBottom: '1.5rem', lineHeight: '1.1' }}>
+                <div className="container" style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <h1 style={{ 
+                        fontSize: 'clamp(2.2rem, 10vw, 4.5rem)', 
+                        fontWeight: '900', 
+                        marginBottom: '1rem', 
+                        lineHeight: '1.05',
+                        letterSpacing: '-1px'
+                    }}>
                         The Future of <br />
                         <span style={{ 
                             color: 'var(--primary)', 
                             display: 'inline-block',
                             opacity: textFade ? 1 : 0,
                             transform: textFade ? 'translateY(0)' : 'translateY(15px)',
-                            transition: 'opacity 0.5s ease, transform 0.5s ease'
+                            transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
                         }}>
                             {heroTexts[currentTextIndex]}
                         </span>
                     </h1>
-                    <p style={{ fontSize: '1.2rem', maxWidth: '750px', margin: '0 auto 3rem', opacity: '0.9', fontWeight: '500', lineHeight: '1.6' }}>
+                    <p style={{ 
+                        fontSize: 'clamp(0.95rem, 3vw, 1.25rem)', 
+                        maxWidth: '650px', 
+                        margin: '0 auto 2.5rem', 
+                        opacity: '0.9', 
+                        fontWeight: '500', 
+                        lineHeight: '1.5',
+                        padding: '0 1rem'
+                    }}>
                         A unified platform for property discovery, elite CRM for agencies, and professional portfolio tracking for global investors.
                     </p>
 
-                    <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center' }}>
-                        <Link to="/login" className="btn btn-primary" style={{ padding: '1.2rem 3rem', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '800' }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        gap: '1rem', 
+                        justifyContent: 'center', 
+                        flexWrap: 'wrap', 
+                        width: '100%', 
+                        maxWidth: '480px' 
+                    }}>
+                        <Link to="/login" className="btn btn-primary" style={{ padding: '1.2rem 2.5rem', borderRadius: '16px', fontSize: '1rem', fontWeight: '800', flex: '1 1 200px', boxShadow: '0 15px 30px rgba(229, 90, 22, 0.2)' }}>
                             Login Account
                         </Link>
-                        <Link to="/register" className="btn btn-outline" style={{ padding: '1.2rem 3rem', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '800', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
+                        <Link to="/register" className="btn btn-outline" style={{ 
+                            padding: '1.2rem 2.5rem', 
+                            borderRadius: '16px', 
+                            fontSize: '1rem', 
+                            fontWeight: '800', 
+                            background: 'rgba(255,255,255,0.1)', 
+                            color: 'white', 
+                            border: '1px solid rgba(255,255,255,0.3)', 
+                            flex: '1 1 200px',
+                            backdropFilter: 'blur(10px)'
+                        }}>
                             Register Now
                         </Link>
                     </div>
 
                     {/* Slide Indicators */}
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '2.5rem' }}>
+                    <div className="desktop-only" style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '2.5rem' }}>
                         {heroImages.map((_, i) => (
                             <div
                                 key={i}
@@ -175,13 +202,22 @@ const Home = () => {
             </section>
 
             {/* Featured Listings */}
-            <section className="container" style={{ padding: '6rem 1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <section className="container" style={{ padding: 'clamp(3rem, 10vw, 6rem) 1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'clamp(2rem, 5vw, 3rem)', flexWrap: 'wrap', gap: '1.5rem' }}>
                     <div>
-                        <p style={{ color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Handpicked</p>
-                        <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text)' }}>Featured Listings</h2>
+                        <p style={{ color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.75rem', marginBottom: '0.5rem' }}>Handpicked</p>
+                        <h2 style={{ fontSize: 'clamp(2rem, 6vw, 3rem)', fontWeight: '900', color: 'var(--text)', lineHeight: '1.1' }}>Featured Listings</h2>
                     </div>
-                    <div style={{ display: 'flex', gap: '2rem' }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        gap: '1.5rem', 
+                        overflowX: 'auto', 
+                        paddingBottom: '10px',
+                        width: '100%',
+                        msOverflowStyle: 'none',
+                        scrollbarWidth: 'none',
+                        WebkitOverflowScrolling: 'touch'
+                    }}>
                         {categories.map((cat) => (
                             <span 
                                 key={cat} 
@@ -190,9 +226,11 @@ const Home = () => {
                                     fontWeight: '700', 
                                     color: activeCategory === cat ? 'var(--primary)' : 'var(--text-muted)', 
                                     cursor: 'pointer',
-                                    borderBottom: activeCategory === cat ? '2px solid var(--primary)' : 'none',
-                                    paddingBottom: '5px',
-                                    transition: 'var(--transition)'
+                                    borderBottom: activeCategory === cat ? '3px solid var(--primary)' : '3px solid transparent',
+                                    paddingBottom: '8px',
+                                    transition: 'all 0.3s ease',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: '1rem'
                                 }}
                             >
                                 {cat === 'All' ? 'All' : cat + 's'}
@@ -251,38 +289,53 @@ const Home = () => {
             </section>
 
             {/* About Us Section */}
-            <section className="container" style={{ padding: '6rem 1.5rem', display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 1fr', gap: '5rem', alignItems: 'center' }}>
+            <section className="container" style={{ padding: 'clamp(3rem, 10vw, 6rem) 1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'clamp(2rem, 8vw, 5rem)', alignItems: 'center' }}>
                 <div style={{ position: 'relative' }}>
-                    <div style={{ borderRadius: '30px', overflow: 'hidden', height: '600px', border: '1px solid var(--border)' }}>
+                    <div style={{ borderRadius: '30px', overflow: 'hidden', height: 'clamp(400px, 60vh, 600px)', border: '1px solid var(--border)' }}>
                         <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop" alt="Architecture" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
-                    <div style={{ position: 'absolute', bottom: '30px', left: '30px', background: 'var(--surface)', padding: '2rem', borderRadius: '20px', border: '1px solid var(--border)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                        <div style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--primary)', lineHeight: '1' }}>25+</div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '1px' }}>Years of Excellence</div>
+                    <div style={{ position: 'absolute', bottom: 'clamp(10px, 3vw, 30px)', left: 'clamp(10px, 3vw, 30px)', background: 'var(--surface)', padding: '1.5rem', borderRadius: '15px', border: '1px solid var(--border)', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', maxWidth: 'calc(100% - 40px)' }}>
+                        <div style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: '900', color: 'var(--primary)', lineHeight: '1' }}>25+</div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '1px' }}>Years of Excellence</div>
                     </div>
                 </div>
                 <div>
-                    <p style={{ color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '0.5rem' }}>About Us</p>
-                    <h2 style={{ fontSize: '2.8rem', fontWeight: '900', color: 'var(--text)', lineHeight: '1.2', marginBottom: '1.5rem' }}>Empowering Real Estate Through Smart CRM Solutions</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '2.5rem' }}>
-                        At Avani Enterprises, we go beyond traditional real estate services by providing advanced CRM solutions designed specifically for the real estate industry. Our platform helps agencies manage property listings, track leads, and streamline client interactions efficiently. With a focus on innovation and usability, we enable real estate professionals to manage their operations, nurture leads, and grow their business through a centralized and intelligent system.
+                    <p style={{ color: 'var(--primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.75rem', marginBottom: '0.5rem' }}>About Us</p>
+                    <h2 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', fontWeight: '900', color: 'var(--text)', lineHeight: '1.2', marginBottom: '1.5rem' }}>Empowering Real Estate Through Smart CRM Solutions</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: '1.7', marginBottom: '2rem' }}>
+                        At Millionaire Club, we go beyond traditional real estate services by providing advanced CRM solutions designed specifically for the real estate industry. Our platform helps agencies manage property listings, track leads, and streamline client interactions efficiently. With a focus on innovation and usability, we enable real estate professionals to manage their operations, nurture leads, and grow their business through a centralized and intelligent system.
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
-                        <div>
-                            <div style={{ width: '50px', height: '50px', background: 'rgba(229, 90, 22, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', marginBottom: '1rem' }}>
-                                <UserCheck size={24} />
-                            </div>
-                            <h4 style={{ fontWeight: '800', color: 'var(--text)', marginBottom: '0.5rem' }}>Certified Agents</h4>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>Our team consists of industry experts with deep market knowledge.</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', marginTop: '2.5rem' }}>
+                    <div style={{ 
+                        flex: '1 1 280px',
+                        background: 'rgba(255, 255, 255, 0.03)', 
+                        padding: '1.5rem', 
+                        borderRadius: '1.5rem',
+                        border: '1px solid var(--border)',
+                        transition: 'var(--transition)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ background: 'var(--primary)', padding: '0.8rem', borderRadius: '1rem' }}><Users size={24} color="white" /></div>
+                            <h3 style={{ fontSize: '1.2rem', marginBottom: 0 }}>Certified Agents</h3>
                         </div>
-                        <div>
-                            <div style={{ width: '50px', height: '50px', background: 'rgba(229, 90, 22, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', marginBottom: '1rem' }}>
-                                <Wallet size={24} />
-                            </div>
-                            <h4 style={{ fontWeight: '800', color: 'var(--text)', marginBottom: '0.5rem' }}>Smart Financing</h4>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>Flexible financial solutions tailored to your unique investment goals.</p>
-                        </div>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>Professional experts at your service every step of the way.</p>
                     </div>
+
+                    <div style={{ 
+                        flex: '1 1 280px',
+                        background: 'rgba(255, 255, 255, 0.03)', 
+                        padding: '1.5rem', 
+                        borderRadius: '1.5rem',
+                        border: '1px solid var(--border)',
+                        transition: 'var(--transition)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ background: 'var(--primary)', padding: '0.8rem', borderRadius: '1rem' }}><TrendingUp size={24} color="white" /></div>
+                            <h3 style={{ fontSize: '1.2rem', marginBottom: 0 }}>Smart Financing</h3>
+                        </div>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>Flexible payment options and expert financial planning.</p>
+                    </div>
+                </div>
                 </div>
             </section>
 
@@ -292,9 +345,9 @@ const Home = () => {
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
                             <div style={{ width: '28px', height: '28px', borderRadius: '4px', background: 'var(--primary)', overflow: 'hidden' }}>
-                                <img src="/logo.jpg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
-                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--text)' }}>Avani <span style={{ color: 'var(--primary)' }}>Enterprises</span></div>
+                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--text)' }}>Millionaire <span style={{ color: 'var(--primary)' }}>Club</span></div>
                         </div>
                         <p style={{ color: 'var(--text-muted)', lineHeight: '1.8', marginBottom: '2rem' }}>
                             Expert Real Estate CRM Support <br/>

@@ -4,8 +4,9 @@ import axios from 'axios';
 import API_BASE_URL from '../apiConfig';
 import { useAuth } from '../context/AuthContext';
 import { 
-    LayoutDashboard, Search, Heart, MessageCircle, User, Settings, 
-    LogOut, Bell, Sun, Moon, Plus, ChevronRight
+    CheckCircle, X as CloseIcon, Menu, Phone, Mail, MapPin, Search, Globe, ChevronDown,
+    LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut, MessageCircle, Home, Bell, 
+    ChevronRight, Sun, Moon, Plus, FileText, BarChart3
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -15,6 +16,7 @@ const UserLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [unreadCount, setUnreadCount] = useState(0);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         if (!loading && !user) {
@@ -26,6 +28,10 @@ const UserLayout = () => {
             return () => clearInterval(interval);
         }
     }, [user, loading, navigate]);
+
+    useEffect(() => {
+        setSidebarOpen(false);
+    }, [location]);
 
     const fetchUnreadCount = async () => {
         try {
@@ -55,7 +61,22 @@ const UserLayout = () => {
     ];
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)', color: 'var(--text)' }}>
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)', color: 'var(--text)', position: 'relative' }}>
+            {/* Sidebar Overlay */}
+            {sidebarOpen && (
+                <div 
+                    onClick={() => setSidebarOpen(false)}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        zIndex: 1001,
+                        backdropFilter: 'blur(4px)'
+                    }}
+                    className="mobile-only"
+                />
+            )}
+
             {/* Sidebar */}
             <aside style={{ 
                 width: '280px', 
@@ -64,11 +85,16 @@ const UserLayout = () => {
                 display: 'flex', 
                 flexDirection: 'column',
                 borderRight: '1px solid var(--border)',
-                position: 'sticky',
+                position: window.innerWidth <= 768 ? 'fixed' : 'sticky',
                 top: 0,
+                bottom: 0,
+                left: 0,
                 height: '100vh',
                 overflowY: 'auto',
-                color: 'var(--text)'
+                color: 'var(--text)',
+                zIndex: 1002,
+                transform: window.innerWidth <= 768 ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
+                transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}>
                 {/* Logo Area */}
                 <div style={{ padding: '1.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -82,12 +108,15 @@ const UserLayout = () => {
                         justifyContent: 'center',
                         background: 'white'
                     }}>
-                        <img src="/logo.jpg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <div>
-                        <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text)', letterSpacing: '0.2px' }}>Avani Enterprises</div>
+                        <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text)', letterSpacing: '0.2px' }}>Millionaire Club</div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>Real Estate Platform</div>
                     </div>
+                    <button className="mobile-only" onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)' }}>
+                        <CloseIcon size={20} />
+                    </button>
                 </div>
 
                 {/* Nav Links */}
@@ -170,7 +199,7 @@ const UserLayout = () => {
             </aside>
 
             {/* Main Content Area */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--background)', minWidth: 0 }}>
                 {/* HeaderBar */}
                 <header style={{ 
                     height: '70px', 
@@ -178,23 +207,33 @@ const UserLayout = () => {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'space-between',
-                    padding: '0 2.5rem',
-                    borderBottom: '1px solid var(--border)'
+                    padding: '0 clamp(1rem, 5vw, 2.5rem)',
+                    borderBottom: '1px solid var(--border)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1000
                 }}>
-                    <div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <button 
+                            className="mobile-only"
+                            onClick={() => setSidebarOpen(true)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text)', cursor: 'pointer' }}
+                        >
+                            <Menu size={24} />
+                        </button>
+                        <h2 style={{ fontSize: 'clamp(1rem, 5vw, 1.5rem)', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {menuItems.find(i => i.path === location.pathname)?.label || 'Dashboard'}
                         </h2>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px, 3vw, 20px)' }}>
                         {/* Theme Toggle */}
                         <button 
                             onClick={toggleTheme}
                             style={{ 
                                 background: 'rgba(255,255,255,0.05)', 
                                 border: '1px solid var(--border)', 
-                                padding: '10px', 
+                                padding: 'clamp(6px, 2vw, 10px)', 
                                 borderRadius: '12px', 
                                 color: 'var(--text)', 
                                 cursor: 'pointer',
@@ -208,7 +247,7 @@ const UserLayout = () => {
                         </button>
 
                         <button 
-                            style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: '10px', borderRadius: '12px', color: unreadCount > 0 ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer', position: 'relative' }}
+                            style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: 'clamp(6px, 2vw, 10px)', borderRadius: '12px', color: unreadCount > 0 ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer', position: 'relative' }}
                         >
                             <Bell size={20} />
                             {unreadCount > 0 && (
@@ -227,7 +266,7 @@ const UserLayout = () => {
                     </div>
                 </header>
 
-                <main style={{ flex: 1, padding: '1rem 3rem 3rem 3rem' }}>
+                <main style={{ flex: 1, padding: 'clamp(1rem, 5vw, 3rem)' }}>
                     <Outlet />
                 </main>
             </div>

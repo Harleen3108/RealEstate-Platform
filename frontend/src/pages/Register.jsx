@@ -58,42 +58,40 @@ const Register = () => {
             padding: '2rem',
             transition: 'var(--transition)'
         }}>
-            <div style={{ 
-                width: '100%', 
-                maxWidth: '1000px', 
-                height: 'auto',
-                minHeight: '550px',
-                maxHeight: '700px',
-                display: 'flex', 
-                borderRadius: '24px', 
-                overflow: 'hidden',
-                boxShadow: 'var(--shadow)',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                flexWrap: 'wrap'
-            }}>
-                {/* Left Side - Hero Image */}
                 <div style={{ 
-                    flex: '1 1 400px', 
-                    position: 'relative',
-                    backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%), url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'flex-end',
-                    padding: '3rem',
-                    minHeight: '300px'
+                    width: '100%', 
+                    maxWidth: '1000px', 
+                    display: 'flex', 
+                    borderRadius: '24px', 
+                    overflow: 'hidden',
+                    boxShadow: 'var(--shadow)',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    flexWrap: 'wrap',
+                    marginBottom: '2rem'
                 }}>
-                    <h1 style={{ color: 'white', fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>Avani Enterprises</h1>
-                    <p style={{ color: 'var(--primary)', fontSize: '1.1rem', fontWeight: '700', opacity: 0.9 }}>Join the future of elite real estate.</p>
-                    
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '2rem' }}>
-                        <div style={{ width: '12px', height: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }}></div>
-                        <div style={{ width: '40px', height: '4px', background: 'var(--primary)', borderRadius: '2px' }}></div>
-                        <div style={{ width: '12px', height: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }}></div>
+                    {/* Left Side - Hero Image */}
+                    <div className="desktop-only" style={{ 
+                        flex: '1 1 400px', 
+                        position: 'relative',
+                        backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%), url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
+                        padding: '3rem',
+                        minHeight: '400px'
+                    }}>
+                        <h1 style={{ color: 'white', fontSize: '2.5rem', fontWeight: '800', marginBottom: '0.5rem' }}>Millionaire Club</h1>
+                        <p style={{ color: 'var(--primary)', fontSize: '1.1rem', fontWeight: '700', opacity: 0.9 }}>Join the future of elite real estate.</p>
+                        
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '2rem' }}>
+                            <div style={{ width: '12px', height: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }}></div>
+                            <div style={{ width: '40px', height: '4px', background: 'var(--primary)', borderRadius: '2px' }}></div>
+                            <div style={{ width: '12px', height: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px' }}></div>
+                        </div>
                     </div>
-                </div>
 
                 {/* Right Side - Register Form */}
                 <div style={{ 

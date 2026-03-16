@@ -54,13 +54,22 @@ const Dashboard = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [propRes, leadRes] = await Promise.all([
-                axios.get(`${API_BASE_URL}/properties/agency/${user._id}`),
-                axios.get(`${API_BASE_URL}/leads`)
-            ]);
-            
-            const properties = propRes.data;
-            const leads = leadRes.data;
+            let properties = [];
+            let leads = [];
+
+            try {
+                const propRes = await axios.get(`${API_BASE_URL}/properties/agency/${user._id}`);
+                properties = propRes.data;
+            } catch (err) {
+                console.error('Failed to fetch agency properties (500?):', err.response?.status, err.message);
+            }
+
+            try {
+                const leadRes = await axios.get(`${API_BASE_URL}/leads`);
+                leads = leadRes.data;
+            } catch (err) {
+                console.error('Failed to fetch agency leads (401?):', err.response?.status, err.message);
+            }
 
             // Update Stats
             setStats({

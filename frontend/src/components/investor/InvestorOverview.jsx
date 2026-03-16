@@ -1,11 +1,20 @@
+import React, { useState, useEffect } from 'react';
 import { Wallet, Landmark, TrendingUp, Building2, ArrowUpRight } from 'lucide-react';
 import AnimatedCounter from '../common/AnimatedCounter';
 
 const InvestorOverview = ({ stats, investments, setActiveTab }) => {
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
         <>
             <h3 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '1.5rem', color: 'var(--text)' }}>Portfolio Overview</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 768 ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)', gap: '1rem', marginBottom: '3rem' }}>
                 {[
                     { label: 'Total Portfolio Value', value: `₹${stats.totalValue.toLocaleString()}`, icon: Wallet, color: 'var(--success)', sub: 'Current Market Value' },
                     { label: 'Total Invested Capital', value: `₹${stats.totalInvested.toLocaleString()}`, icon: Landmark, color: 'var(--text)', sub: 'Principal Amount' },
@@ -27,7 +36,7 @@ const InvestorOverview = ({ stats, investments, setActiveTab }) => {
                 ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 1024 ? '1fr 2fr' : '1fr', gap: '2rem' }}>
                 <div className="glass-card" style={{ padding: '2rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <h4 style={{ fontSize: '1.2rem', color: 'var(--text)', fontWeight: '800' }}>Property Distribution</h4>

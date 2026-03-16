@@ -13,7 +13,7 @@ import AddProperty from './pages/agency/Properties/AddProperty';
 import AllLeads from './pages/agency/Leads/AllLeads';
 import SalesPipeline from './pages/agency/Leads/SalesPipeline';
 import AddLead from './pages/agency/Leads/AddLead';
-import AgencyNotifications from './pages/agency/Notifications';
+import NotificationHub from './components/common/NotificationHub';
 import AgencyProfile from './pages/agency/Profile';
 import AgencySettings from './pages/agency/Settings';
 import InvestorDashboard from './pages/dashboards/InvestorDashboard';
@@ -49,12 +49,15 @@ function App() {
               <Route path="agency/leads" element={<AllLeads />} />
               <Route path="agency/leads/pipeline" element={<SalesPipeline />} />
               <Route path="agency/leads/add" element={<AddLead />} />
-              <Route path="agency/notifications" element={<AgencyNotifications />} />
+              <Route path="agency/notifications" element={<NotificationHub />} />
               <Route path="agency/profile" element={<AgencyProfile />} />
               <Route path="agency/settings" element={<AgencySettings />} />
               
+              <Route path="investor/notifications" element={<NotificationHub />} />
               <Route path="investor/:tab?" element={<InvestorDashboard />} />
+              <Route path="admin/notifications" element={<NotificationHub />} />
               <Route path="admin/:tab?" element={<AdminDashboard />} />
+              <Route path="buyer/notifications" element={<NotificationHub />} />
               <Route path="buyer/:tab?" element={<BuyerDashboard />} />
             </Route>
 
@@ -63,6 +66,7 @@ function App() {
               <Route path="dashboard" element={<UserDashboard />} />
               <Route path="browse" element={<BrowseProperties />} />
               <Route path="saved" element={<SavedProperties />} />
+              <Route path="notifications" element={<NotificationHub />} />
               <Route path="enquiries" element={<MyEnquiries />} />
               <Route path="profile" element={<UserProfile />} />
               <Route path="settings" element={<UserSettings />} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../../apiConfig';
 import { Key, Bell, Shield, Eye, Globe, Save } from 'lucide-react';
@@ -18,6 +18,13 @@ const InvestorSettings = () => {
     });
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
@@ -55,7 +62,7 @@ const InvestorSettings = () => {
 
     return (
         <div className="animate-fade">
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 1024 ? 'minmax(0, 1fr) minmax(0, 1.2fr)' : '1fr', gap: '2rem' }}>
                 {/* Security Section */}
                 <div className="glass-card" style={{ padding: '2.5rem', background: 'var(--surface)', border: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '2rem' }}>
