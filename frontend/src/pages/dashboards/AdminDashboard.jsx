@@ -225,6 +225,10 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
+    setPropPage(1);
+  }, [propertySearch, propertyFilterStatus, propertyFilters]);
+
+  useEffect(() => {
     if (tab) {
       const tabMap = {
         agencies: "agencies",
@@ -949,21 +953,16 @@ const AdminDashboard = () => {
                         Action
                       </th>
                     </tr>
-                  </thead>                  <tbody>
-                    {filteredProperties
-                      .slice((propPage - 1) * propsPerPage, propPage * propsPerPage)
-                      .map((p) => (
-                        <tr
-                          key={p._id}
-                          style={{
-                            borderBottom: "1px solid var(--border)",
-                            cursor: "pointer",
-                          }}
-                          className="hover-light"
-                          onClick={() => p?._id && navigate(`/property/${p._id}`)}
-                        >
+                  </thead>
+                  <tbody>
+                    {filteredProperties.slice(0, 5).map((p) => (
+                      <tr
+                        key={p._id}
+                        style={{ borderBottom: "1px solid var(--border)" }}
+                      >
                         <td
-                          style={{ padding: "0.8rem 1rem" }}
+                          style={{ padding: "0.8rem 1rem", cursor: "pointer" }}
+                          onClick={() => p?._id && navigate(`/property/${p._id}`)}
                         >
                           <div
                             style={{
@@ -2644,18 +2643,20 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredProperties.slice(0, 5).map((p) => (
-                        <tr
-                          key={p._id}
-                          style={{ borderBottom: "1px solid var(--border)" }}
-                        >
-                          <td
-                            style={{
-                              padding: "0.8rem 1rem",
-                              cursor: "pointer",
-                            }}
-                            onClick={() => p?._id && navigate(`/property/${p._id}`)}
+                      {filteredProperties
+                        .slice((propPage - 1) * propsPerPage, propPage * propsPerPage)
+                        .map((p) => (
+                          <tr
+                            key={p._id}
+                            style={{ borderBottom: "1px solid var(--border)" }}
                           >
+                            <td
+                              style={{
+                                padding: "0.8rem 1rem",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => p?._id && navigate(`/property/${p._id}`)}
+                            >
                             <div
                               style={{
                                 display: "flex",
