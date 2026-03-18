@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Save, Edit, Trash2 } from 'lucide-react';
+import { Plus, Save, Edit, Trash2, Eye } from 'lucide-react';
 
 const InvestorPortfolio = ({ 
     investments, 
@@ -10,6 +10,7 @@ const InvestorPortfolio = ({
     handleSubmit, 
     handleEdit, 
     handleDelete, 
+    onViewDetails,
     editingRecord, 
     setEditingRecord,
     propertyTypes 
@@ -118,7 +119,8 @@ const InvestorPortfolio = ({
                                     </div>
                                 </td>
                                  <td style={{ padding: '1.5rem 1.2rem' }}>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button className="btn btn-outline" style={{ padding: '0.3rem', border: 'none', color: 'var(--primary)' }} onClick={() => onViewDetails(inv)} title="View Financials"><Eye size={16} /></button>
                                         <button className="btn btn-outline" style={{ padding: '0.3rem', border: 'none', color: 'var(--text-muted)' }} onClick={() => handleEdit(inv)}><Edit size={16} /></button>
                                         <button className="btn btn-outline" style={{ padding: '0.3rem', border: 'none', color: 'var(--error)' }} onClick={() => handleDelete(inv._id)}><Trash2 size={16} /></button>
                                     </div>

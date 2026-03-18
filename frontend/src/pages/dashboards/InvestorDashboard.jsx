@@ -19,12 +19,14 @@ import InvestorDocuments from '../../components/investor/InvestorDocuments';
 import InvestorAnalytics from '../../components/investor/InvestorAnalytics';
 import InvestorProfile from '../../components/investor/InvestorProfile';
 import InvestorSettings from '../../components/investor/InvestorSettings';
+import InvestorPropertyDetail from '../../components/investor/InvestorPropertyDetail';
 
 const InvestorDashboard = () => {
     const { tab } = useParams();
     const [investments, setInvestments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(tab || 'overview');
+    const [selectedInvestment, setSelectedInvestment] = useState(null);
     
     // UI State
     const [showForm, setShowForm] = useState(false);
@@ -180,7 +182,10 @@ const InvestorDashboard = () => {
                                 transition: 'all 0.2s ease',
                                 whiteSpace: 'nowrap'
                             }}
-                            onClick={() => setActiveTab(t.id)}
+                            onClick={() => {
+                                setActiveTab(t.id);
+                                setSelectedInvestment(null);
+                            }}
                         >
                             <t.icon size={16} /> {t.label}
                         </button>
@@ -192,19 +197,30 @@ const InvestorDashboard = () => {
                 <InvestorOverview stats={stats} investments={investments} setActiveTab={setActiveTab} />
             )}
             {activeTab === 'investments' && (
-                <InvestorPortfolio 
-                    investments={investments} 
-                    showForm={showForm} 
-                    setShowForm={setShowForm}
-                    formData={formData}
-                    setFormData={setFormData}
-                    handleSubmit={handleSubmit}
-                    handleEdit={handleEdit}
-                    handleDelete={handleDelete}
-                    editingRecord={editingRecord}
-                    setEditingRecord={setEditingRecord}
-                    propertyTypes={propertyTypes}
-                />
+                !selectedInvestment ? (
+                    <InvestorPortfolio 
+                        investments={investments} 
+                        showForm={showForm} 
+                        setShowForm={setShowForm}
+                        formData={formData}
+                        setFormData={setFormData}
+                        handleSubmit={handleSubmit}
+                        handleEdit={handleEdit}
+                        handleDelete={handleDelete}
+                        onViewDetails={(inv) => setSelectedInvestment(inv)}
+                        editingRecord={editingRecord}
+                        setEditingRecord={setEditingRecord}
+                        propertyTypes={propertyTypes}
+                    />
+                ) : (
+                    <InvestorPropertyDetail 
+                        investment={selectedInvestment} 
+                        onBack={() => setSelectedInvestment(null)} 
+                        fetchInvestments={fetchInvestments}
+                        getFileUrl={getFileUrl}
+                        handleFileUpload={handleFileUpload}
+                    />
+                )
             )}
             {activeTab === 'docs' && (
                 <InvestorDocuments 
