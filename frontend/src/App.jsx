@@ -26,6 +26,8 @@ import SavedProperties from './pages/user/SavedProperties';
 import MyEnquiries from './pages/user/MyEnquiries';
 import UserProfile from './pages/user/Profile';
 import UserSettings from './pages/user/Settings';
+import PriceIntelligenceDashboard from './pages/estimation/PriceIntelligenceDashboard';
+import PropertyComparisonView from './pages/estimation/PropertyComparisonView';
 
 function App() {
   return (
@@ -52,12 +54,20 @@ function App() {
               <Route path="agency/notifications" element={<NotificationHub />} />
               <Route path="agency/profile" element={<AgencyProfile />} />
               <Route path="agency/settings" element={<AgencySettings />} />
-              
+              <Route path="agency/price-intelligence" element={<PriceIntelligenceDashboard />} />
+              <Route path="agency/compare" element={<PropertyComparisonView />} />
+
               <Route path="investor/notifications" element={<NotificationHub />} />
+              <Route path="investor/price-intelligence" element={<PriceIntelligenceDashboard />} />
+              <Route path="investor/compare" element={<PropertyComparisonView />} />
               <Route path="investor/:tab?" element={<InvestorDashboard />} />
               <Route path="admin/notifications" element={<NotificationHub />} />
+              <Route path="admin/price-intelligence" element={<PriceIntelligenceDashboard />} />
+              <Route path="admin/compare" element={<PropertyComparisonView />} />
               <Route path="admin/:tab?" element={<AdminDashboard />} />
               <Route path="buyer/notifications" element={<NotificationHub />} />
+              <Route path="buyer/price-intelligence" element={<PriceIntelligenceDashboard />} />
+              <Route path="buyer/compare" element={<PropertyComparisonView />} />
               <Route path="buyer/:tab?" element={<BuyerDashboard />} />
             </Route>
 
@@ -68,6 +78,8 @@ function App() {
               <Route path="saved" element={<SavedProperties />} />
               <Route path="notifications" element={<NotificationHub />} />
               <Route path="enquiries" element={<MyEnquiries />} />
+              <Route path="price-intelligence" element={<PriceIntelligenceDashboard />} />
+              <Route path="compare" element={<PropertyComparisonView />} />
               <Route path="profile" element={<UserProfile />} />
               <Route path="settings" element={<UserSettings />} />
             </Route>

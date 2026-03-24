@@ -3,10 +3,10 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../apiConfig';
 import { useAuth } from '../context/AuthContext';
-import { 
-    LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut, 
+import {
+    LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut,
     ChevronRight, MessageCircle, Home, Search, Bell, Sun, Moon, Plus,
-    FileText, BarChart3, X as CloseIcon, Menu
+    FileText, BarChart3, X as CloseIcon, Menu, Calculator, GitCompare
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -66,6 +66,9 @@ const DashboardLayout = () => {
             { label: 'Add Property', path: '/dashboard/agency/properties/add', icon: Plus },
             { label: 'CRM Pipeline', path: '/dashboard/agency/leads/pipeline', icon: TrendingUp },
             { label: 'All Leads', path: '/dashboard/agency/leads', icon: Users },
+            { section: 'AI Insights' },
+            { label: 'Price Intelligence', path: '/dashboard/agency/price-intelligence', icon: Calculator, indent: true },
+            { label: 'Compare Properties', path: '/dashboard/agency/compare', icon: GitCompare, indent: true },
             { label: 'Notifications', path: '/dashboard/agency/notifications', icon: Bell },
             { label: 'My Profile', path: '/dashboard/agency/profile', icon: Users },
             { label: 'Settings', path: '/dashboard/agency/settings', icon: Settings },
@@ -78,6 +81,9 @@ const DashboardLayout = () => {
             { label: 'Notifications', path: '/dashboard/investor/notifications', icon: Bell },
             { label: 'Documents', path: '/dashboard/investor/docs', icon: FileText },
             { label: 'Analytics', path: '/dashboard/investor/analytics', icon: BarChart3 },
+            { section: 'AI Insights' },
+            { label: 'Price Intelligence', path: '/dashboard/investor/price-intelligence', icon: Calculator, indent: true },
+            { label: 'Compare Properties', path: '/dashboard/investor/compare', icon: GitCompare, indent: true },
             { label: 'Profile', path: '/dashboard/investor/profile', icon: Users },
             { label: 'Settings', path: '/dashboard/investor/settings', icon: Settings },
         ],
@@ -87,6 +93,9 @@ const DashboardLayout = () => {
             { label: 'Notifications', path: '/dashboard/user/notifications', icon: Bell },
             { label: 'Saved', path: '/dashboard/user/saved', icon: Building2 },
             { label: 'Enquiries', path: '/dashboard/user/enquiries', icon: Users },
+            { section: 'AI Insights' },
+            { label: 'Price Intelligence', path: '/dashboard/buyer/price-intelligence', icon: Calculator, indent: true },
+            { label: 'Compare Properties', path: '/dashboard/buyer/compare', icon: GitCompare, indent: true },
         ],
         Admin: [
             { label: 'Overview', path: '/dashboard/admin', icon: LayoutDashboard },
@@ -95,6 +104,9 @@ const DashboardLayout = () => {
             { label: 'Properties', path: '/dashboard/admin/properties', icon: Home },
             { label: 'Leads', path: '/dashboard/admin/leads', icon: MessageCircle },
             { label: 'Users', path: '/dashboard/admin/users', icon: Users },
+            { section: 'AI Insights' },
+            { label: 'Price Intelligence', path: '/dashboard/admin/price-intelligence', icon: Calculator, indent: true },
+            { label: 'Compare Properties', path: '/dashboard/admin/compare', icon: GitCompare, indent: true },
             { label: 'Notifications', path: '/dashboard/admin/notifications', icon: Bell },
             { label: 'Settings', path: '/dashboard/admin/settings', icon: Settings },
         ]

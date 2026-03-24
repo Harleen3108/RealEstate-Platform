@@ -4,6 +4,7 @@ import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
 import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User, ChevronRight, Layout } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import PropertyEstimationCard from '../components/estimation/PropertyEstimationCard';
 
 const PropertyDetail = () => {
     const { id } = useParams();
@@ -257,6 +258,12 @@ const PropertyDetail = () => {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+
+                        {/* AI Price Estimation */}
+                        <div style={{ marginBottom: '3rem' }}>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text)', marginBottom: '1.5rem' }}>AI Price Analysis</h3>
+                            <PropertyEstimationCard propertyId={id} />
                         </div>
 
                         {/* Location / Map */}

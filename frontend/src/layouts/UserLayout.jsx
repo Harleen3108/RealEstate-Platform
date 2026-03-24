@@ -3,10 +3,10 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../apiConfig';
 import { useAuth } from '../context/AuthContext';
-import { 
+import {
     CheckCircle, X as CloseIcon, Menu, Phone, Mail, MapPin, Search, Globe, ChevronDown,
-    LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut, MessageCircle, Home, Bell, 
-    ChevronRight, Sun, Moon, Plus, FileText, BarChart3
+    LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut, MessageCircle, Home, Bell,
+    ChevronRight, Sun, Moon, Plus, FileText, BarChart3, Calculator, GitCompare
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -62,6 +62,9 @@ const UserLayout = () => {
         { label: 'Browse Properties', path: '/dashboard/user/browse', icon: Search },
         { label: 'Saved Properties', path: '/dashboard/user/saved', icon: Heart },
         { label: 'My Enquiries', path: '/dashboard/user/enquiries', icon: MessageCircle },
+        { section: 'AI INSIGHTS' },
+        { label: 'Price Intelligence', path: '/dashboard/user/price-intelligence', icon: Calculator },
+        { label: 'Compare Properties', path: '/dashboard/user/compare', icon: GitCompare },
         { section: 'ACCOUNT' },
         { label: 'Profile', path: '/dashboard/user/profile', icon: User },
         { label: 'Settings', path: '/dashboard/user/settings', icon: Settings },
