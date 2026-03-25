@@ -83,6 +83,39 @@ router.post('/', protect, authorize('Agency', 'Admin'), async (req, res) => {
         });
         const createdProperty = await property.save();
         res.status(201).json(createdProperty);
+
+        // Auto-trigger AI price estimation (fire-and-forget)
+        if (createdProperty.location && createdProperty.size && createdProperty.propertyType) {
+            try {
+                const HybridEstimator = require('../services/estimation/HybridEstimator');
+                const estimator = new HybridEstimator();
+                estimator.estimate({
+                    propertyId: createdProperty._id,
+                    location: createdProperty.location,
+                    propertyType: createdProperty.propertyType,
+                    size: createdProperty.size,
+                    bedrooms: createdProperty.bedrooms,
+                    bathrooms: createdProperty.bathrooms,
+                    amenities: createdProperty.amenities
+                }).then(async (result) => {
+                    await Property.findByIdAndUpdate(createdProperty._id, {
+                        aiEstimation: {
+                            estimatedPrice: result.estimatedPrice,
+                            confidence: result.confidenceScore,
+                            pricePerSqft: result.pricePerSqft,
+                            priceLow: result.priceLow,
+                            priceHigh: result.priceHigh,
+                            lastEstimatedAt: new Date(),
+                            estimationId: result._id,
+                            marketTiming: result.marketTiming
+                        }
+                    });
+                    console.log(`[AUTO-ESTIMATE] Property ${createdProperty._id} estimated: Rs.${result.estimatedPrice}`);
+                }).catch(err => console.error('[AUTO-ESTIMATE] Failed:', err.message));
+            } catch (err) {
+                console.error('[AUTO-ESTIMATE] Hook error:', err.message);
+            }
+        }
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

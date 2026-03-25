@@ -24,7 +24,20 @@ const propertySchema = new mongoose.Schema({
     documents: [{ type: String }],
     amenities: [{ type: String }],
     mapLocation: { type: String },
-    builder: { type: String }
+    builder: { type: String },
+
+    // AI Price Estimation
+    aiEstimation: {
+        estimatedPrice: { type: Number },
+        confidence: { type: Number },
+        pricePerSqft: { type: Number },
+        priceLow: { type: Number },
+        priceHigh: { type: Number },
+        lastEstimatedAt: { type: Date },
+        estimationId: { type: mongoose.Schema.Types.ObjectId, ref: 'PriceEstimation' },
+        marketTiming: { type: String, enum: ['good', 'neutral', 'wait'] },
+        llmReasoning: { type: String }
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Property', propertySchema);

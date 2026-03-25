@@ -1,0 +1,448 @@
+const express = require('express');
+const router = express.Router();
+const mongoose = require('mongoose');
+const { protect, authorize } = require('../middleware/authMiddleware');
+const Property = require('../models/Property');
+const PriceEstimation = require('../models/PriceEstimation');
+const ScrapingJob = require('../models/ScrapingJob');
+const MarketTrend = require('../models/MarketTrend');
+const ScrapedListing = require('../models/ScrapedListing');
+const HybridEstimator = require('../services/estimation/HybridEstimator');
+const ScrapingOrchestrator = require('../services/scraping/ScrapingOrchestrator');
+const NormalizerService = require('../services/normalization/NormalizerService');
+const GeocodingService = require('../services/normalization/GeocodingService');
+const DeduplicationService = require('../services/normalization/DeduplicationService');
+const OutlierDetector = require('../services/normalization/OutlierDetector');
+
+// @desc    Estimate price for given parameters (ad-hoc)
+// @route   POST /api/estimation/estimate
+// @access  Private
+router.post('/estimate', protect, async (req, res) => {
+    try {
+        const { city, locality, location, propertyType, size, areaSqft, bedrooms, bathrooms, floorNumber, totalFloors, ageYears, furnishing, amenities } = req.body;
+
+        const resolvedCity = city || '';
+        const resolvedLocality = locality || '';
+        const resolvedArea = size || areaSqft;
+
+        if ((!resolvedCity && !location) || !propertyType || !resolvedArea) {
+            return res.status(400).json({ message: 'city/location, propertyType, and size/areaSqft are required' });
+        }
+
+        const estimator = new HybridEstimator();
+        const result = await estimator.estimate({
+            city: resolvedCity, locality: resolvedLocality, location,
+            propertyType, size: Number(resolvedArea), areaSqft: Number(resolvedArea),
+            bedrooms: bedrooms ? Number(bedrooms) : undefined,
+            bathrooms: bathrooms ? Number(bathrooms) : undefined,
+            floorNumber: floorNumber ? Number(floorNumber) : undefined,
+            totalFloors: totalFloors ? Number(totalFloors) : undefined,
+            ageYears: ageYears ? Number(ageYears) : undefined,
+            furnishing, amenities: amenities || []
+        }, req.user._id);
+
+        res.json(result);
+    } catch (error) {
+        console.error('[ESTIMATION] Error:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get estimation for an existing property
+// @route   GET /api/estimation/property/:propertyId
+// @access  Private
+router.get('/property/:propertyId', protect, async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.propertyId)) {
+            return res.status(400).json({ message: 'Invalid property ID' });
+        }
+
+        // Check for recent cached estimation
+        const existing = await PriceEstimation.findOne({
+            property: req.params.propertyId,
+            status: 'completed'
+        }).sort({ createdAt: -1 });
+
+        if (existing) {
+            const hoursOld = (Date.now() - existing.createdAt.getTime()) / (1000 * 60 * 60);
+            if (hoursOld < (parseInt(process.env.ESTIMATION_CACHE_TTL_HOURS) || 24)) {
+                return res.json(existing);
+            }
+        }
+
+        // Generate new estimation
+        const property = await Property.findById(req.params.propertyId);
+        if (!property) {
+            return res.status(404).json({ message: 'Property not found' });
+        }
+
+        const estimator = new HybridEstimator();
+        const result = await estimator.estimate({
+            propertyId: property._id,
+            location: property.location,
+            propertyType: property.propertyType,
+            size: property.size,
+            bedrooms: property.bedrooms,
+            bathrooms: property.bathrooms,
+            amenities: property.amenities
+        }, req.user._id);
+
+        // Update Property with AI estimation
+        property.aiEstimation = {
+            estimatedPrice: result.estimatedPrice,
+            confidence: result.confidenceScore,
+            pricePerSqft: result.pricePerSqft,
+            priceLow: result.priceLow,
+            priceHigh: result.priceHigh,
+            lastEstimatedAt: new Date(),
+            estimationId: result._id,
+            marketTiming: result.marketTiming,
+            llmReasoning: result.llmReasoning
+        };
+        await property.save();
+
+        res.json(result);
+    } catch (error) {
+        console.error('[ESTIMATION] Error:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Re-estimate property price
+// @route   POST /api/estimation/property/:propertyId/re-estimate
+// @access  Private
+router.post('/property/:propertyId/re-estimate', protect, async (req, res) => {
+    try {
+        const property = await Property.findById(req.params.propertyId);
+        if (!property) {
+            return res.status(404).json({ message: 'Property not found' });
+        }
+
+        const estimator = new HybridEstimator();
+        const result = await estimator.estimate({
+            propertyId: property._id,
+            location: property.location,
+            propertyType: property.propertyType,
+            size: property.size,
+            bedrooms: property.bedrooms,
+            bathrooms: property.bathrooms,
+            amenities: property.amenities
+        }, req.user._id);
+
+        property.aiEstimation = {
+            estimatedPrice: result.estimatedPrice,
+            confidence: result.confidenceScore,
+            pricePerSqft: result.pricePerSqft,
+            priceLow: result.priceLow,
+            priceHigh: result.priceHigh,
+            lastEstimatedAt: new Date(),
+            estimationId: result._id,
+            marketTiming: result.marketTiming,
+            llmReasoning: result.llmReasoning
+        };
+        await property.save();
+
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Bulk estimate for multiple properties
+// @route   POST /api/estimation/bulk
+// @access  Private/Admin
+router.post('/bulk', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const { filters, forceRefresh } = req.body;
+        const query = {};
+        if (filters?.city) query.location = new RegExp(filters.city, 'i');
+        if (filters?.propertyType) query.propertyType = filters.propertyType;
+        if (filters?.createdAfter) query.createdAt = { $gte: new Date(filters.createdAfter) };
+
+        const limit = Math.min(filters?.limit || 100, 1000);
+        const properties = await Property.find(query).limit(limit);
+
+        const results = [];
+        const estimator = new HybridEstimator();
+
+        for (const property of properties) {
+            // Skip if recent estimation exists and not forcing refresh
+            if (!forceRefresh && property.aiEstimation?.lastEstimatedAt) {
+                const daysOld = (Date.now() - property.aiEstimation.lastEstimatedAt.getTime()) / (1000 * 60 * 60 * 24);
+                if (daysOld < 7) {
+                    results.push({ propertyId: property._id, status: 'skipped', reason: 'recent_estimation_exists' });
+                    continue;
+                }
+            }
+
+            try {
+                const result = await estimator.estimate({
+                    propertyId: property._id,
+                    location: property.location,
+                    propertyType: property.propertyType,
+                    size: property.size,
+                    bedrooms: property.bedrooms,
+                    bathrooms: property.bathrooms,
+                    amenities: property.amenities
+                }, req.user._id);
+
+                property.aiEstimation = {
+                    estimatedPrice: result.estimatedPrice,
+                    confidence: result.confidenceScore,
+                    pricePerSqft: result.pricePerSqft,
+                    priceLow: result.priceLow,
+                    priceHigh: result.priceHigh,
+                    lastEstimatedAt: new Date(),
+                    estimationId: result._id,
+                    marketTiming: result.marketTiming
+                };
+                await property.save();
+
+                results.push({ propertyId: property._id, status: 'completed', estimatedPrice: result.estimatedPrice });
+            } catch (err) {
+                results.push({ propertyId: property._id, status: 'failed', error: err.message });
+            }
+        }
+
+        res.json({
+            total: properties.length,
+            completed: results.filter(r => r.status === 'completed').length,
+            skipped: results.filter(r => r.status === 'skipped').length,
+            failed: results.filter(r => r.status === 'failed').length,
+            results
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Compare properties with AI pricing
+// @route   POST /api/estimation/compare
+// @access  Private
+router.post('/compare', protect, async (req, res) => {
+    try {
+        const { propertyIds } = req.body;
+        if (!propertyIds || propertyIds.length < 2 || propertyIds.length > 5) {
+            return res.status(400).json({ message: 'Provide 2-5 propertyIds to compare' });
+        }
+
+        const properties = await Property.find({ _id: { $in: propertyIds } }).populate('agency', 'name');
+
+        const comparisons = properties.map(p => {
+            const priceDiff = p.aiEstimation?.estimatedPrice
+                ? ((p.price - p.aiEstimation.estimatedPrice) / p.aiEstimation.estimatedPrice * 100).toFixed(1)
+                : null;
+
+            let dealFlag = null;
+            if (priceDiff !== null) {
+                if (parseFloat(priceDiff) > 15) dealFlag = 'potentially_overpriced';
+                else if (parseFloat(priceDiff) < -10) dealFlag = 'good_deal';
+                else dealFlag = 'fair_price';
+            }
+
+            return {
+                propertyId: p._id,
+                title: p.title,
+                location: p.location,
+                propertyType: p.propertyType,
+                listedPrice: p.price,
+                size: p.size,
+                bedrooms: p.bedrooms,
+                agency: p.agency?.name,
+                aiEstimation: p.aiEstimation || null,
+                priceDifferencePct: priceDiff,
+                dealFlag
+            };
+        });
+
+        // Find best value
+        const withEstimates = comparisons.filter(c => c.aiEstimation);
+        let recommendation = null;
+        if (withEstimates.length >= 2) {
+            const bestValue = withEstimates.reduce((best, c) =>
+                !best || (c.aiEstimation.pricePerSqft < best.aiEstimation.pricePerSqft) ? c : best, null);
+            const highestConfidence = withEstimates.reduce((best, c) =>
+                !best || (c.aiEstimation.confidence > best.aiEstimation.confidence) ? c : best, null);
+
+            recommendation = {
+                bestValue: bestValue?.propertyId,
+                highestConfidence: highestConfidence?.propertyId,
+                reasoning: `${bestValue?.title} offers the best value at Rs.${bestValue?.aiEstimation?.pricePerSqft}/sqft. ${highestConfidence?.title} has the highest confidence score of ${highestConfidence?.aiEstimation?.confidence}%.`
+            };
+        }
+
+        res.json({ comparisons, recommendation });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get market trends
+// @route   GET /api/estimation/trends
+// @access  Private
+router.get('/trends', protect, async (req, res) => {
+    try {
+        const { city, locality, propertyType } = req.query;
+        const query = {};
+        if (city) query.city = new RegExp(city, 'i');
+        if (locality) query.locality = new RegExp(locality, 'i');
+        if (propertyType) query.propertyType = propertyType;
+
+        const trends = await MarketTrend.find(query).sort({ periodEnd: -1 }).limit(24);
+        res.json(trends);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get price intelligence dashboard data
+// @route   GET /api/estimation/dashboard
+// @access  Private
+router.get('/dashboard', protect, async (req, res) => {
+    try {
+        const totalEstimations = await PriceEstimation.countDocuments({ status: 'completed' });
+
+        const recentEstimations = await PriceEstimation.find({ status: 'completed' })
+            .sort({ createdAt: -1 }).limit(10)
+            .populate('property', 'title location price');
+
+        const avgConfidenceResult = await PriceEstimation.aggregate([
+            { $match: { status: 'completed' } },
+            { $group: { _id: null, avg: { $avg: '$confidenceScore' } } }
+        ]);
+
+        const trendSummary = await MarketTrend.aggregate([
+            { $sort: { periodEnd: -1 } },
+            {
+                $group: {
+                    _id: { city: '$city', locality: '$locality' },
+                    latestAvgPrice: { $first: '$avgPricePerSqft' },
+                    priceChangePct: { $first: '$priceChangePct' },
+                    demandScore: { $first: '$demandScore' },
+                    listingCount: { $first: '$listingCount' }
+                }
+            },
+            { $sort: { demandScore: -1 } },
+            { $limit: 10 }
+        ]);
+
+        const totalListings = await ScrapedListing.countDocuments({ isActive: true });
+        const latestJob = await ScrapingJob.findOne().sort({ createdAt: -1 });
+
+        res.json({
+            totalEstimations,
+            avgConfidence: Math.round(avgConfidenceResult[0]?.avg || 0),
+            recentEstimations,
+            trendSummary,
+            totalListings,
+            latestScrapingJob: latestJob
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get scraping job status
+// @route   GET /api/estimation/scraping/status
+// @access  Private/Admin
+router.get('/scraping/status', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const latest = await ScrapingJob.findOne().sort({ createdAt: -1 });
+        const history = await ScrapingJob.find().sort({ createdAt: -1 }).limit(10);
+        res.json({ latest, history });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Trigger manual scraping
+// @route   POST /api/estimation/scraping/trigger
+// @access  Private/Admin
+router.post('/scraping/trigger', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const { city } = req.body;
+        const orchestrator = new ScrapingOrchestrator();
+
+        let job;
+        if (city) {
+            job = await orchestrator.runCityScrape(city, 'manual', req.user._id);
+        } else {
+            job = await orchestrator.runFullScrape('manual', req.user._id);
+        }
+
+        res.status(202).json({ message: 'Scraping job started', jobId: job._id, status: job.status });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Trigger normalization pipeline
+// @route   POST /api/estimation/normalize
+// @access  Private/Admin
+router.post('/normalize', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const normalizer = new NormalizerService();
+        const normResult = await normalizer.normalizeAll();
+
+        const geocoder = new GeocodingService();
+        const geoResult = await geocoder.geocodeListings();
+
+        const dedup = new DeduplicationService();
+        const dedupResult = await dedup.deduplicate();
+
+        const outlier = new OutlierDetector();
+        const outlierResult = await outlier.detectOutliers();
+
+        res.json({
+            normalization: normResult,
+            geocoding: geoResult,
+            deduplication: dedupResult,
+            outliers: outlierResult
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get available localities for autocomplete
+// @route   GET /api/estimation/localities
+// @access  Private
+router.get('/localities', protect, async (req, res) => {
+    try {
+        const { city, q } = req.query;
+        const match = { isActive: true };
+        if (city) match.city = new RegExp(city, 'i');
+
+        const localities = await ScrapedListing.aggregate([
+            { $match: match },
+            { $group: { _id: '$locality', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 50 }
+        ]);
+
+        let results = localities.map(l => ({ locality: l._id, count: l.count }));
+
+        if (q) {
+            const query = q.toLowerCase();
+            results = results.filter(r => r.locality && r.locality.toLowerCase().includes(query));
+        }
+
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get available cities
+// @route   GET /api/estimation/cities
+// @access  Private
+router.get('/cities', protect, async (req, res) => {
+    try {
+        const cities = await ScrapedListing.distinct('city', { isActive: true });
+        res.json(cities.filter(Boolean).sort());
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+module.exports = router;

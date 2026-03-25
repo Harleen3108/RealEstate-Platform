@@ -12,6 +12,7 @@ const investmentRoutes = require('./routes/investmentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const userRoutes = require('./routes/userRoutes');
+const estimationRoutes = require('./routes/estimationRoutes');
 
 const path = require('path');
 const upload = require('./middleware/uploadMiddleware');
@@ -33,6 +34,7 @@ app.use('/api/investments', investmentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/estimation', estimationRoutes);
 
 // File Upload Route
 app.post('/api/upload', upload.single('file'), (req, res) => {
@@ -52,6 +54,13 @@ const connectDB = async () => {
             serverSelectionTimeoutMS: 30000, // Timeout after 30s instead of 5s
         });
         console.log(`MongoDB Connected: ${conn.connection.host}`);
+
+        // Start AI scraping scheduler if enabled
+        if (process.env.SCRAPING_ENABLED === 'true') {
+            const { startScheduler } = require('./services/scraping/SchedulingService');
+            startScheduler();
+        }
+
         app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
     } catch (err) {
         console.error(`Error: ${err.message}`);
