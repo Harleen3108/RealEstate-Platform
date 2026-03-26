@@ -27,7 +27,9 @@ const InvestorDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(tab || 'overview');
     const [selectedInvestment, setSelectedInvestment] = useState(null);
-    
+    const [aiEstimates, setAiEstimates] = useState({});
+    const [estimatesLoading, setEstimatesLoading] = useState(false);
+
     // UI State
     const [showForm, setShowForm] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
@@ -35,6 +37,8 @@ const InvestorDashboard = () => {
         propertyName: '',
         location: '',
         propertyType: 'Residential',
+        areaSqft: '',
+        bedrooms: '',
         purchasePrice: '',
         currentValue: '',
         investmentDate: '',
@@ -61,10 +65,30 @@ const InvestorDashboard = () => {
         try {
             const { data } = await axios.get(`${API_BASE_URL}/investments`);
             setInvestments(data);
+            if (data.length > 0) fetchAiEstimates(data);
         } catch (error) {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAiEstimates = async (invList) => {
+        setEstimatesLoading(true);
+        try {
+            const payload = invList.filter(inv => inv.location).map(inv => ({
+                _id: inv._id,
+                location: inv.location,
+                propertyType: inv.propertyType,
+                areaSqft: inv.areaSqft,
+                bedrooms: inv.bedrooms
+            }));
+            const { data } = await axios.post(`${API_BASE_URL}/estimation/portfolio-estimate`, { investments: payload });
+            setAiEstimates(data);
+        } catch (error) {
+            console.error('AI estimates fetch error:', error);
+        } finally {
+            setEstimatesLoading(false);
         }
     };
 
@@ -89,7 +113,7 @@ const InvestorDashboard = () => {
             }
             setShowForm(false);
             setEditingRecord(null);
-            setFormData({ propertyName: '', location: '', propertyType: 'Residential', purchasePrice: '', currentValue: '', investmentDate: '', ownershipPercentage: 100, notes: '' });
+            setFormData({ propertyName: '', location: '', propertyType: 'Residential', areaSqft: '', bedrooms: '', purchasePrice: '', currentValue: '', investmentDate: '', ownershipPercentage: 100, notes: '' });
             fetchInvestments();
         } catch (error) {
             alert('Action failed');
@@ -194,13 +218,13 @@ const InvestorDashboard = () => {
             </div>
 
             {activeTab === 'overview' && (
-                <InvestorOverview stats={stats} investments={investments} setActiveTab={setActiveTab} />
+                <InvestorOverview stats={stats} investments={investments} setActiveTab={setActiveTab} aiEstimates={aiEstimates} />
             )}
             {activeTab === 'investments' && (
                 !selectedInvestment ? (
-                    <InvestorPortfolio 
-                        investments={investments} 
-                        showForm={showForm} 
+                    <InvestorPortfolio
+                        investments={investments}
+                        showForm={showForm}
                         setShowForm={setShowForm}
                         formData={formData}
                         setFormData={setFormData}
@@ -211,6 +235,8 @@ const InvestorDashboard = () => {
                         editingRecord={editingRecord}
                         setEditingRecord={setEditingRecord}
                         propertyTypes={propertyTypes}
+                        aiEstimates={aiEstimates}
+                        estimatesLoading={estimatesLoading}
                     />
                 ) : (
                     <InvestorPropertyDetail 

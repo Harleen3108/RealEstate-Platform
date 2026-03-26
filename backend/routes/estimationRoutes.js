@@ -445,4 +445,85 @@ router.get('/cities', protect, async (req, res) => {
     }
 });
 
+// @desc    Quick batch estimate for investment portfolio
+// @route   POST /api/estimation/portfolio-estimate
+// @access  Private
+router.post('/portfolio-estimate', protect, async (req, res) => {
+    try {
+        const { investments } = req.body;
+        if (!investments || !Array.isArray(investments)) {
+            return res.status(400).json({ message: 'investments array is required' });
+        }
+
+        const { getBenchmark } = require('../services/estimation/locationBenchmarks');
+        const estimator = new HybridEstimator();
+        const results = {};
+
+        for (const inv of investments) {
+            if (!inv._id || !inv.location) {
+                results[inv._id] = { error: 'Missing location' };
+                continue;
+            }
+
+            try {
+                // Parse location: "Locality, City" or just city
+                const parts = inv.location.split(',').map(s => s.trim());
+                let city = '', locality = '';
+                if (parts.length >= 2) {
+                    locality = parts[0];
+                    city = parts[parts.length - 1];
+                } else {
+                    city = parts[0];
+                    locality = parts[0];
+                }
+
+                const areaSqft = inv.areaSqft || 0;
+                const bedrooms = inv.bedrooms || undefined;
+                const propertyType = inv.propertyType === 'Residential' ? 'Apartment' : inv.propertyType;
+
+                // If area is available, run full estimation
+                if (areaSqft > 0) {
+                    const result = await estimator.estimate({
+                        city, locality, propertyType,
+                        size: areaSqft, areaSqft,
+                        bedrooms
+                    }, req.user._id);
+
+                    results[inv._id] = {
+                        estimatedPrice: result.estimatedPrice,
+                        pricePerSqft: result.pricePerSqft,
+                        priceLow: result.priceLow,
+                        priceHigh: result.priceHigh,
+                        confidence: result.confidenceScore,
+                        marketTiming: result.marketTiming,
+                        reasoning: result.llmReasoning
+                    };
+                } else {
+                    // No area — use benchmark price/sqft only
+                    const benchmark = getBenchmark(city, locality);
+                    if (benchmark) {
+                        results[inv._id] = {
+                            pricePerSqft: benchmark.avg,
+                            priceLow: null,
+                            priceHigh: null,
+                            confidence: 45,
+                            tier: benchmark.tier,
+                            benchmarkOnly: true,
+                            reasoning: `Market rate for ${locality}, ${city}: Rs.${benchmark.avg}/sqft (${benchmark.tier} area). Add property area for a full AI estimate.`
+                        };
+                    } else {
+                        results[inv._id] = { error: 'Location not in benchmark database' };
+                    }
+                }
+            } catch (err) {
+                results[inv._id] = { error: err.message };
+            }
+        }
+
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;

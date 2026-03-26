@@ -26,3 +26,4 @@ coverage/
 # Uploads (keep folder, ignore contents)
 uploads/*
 !uploads/.gitkeep
+.env

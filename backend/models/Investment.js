@@ -5,6 +5,8 @@ const investmentSchema = new mongoose.Schema({
     propertyName: { type: String, required: true },
     location: { type: String },
     propertyType: { type: String, enum: ['Residential', 'Commercial', 'Industrial', 'Land'], default: 'Residential' },
+    areaSqft: { type: Number },
+    bedrooms: { type: Number },
     purchasePrice: { type: Number, required: true },
     currentValue: { type: Number, required: true },
     investmentDate: { type: Date, required: true },
