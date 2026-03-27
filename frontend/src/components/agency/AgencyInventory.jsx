@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Plus, Edit, Trash2, MapPin, Upload, FileText, X as CloseIcon, Save } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, MapPin, Upload, FileText, X as CloseIcon, Save, Bot } from 'lucide-react';
 import AnimatedCounter from '../common/AnimatedCounter';
 
 const AgencyInventory = ({ 
@@ -242,7 +242,14 @@ const AgencyInventory = ({
                         <div style={{ padding: '1.2rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                                 <h5 style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--text)' }}>{p.title}</h5>
-                                <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--primary)' }}><AnimatedCounter value={`₹${p.price}`} /></div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: '1.2rem', fontWeight: '900', color: 'var(--primary)' }}><AnimatedCounter value={`₹${p.price}`} /></div>
+                                    {p.aiEstimation?.estimatedPrice > 0 && (
+                                        <div style={{ fontSize: '0.65rem', color: '#7c3aed', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end', marginTop: '2px' }}>
+                                            <Bot size={10} /> AI: ₹{p.aiEstimation.estimatedPrice >= 10000000 ? `${(p.aiEstimation.estimatedPrice / 10000000).toFixed(2)} Cr` : p.aiEstimation.estimatedPrice >= 100000 ? `${(p.aiEstimation.estimatedPrice / 100000).toFixed(1)} L` : p.aiEstimation.estimatedPrice.toLocaleString('en-IN')}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
                                 <MapPin size={12} /> {p.location}

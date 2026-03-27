@@ -1,9 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
-import { Search, MapPin, DollarSign, Home, Filter, Heart, ArrowRight, Building2, Bed, Bath } from 'lucide-react';
+import { Search, MapPin, DollarSign, Home, Filter, Heart, ArrowRight, Building2, Bed, Bath, Bot, TrendingUp, TrendingDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const formatINR = (num) => {
+    if (!num) return '---';
+    if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
+    if (num >= 100000) return `₹${(num / 100000).toFixed(1)} L`;
+    return `₹${num.toLocaleString('en-IN')}`;
+};
+
+const getVerdict = (listedPrice, aiPrice) => {
+    if (!aiPrice || !listedPrice) return null;
+    const diff = ((listedPrice - aiPrice) / aiPrice * 100);
+    if (diff > 15) return { label: 'OVERPRICED', color: '#ef4444', bg: '#fef2f2', icon: TrendingUp, diff: diff.toFixed(0) };
+    if (diff < -10) return { label: 'GREAT DEAL', color: '#22c55e', bg: '#f0fdf4', icon: TrendingDown, diff: diff.toFixed(0) };
+    return { label: 'FAIR PRICE', color: '#f59e0b', bg: '#fffbeb', icon: Bot, diff: diff.toFixed(0) };
+};
 
 const PropertyMarketplace = ({ compact = false }) => {
     const [properties, setProperties] = useState([]);
@@ -29,11 +44,26 @@ const PropertyMarketplace = ({ compact = false }) => {
         try {
             const [propRes, userRes] = await Promise.all([
                 axios.get(`${API_BASE_URL}/properties`),
-                axios.get(`${API_BASE_URL}/auth/agencies`) // Public endpoint now used instead of admin
+                axios.get(`${API_BASE_URL}/auth/agencies`)
             ]);
             setProperties(propRes.data);
             setAgencies(userRes.data.filter(u => u.role === 'Agency'));
             setLoading(false);
+
+            // Trigger batch AI estimation for properties missing estimates (fire-and-forget)
+            const missingIds = propRes.data
+                .filter(p => !p.aiEstimation?.estimatedPrice && p.location && p.size)
+                .map(p => p._id);
+            if (missingIds.length > 0 && user) {
+                axios.post(`${API_BASE_URL}/estimation/batch-property-estimate`, { propertyIds: missingIds })
+                    .then(({ data }) => {
+                        if (data.estimated > 0) {
+                            // Re-fetch to get updated estimates
+                            axios.get(`${API_BASE_URL}/properties`).then(res => setProperties(res.data));
+                        }
+                    })
+                    .catch(() => {});
+            }
         } catch (error) {
             console.error(error);
             setLoading(false);
@@ -237,8 +267,27 @@ const PropertyMarketplace = ({ compact = false }) => {
                                         <div style={{ fontSize: compact ? '1.2rem' : '1.5rem', fontWeight: '900', color: 'var(--text)', lineHeight: '1' }}>
                                             <span style={{ fontSize: '0.8rem', verticalAlign: 'top', color: 'var(--text-muted)', marginRight: '2px' }}>₹</span>{property.price.toLocaleString()}
                                         </div>
+                                        {property.aiEstimation?.estimatedPrice > 0 && (
+                                            <div style={{ fontSize: '0.7rem', color: '#7c3aed', fontWeight: '700', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end' }}>
+                                                <Bot size={11} /> AI: {formatINR(property.aiEstimation.estimatedPrice)}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
+                                {(() => {
+                                    const v = getVerdict(property.price, property.aiEstimation?.estimatedPrice);
+                                    if (!v) return null;
+                                    return (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.6rem' }}>
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: v.bg, color: v.color, padding: '3px 8px', borderRadius: '6px', fontSize: '0.6rem', fontWeight: '800' }}>
+                                                <v.icon size={10} /> {v.label}
+                                            </span>
+                                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                                                {v.diff > 0 ? '+' : ''}{v.diff}% vs AI estimate
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
                                 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
                                     <MapPin size={14} color="var(--primary)" /> 

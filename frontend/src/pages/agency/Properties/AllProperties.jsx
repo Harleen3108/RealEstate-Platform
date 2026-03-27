@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Building2, Plus, Edit, Trash2, MapPin, Search } from 'lucide-react';
+import { Building2, Plus, Edit, Trash2, MapPin, Search, Bot, TrendingUp, TrendingDown } from 'lucide-react';
 import API_BASE_URL, { BACKEND_URL } from '../../../apiConfig';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+
+const formatINR = (num) => {
+    if (!num) return '---';
+    if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
+    if (num >= 100000) return `₹${(num / 100000).toFixed(1)} L`;
+    return `₹${num.toLocaleString('en-IN')}`;
+};
 
 const AllProperties = () => {
     const { user } = useAuth();
@@ -34,6 +41,20 @@ const AllProperties = () => {
             const { data } = await axios.get(`${API_BASE_URL}/properties/agency/${user._id}`);
             setProperties(data);
             setLoading(false);
+
+            // Trigger batch AI estimation for properties missing estimates
+            const missingIds = data
+                .filter(p => !p.aiEstimation?.estimatedPrice && p.location && p.size)
+                .map(p => p._id);
+            if (missingIds.length > 0) {
+                axios.post(`${API_BASE_URL}/estimation/batch-property-estimate`, { propertyIds: missingIds })
+                    .then(({ data: batchData }) => {
+                        if (batchData.estimated > 0) {
+                            axios.get(`${API_BASE_URL}/properties/agency/${user._id}`).then(res => setProperties(res.data));
+                        }
+                    })
+                    .catch(() => {});
+            }
         } catch (error) {
             console.error('Error fetching properties:', error);
             setLoading(false);
@@ -166,11 +187,31 @@ const AllProperties = () => {
                         <div style={{ padding: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
                                 <h5 style={{ fontSize: '0.95rem', fontWeight: '800' }}>{p.title}</h5>
-                                <div style={{ fontSize: '1rem', fontWeight: '900', color: 'var(--primary)' }}>₹{p.price.toLocaleString()}</div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: '1rem', fontWeight: '900', color: 'var(--primary)' }}>₹{p.price.toLocaleString()}</div>
+                                    {p.aiEstimation?.estimatedPrice > 0 && (
+                                        <div style={{ fontSize: '0.65rem', color: '#7c3aed', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end', marginTop: '2px' }}>
+                                            <Bot size={10} /> AI: {formatINR(p.aiEstimation.estimatedPrice)}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
                                 <MapPin size={10} /> {p.location}
                             </div>
+                            {p.aiEstimation?.estimatedPrice > 0 && (() => {
+                                const diff = ((p.price - p.aiEstimation.estimatedPrice) / p.aiEstimation.estimatedPrice * 100);
+                                const label = diff > 15 ? 'OVERPRICED' : diff < -10 ? 'GREAT DEAL' : 'FAIR';
+                                const color = diff > 15 ? '#ef4444' : diff < -10 ? '#22c55e' : '#f59e0b';
+                                const bg = diff > 15 ? '#fef2f2' : diff < -10 ? '#f0fdf4' : '#fffbeb';
+                                return (
+                                    <div style={{ marginBottom: '0.6rem' }}>
+                                        <span style={{ background: bg, color: color, padding: '2px 6px', borderRadius: '4px', fontSize: '0.6rem', fontWeight: '800' }}>
+                                            {label} ({diff > 0 ? '+' : ''}{diff.toFixed(0)}%)
+                                        </span>
+                                    </div>
+                                );
+                            })()}
                             <div style={{ display: 'flex', gap: '0.4rem' }}>
                                 <button 
                                     className="btn btn-outline" 

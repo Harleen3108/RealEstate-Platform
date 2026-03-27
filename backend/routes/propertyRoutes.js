@@ -156,6 +156,42 @@ router.put('/:id', protect, authorize('Agency', 'Admin'), async (req, res) => {
 
             const updatedProperty = await property.save();
             res.json(updatedProperty);
+
+            // Auto re-estimate if price/location/size changed (fire-and-forget)
+            const priceChanged = req.body.price && Number(req.body.price) !== property.price;
+            const locationChanged = req.body.location && req.body.location !== property.location;
+            const sizeChanged = req.body.size && Number(req.body.size) !== property.size;
+            if ((priceChanged || locationChanged || sizeChanged) && updatedProperty.location && updatedProperty.size) {
+                try {
+                    const HybridEstimator = require('../services/estimation/HybridEstimator');
+                    const estimator = new HybridEstimator();
+                    estimator.estimate({
+                        propertyId: updatedProperty._id,
+                        location: updatedProperty.location,
+                        propertyType: updatedProperty.propertyType,
+                        size: updatedProperty.size,
+                        bedrooms: updatedProperty.bedrooms,
+                        bathrooms: updatedProperty.bathrooms,
+                        amenities: updatedProperty.amenities
+                    }).then(async (result) => {
+                        await Property.findByIdAndUpdate(updatedProperty._id, {
+                            aiEstimation: {
+                                estimatedPrice: result.estimatedPrice,
+                                confidence: result.confidenceScore,
+                                pricePerSqft: result.pricePerSqft,
+                                priceLow: result.priceLow,
+                                priceHigh: result.priceHigh,
+                                lastEstimatedAt: new Date(),
+                                estimationId: result._id,
+                                marketTiming: result.marketTiming
+                            }
+                        });
+                        console.log(`[AUTO-ESTIMATE] Property ${updatedProperty._id} re-estimated: Rs.${result.estimatedPrice}`);
+                    }).catch(err => console.error('[AUTO-ESTIMATE] Re-estimate failed:', err.message));
+                } catch (err) {
+                    console.error('[AUTO-ESTIMATE] Hook error:', err.message);
+                }
+            }
         } else {
             res.status(404).json({ message: 'Property not found' });
         }

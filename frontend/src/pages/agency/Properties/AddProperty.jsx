@@ -1,12 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-    Save, X, Upload, FileText, Building2, MapPin, 
-    DollarSign, Layout, Edit, Plus 
+import {
+    Save, X, Upload, FileText, Building2, MapPin,
+    DollarSign, Layout, Edit, Plus, Bot, Loader
 } from 'lucide-react';
 import API_BASE_URL, { BACKEND_URL } from '../../../apiConfig';
 import { useAuth } from '../../../context/AuthContext';
+
+const formatINR = (num) => {
+    if (!num) return '---';
+    if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
+    if (num >= 100000) return `₹${(num / 100000).toFixed(1)} L`;
+    return `₹${num.toLocaleString('en-IN')}`;
+};
 
 const AddProperty = () => {
     const { id } = useParams(); // For edit mode
@@ -14,6 +21,9 @@ const AddProperty = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [aiEstimate, setAiEstimate] = useState(null);
+    const [estimating, setEstimating] = useState(false);
+    const estimateTimer = useRef(null);
 
     const [propData, setPropData] = useState({
         title: '',
@@ -36,6 +46,41 @@ const AddProperty = () => {
     useEffect(() => {
         if (id) fetchPropertyDetails();
     }, [id]);
+
+    // Auto-fetch AI estimate when location + size are filled
+    useEffect(() => {
+        if (estimateTimer.current) clearTimeout(estimateTimer.current);
+
+        if (propData.location && propData.size && Number(propData.size) > 0) {
+            estimateTimer.current = setTimeout(() => {
+                fetchAiEstimate();
+            }, 1500); // Debounce 1.5s
+        } else {
+            setAiEstimate(null);
+        }
+
+        return () => { if (estimateTimer.current) clearTimeout(estimateTimer.current); };
+    }, [propData.location, propData.size, propData.propertyType, propData.bedrooms, propData.price]);
+
+    const fetchAiEstimate = async () => {
+        setEstimating(true);
+        try {
+            const { data } = await axios.post(`${API_BASE_URL}/estimation/direct-estimate`, {
+                location: propData.location,
+                propertyType: propData.propertyType,
+                size: Number(propData.size),
+                bedrooms: propData.bedrooms ? Number(propData.bedrooms) : undefined,
+                bathrooms: propData.bathrooms ? Number(propData.bathrooms) : undefined,
+                price: propData.price ? Number(propData.price) : undefined
+            });
+            setAiEstimate(data);
+        } catch (error) {
+            console.error('AI estimate error:', error);
+            setAiEstimate(null);
+        } finally {
+            setEstimating(false);
+        }
+    };
 
     const fetchPropertyDetails = async () => {
         try {
@@ -86,7 +131,7 @@ const AddProperty = () => {
             } else {
                 await axios.post(`${API_BASE_URL}/properties`, payload);
             }
-            
+
             navigate('/dashboard/agency/listings');
         } catch (error) {
             alert(error.response?.data?.message || 'Action failed');
@@ -115,6 +160,61 @@ const AddProperty = () => {
                 </button>
             </div>
 
+            {/* AI Estimate Banner */}
+            {(aiEstimate || estimating) && (
+                <div className="glass-card" style={{
+                    marginBottom: '1.5rem',
+                    padding: '1.2rem 1.5rem',
+                    background: 'linear-gradient(135deg, #7c3aed10, #3b82f610)',
+                    border: '1px solid #7c3aed30',
+                    borderRadius: '14px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#7c3aed20', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {estimating ? <Loader size={20} color="#7c3aed" className="animate-spin" /> : <Bot size={20} color="#7c3aed" />}
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.8rem', fontWeight: '800', color: 'var(--text)' }}>
+                                {estimating ? 'AI Analyzing...' : 'AI Price Estimate'}
+                            </div>
+                            {!estimating && aiEstimate && (
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    {aiEstimate.confidence}% confidence
+                                    {aiEstimate.benchmark && ` | ${aiEstimate.benchmark.tier.replace('_', ' ')} area`}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    {!estimating && aiEstimate && (
+                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.55rem', color: '#7c3aed', fontWeight: '700', textTransform: 'uppercase' }}>AI Estimated Price</div>
+                                <div style={{ fontSize: '1.3rem', fontWeight: '900', color: '#7c3aed' }}>{formatINR(aiEstimate.estimatedPrice)}</div>
+                            </div>
+                            {aiEstimate.pricePerSqft > 0 && (
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Per Sq.Ft</div>
+                                    <div style={{ fontSize: '1rem', fontWeight: '800', color: 'var(--text)' }}>₹{aiEstimate.pricePerSqft.toLocaleString()}</div>
+                                </div>
+                            )}
+                            {aiEstimate.verdict && (
+                                <div style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase' }}>Verdict</div>
+                                    <span style={{
+                                        background: aiEstimate.verdict.label === 'Overvalued' ? '#fef2f2' : aiEstimate.verdict.label === 'Undervalued' ? '#f0fdf4' : '#fffbeb',
+                                        color: aiEstimate.verdict.label === 'Overvalued' ? '#ef4444' : aiEstimate.verdict.label === 'Undervalued' ? '#22c55e' : '#f59e0b',
+                                        padding: '4px 10px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '800'
+                                    }}>
+                                        {aiEstimate.verdict.label} ({aiEstimate.verdict.diffPct > 0 ? '+' : ''}{aiEstimate.verdict.diffPct}%)
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div className="glass-card" style={{ background: 'var(--surface)', padding: '2.5rem', border: '1px solid var(--border)' }}>
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
                     <div className="input-group" style={{ gridColumn: 'span 2' }}>
@@ -124,14 +224,19 @@ const AddProperty = () => {
                     <div className="input-group">
                         <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Price (₹)</label>
                         <input type="number" className="input-control" required value={propData.price} onChange={e => setPropData({...propData, price: e.target.value})} style={{ background: 'var(--surface-light)', color: 'var(--text)' }} />
+                        {aiEstimate?.estimatedPrice > 0 && !estimating && (
+                            <small style={{ color: '#7c3aed', fontSize: '0.7rem', fontWeight: '700', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Bot size={11} /> AI suggests: {formatINR(aiEstimate.estimatedPrice)}
+                            </small>
+                        )}
                     </div>
                     <div className="input-group" style={{ gridColumn: 'span 3' }}>
                         <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Description</label>
                         <textarea className="input-control" rows="4" required value={propData.description} onChange={e => setPropData({...propData, description: e.target.value})} style={{ background: 'var(--surface-light)', color: 'var(--text)' }}></textarea>
                     </div>
                     <div className="input-group">
-                        <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Location / City</label>
-                        <input type="text" className="input-control" required value={propData.location} onChange={e => setPropData({...propData, location: e.target.value})} style={{ background: 'var(--surface-light)', color: 'var(--text)' }} />
+                        <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Location / City <span style={{ fontSize: '0.65rem', color: '#7c3aed' }}>(for AI estimate)</span></label>
+                        <input type="text" className="input-control" required value={propData.location} onChange={e => setPropData({...propData, location: e.target.value})} placeholder="e.g. Bandra West, Mumbai" style={{ background: 'var(--surface-light)', color: 'var(--text)' }} />
                     </div>
                     <div className="input-group">
                         <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Map Embed URL</label>
@@ -141,7 +246,7 @@ const AddProperty = () => {
                         </small>
                         {propData.mapLocation && propData.mapLocation.includes('maps.app.goo.gl') && (
                             <div style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '10px', fontWeight: '700', background: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                                ⚠️ Shortened links (maps.app.goo.gl) are blocked from being embedded by Google. Please open the link, then copy the FULL URL from your browser's address bar.
+                                Shortened links (maps.app.goo.gl) are blocked from being embedded by Google. Please open the link, then copy the FULL URL from your browser's address bar.
                             </div>
                         )}
                     </div>
@@ -161,7 +266,7 @@ const AddProperty = () => {
                         </select>
                     </div>
                     <div className="input-group">
-                        <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Area (sqft)</label>
+                        <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Area (sqft) <span style={{ fontSize: '0.65rem', color: '#7c3aed' }}>(for AI estimate)</span></label>
                         <input type="number" className="input-control" required value={propData.size} onChange={e => setPropData({...propData, size: e.target.value})} style={{ background: 'var(--surface-light)', color: 'var(--text)' }} />
                     </div>
                     <div className="input-group">
@@ -176,7 +281,7 @@ const AddProperty = () => {
                         <label style={{ fontWeight: '700', marginBottom: '0.5rem', display: 'block' }}>Amenities (comma separated)</label>
                         <input type="text" className="input-control" placeholder="Pool, Gym, Parking, WiFi" value={propData.amenities} onChange={e => setPropData({...propData, amenities: e.target.value})} style={{ background: 'var(--surface-light)', color: 'var(--text)' }} />
                     </div>
-                    
+
                     {/* Media Uploads */}
                     <div className="input-group" style={{ gridColumn: 'span 3' }}>
                         <label style={{ fontWeight: '700', marginBottom: '1rem', display: 'block' }}>Media & Documents</label>

@@ -445,6 +445,167 @@ router.get('/cities', protect, async (req, res) => {
     }
 });
 
+// @desc    Direct LLM estimate (benchmarks + GPT only, no database agents)
+// @route   POST /api/estimation/direct-estimate
+// @access  Private
+router.post('/direct-estimate', protect, async (req, res) => {
+    try {
+        const { location, propertyType, size, areaSqft, bedrooms, bathrooms, price } = req.body;
+        const area = size || areaSqft;
+
+        if (!location || !area) {
+            return res.status(400).json({ message: 'location and size/areaSqft are required' });
+        }
+
+        const { getBenchmark } = require('../services/estimation/locationBenchmarks');
+        const LLMReasoningAgent = require('../services/estimation/LLMReasoningAgent');
+
+        // Parse location
+        const parts = location.split(',').map(s => s.trim());
+        let city = '', locality = '';
+        if (parts.length >= 2) {
+            locality = parts[0];
+            city = parts[parts.length - 1];
+        } else {
+            city = parts[0];
+            locality = parts[0];
+        }
+
+        const benchmark = getBenchmark(city, locality);
+        const llm = new LLMReasoningAgent();
+
+        const params = {
+            city, locality,
+            propertyType: propertyType || 'Apartment',
+            areaSqft: Number(area),
+            bedrooms: bedrooms ? Number(bedrooms) : undefined,
+            bathrooms: bathrooms ? Number(bathrooms) : undefined
+        };
+
+        const llmResult = await llm.estimate(params, null, null);
+
+        let estimatedPrice = llmResult.estimatedPriceTotal || 0;
+        let pricePerSqft = llmResult.estimatedPricePerSqft || 0;
+
+        if (estimatedPrice === 0 && benchmark) {
+            pricePerSqft = benchmark.avg;
+            estimatedPrice = pricePerSqft * Number(area);
+        }
+
+        // Benchmark sanity check
+        if (benchmark && benchmark.avg > 0 && pricePerSqft > 0) {
+            const ratio = pricePerSqft / benchmark.avg;
+            if (ratio > 2.5 || ratio < 0.4) {
+                pricePerSqft = Math.round((pricePerSqft + benchmark.avg) / 2);
+                estimatedPrice = pricePerSqft * Number(area);
+            }
+        }
+
+        const confidence = llmResult.confidence || (benchmark ? 55 : 30);
+        const priceLow = Math.round(estimatedPrice * 0.9);
+        const priceHigh = Math.round(estimatedPrice * 1.1);
+
+        let verdict = null;
+        if (price && estimatedPrice > 0) {
+            const diff = ((Number(price) - estimatedPrice) / estimatedPrice * 100);
+            if (diff > 15) verdict = { label: 'Overvalued', diffPct: diff.toFixed(1) };
+            else if (diff < -10) verdict = { label: 'Undervalued', diffPct: diff.toFixed(1) };
+            else verdict = { label: 'Fair Price', diffPct: diff.toFixed(1) };
+        }
+
+        res.json({
+            estimatedPrice: Math.round(estimatedPrice),
+            pricePerSqft: Math.round(pricePerSqft),
+            priceLow, priceHigh, confidence,
+            reasoning: llmResult.reasoning,
+            marketTiming: llmResult.marketTiming,
+            positiveFactors: llmResult.positiveFactors,
+            negativeFactors: llmResult.negativeFactors,
+            verdict,
+            benchmark: benchmark ? { avg: benchmark.avg, min: benchmark.min, max: benchmark.max, tier: benchmark.tier } : null
+        });
+    } catch (error) {
+        console.error('[DIRECT-ESTIMATE] Error:', error.message);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Batch estimate for properties missing AI estimates
+// @route   POST /api/estimation/batch-property-estimate
+// @access  Private
+router.post('/batch-property-estimate', protect, async (req, res) => {
+    try {
+        const { propertyIds } = req.body;
+        if (!propertyIds || !Array.isArray(propertyIds)) {
+            return res.status(400).json({ message: 'propertyIds array required' });
+        }
+
+        const properties = await Property.find({
+            _id: { $in: propertyIds },
+            $or: [
+                { 'aiEstimation.estimatedPrice': { $exists: false } },
+                { 'aiEstimation.estimatedPrice': null },
+                { 'aiEstimation.estimatedPrice': 0 }
+            ]
+        });
+
+        if (properties.length === 0) {
+            return res.json({ estimated: 0, results: {} });
+        }
+
+        const { getBenchmark } = require('../services/estimation/locationBenchmarks');
+        const LLMReasoningAgent = require('../services/estimation/LLMReasoningAgent');
+        const llm = new LLMReasoningAgent();
+        const results = {};
+
+        for (const prop of properties) {
+            try {
+                const parts = (prop.location || '').split(',').map(s => s.trim());
+                let city = '', locality = '';
+                if (parts.length >= 2) { locality = parts[0]; city = parts[parts.length - 1]; }
+                else { city = parts[0]; locality = parts[0]; }
+
+                const llmResult = await llm.estimate({
+                    city, locality,
+                    propertyType: prop.propertyType,
+                    areaSqft: prop.size,
+                    bedrooms: prop.bedrooms,
+                    bathrooms: prop.bathrooms
+                }, null, null);
+
+                let estimatedPrice = llmResult.estimatedPriceTotal || 0;
+                let pricePerSqft = llmResult.estimatedPricePerSqft || 0;
+
+                const benchmark = getBenchmark(city, locality);
+                if (estimatedPrice === 0 && benchmark) {
+                    pricePerSqft = benchmark.avg;
+                    estimatedPrice = pricePerSqft * prop.size;
+                }
+
+                if (estimatedPrice > 0) {
+                    const aiEst = {
+                        estimatedPrice: Math.round(estimatedPrice),
+                        confidence: llmResult.confidence || 50,
+                        pricePerSqft: Math.round(pricePerSqft),
+                        priceLow: Math.round(estimatedPrice * 0.9),
+                        priceHigh: Math.round(estimatedPrice * 1.1),
+                        lastEstimatedAt: new Date(),
+                        marketTiming: llmResult.marketTiming || 'neutral'
+                    };
+                    await Property.findByIdAndUpdate(prop._id, { aiEstimation: aiEst });
+                    results[prop._id] = aiEst;
+                }
+            } catch (err) {
+                console.error(`[BATCH-EST] Failed for ${prop._id}:`, err.message);
+            }
+        }
+
+        res.json({ estimated: Object.keys(results).length, results });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // @desc    Quick batch estimate for investment portfolio
 // @route   POST /api/estimation/portfolio-estimate
 // @access  Private
