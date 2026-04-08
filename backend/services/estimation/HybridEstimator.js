@@ -20,6 +20,11 @@ class HybridEstimator {
         const propertyType = params.propertyType || 'Apartment';
         const areaSqft = params.size || params.areaSqft || 0;
 
+        if (!city || !locality || !areaSqft) {
+            console.error('[ESTIMATOR] Missing required fields:', { city, locality, areaSqft });
+            throw new Error(`Missing required fields for estimation: ${!city ? 'city ' : ''}${!locality ? 'locality ' : ''}${!areaSqft ? 'areaSqft' : ''}`);
+        }
+
         // Geocode the location for proximity queries
         let geoCoords = null;
         try {

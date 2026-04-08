@@ -39,7 +39,7 @@ const fs = require('fs');
 const path = require('path');
 
 const logError = (msg) => {
-    fs.appendFileSync(path.join(__dirname, '../debug_login.log'), `${new Date().toISOString()} - ${msg}\n`);
+    try { fs.appendFileSync(path.join(__dirname, '../debug_login.log'), `${new Date().toISOString()} - ${msg}\n`); } catch(e) {}
 };
 
 // @desc    Login user

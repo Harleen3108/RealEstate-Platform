@@ -115,8 +115,20 @@ body {
 
 .btn-primary:hover {
   background: var(--primary-dark);
-  box-shadow: 0 4px 15px rgba(229, 90, 22, 0.3);
+  box-shadow: 0 4px 15px rgba(229, 90, 22, 0.4);
   transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  filter: brightness(0.9);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn-outline {
@@ -205,6 +217,26 @@ body {
 .animate-slide-right {
   opacity: 0;
   animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
 }
 
 .marquee-container {

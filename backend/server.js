@@ -69,4 +69,14 @@ const connectDB = async () => {
     }
 };
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error(`[SERVER ERROR] ${new Date().toISOString()}:`, err.stack);
+    res.status(500).json({ 
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+});
+
 connectDB();

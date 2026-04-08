@@ -8,6 +8,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { login, user, loading } = useAuth();
     const navigate = useNavigate();
 
@@ -23,6 +24,8 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setIsSubmitting(true);
         try {
             const data = await login(email, password);
             if (data.role === 'Agency') navigate('/dashboard/agency');
@@ -31,6 +34,8 @@ const Login = () => {
             else navigate('/dashboard/buyer');
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -168,21 +173,24 @@ const Login = () => {
 
                         <button 
                             type="submit" 
+                            disabled={isSubmitting}
+                            className="btn btn-primary"
                             style={{ 
                                 padding: '1.2rem', 
-                                background: 'var(--primary)', 
-                                border: 'none', 
                                 borderRadius: '12px', 
-                                color: 'white', 
                                 fontWeight: '800', 
                                 fontSize: '1.1rem', 
-                                cursor: 'pointer',
-                                transition: 'var(--transition)',
                                 marginTop: '1rem',
-                                boxShadow: '0 10px 15px -3px rgba(229, 90, 22, 0.3)'
+                                boxShadow: '0 10px 15px -3px rgba(229, 90, 22, 0.3)',
+                                width: '100%',
                             }}
                         >
-                            Login
+                            {isSubmitting ? (
+                                <>
+                                    <div className="spinner spinner-sm" style={{ marginRight: '10px' }}></div>
+                                    Logging in...
+                                </>
+                            ) : 'Login'}
                         </button>
                     </form>
 

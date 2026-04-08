@@ -28,14 +28,14 @@ router.get('/agency/:agencyId', async (req, res) => {
             return res.status(400).json({ message: 'Invalid agency ID' });
         }
         console.log('Fetching properties for agency:', req.params.agencyId);
-        fs.appendFileSync(logFile, `[${new Date().toISOString()}] Fetching properties for agency: ${req.params.agencyId}\n`);
+        try { fs.appendFileSync(logFile, `[${new Date().toISOString()}] Fetching properties for agency: ${req.params.agencyId}\n`); } catch(err) {}
         const properties = await Property.find({ agency: req.params.agencyId }).populate('agency', 'name email');
         console.log(`Found ${properties.length} properties for agency ${req.params.agencyId}`);
-        fs.appendFileSync(logFile, `[${new Date().toISOString()}] Found ${properties.length} properties\n`);
+        try { fs.appendFileSync(logFile, `[${new Date().toISOString()}] Found ${properties.length} properties\n`); } catch(err) {}
         res.json(properties);
     } catch (error) {
         console.error('CRITICAL: Agency Properties Error:', error);
-        fs.appendFileSync(logFile, `[${new Date().toISOString()}] ERROR in /agency/:agencyId: ${error.stack}\n`);
+        try { fs.appendFileSync(logFile, `[${new Date().toISOString()}] ERROR in /agency/:agencyId: ${error.stack}\n`); } catch(err) {}
         res.status(500).json({ message: error.message });
     }
 });
