@@ -34,39 +34,61 @@ const EstimationAgentStatus = ({ jobId, onComplete }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!jobId) {
+        // Fetch initially
+        if (jobId) {
+            fetchJobById(jobId);
+        } else {
             fetchLatestJob();
-            return;
         }
-        const interval = setInterval(fetchJobStatus, 3000);
-        fetchJobStatus();
+
+        // Set up interval for continuous polling if the job is active
+        const interval = setInterval(() => {
+            if (jobId) {
+                fetchJobById(jobId);
+            } else {
+                fetchLatestJob();
+            }
+        }, 3000);
+
         return () => clearInterval(interval);
     }, [jobId]);
 
     const fetchLatestJob = async () => {
         try {
             const { data } = await axios.get(`${API_BASE_URL}/estimation/scraping/status`);
-            setJob(data.latest);
+            const latestJob = data.latest;
+            setJob(latestJob);
+            
+            // If the latest job is finished, we could theoretically stop polling 
+            // but the interval will keep checking for new jobs every 3s anyway.
         } catch (err) {
-            console.error('Error fetching job:', err);
+            console.error('Error fetching latest job:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchJobById = async (id) => {
+        try {
+            // There isn't a direct "get job by id" endpoint in the current routes 
+            // but the /status endpoint returns 'latest' and 'history'.
+            // We'll fetch status and find the matching ID in latest or history.
+            const { data } = await axios.get(`${API_BASE_URL}/estimation/scraping/status`);
+            if (data.latest && data.latest._id === id) {
+                setJob(data.latest);
+            } else {
+                const found = (data.history || []).find(h => h._id === id);
+                if (found) setJob(found);
+            }
+        } catch (err) {
+            console.error('Error fetching job by ID:', err);
         } finally {
             setLoading(false);
         }
     };
 
     const fetchJobStatus = async () => {
-        try {
-            const { data } = await axios.get(`${API_BASE_URL}/estimation/scraping/status`);
-            const latestJob = data.latest;
-            setJob(latestJob);
-            setLoading(false);
-
-            if (latestJob && ['completed', 'failed', 'partial'].includes(latestJob.status)) {
-                if (onComplete) onComplete(latestJob);
-            }
-        } catch (err) {
-            setLoading(false);
-        }
+        // This is now handled by fetchLatestJob and fetchJobById
     };
 
     if (loading) {

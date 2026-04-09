@@ -22,6 +22,9 @@ const PriceIntelligenceDashboard = () => {
     const [trends, setTrends] = useState([]);
     const [loading, setLoading] = useState(true);
     const [triggeringJob, setTriggeringJob] = useState(false);
+    const [normalizing, setNormalizing] = useState(false);
+    const [normalizationJob, setNormalizationJob] = useState(null);
+    const [activeScrapingJobId, setActiveScrapingJobId] = useState(null);
     const [trendCity, setTrendCity] = useState('');
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -61,14 +64,57 @@ const PriceIntelligenceDashboard = () => {
         }
     };
 
+    useEffect(() => {
+        let interval;
+        if (normalizing && normalizationJob?._id) {
+            interval = setInterval(async () => {
+                try {
+                    const { data } = await axios.get(`${API_BASE_URL}/estimation/normalize/status/${normalizationJob._id}`);
+                    setNormalizationJob(data);
+                    if (['completed', 'failed'].includes(data.status)) {
+                        setNormalizing(false);
+                        if (data.status === 'failed') alert(`Normalization Failed: ${data.errorMessage}`);
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
+            }, 3000);
+        }
+        return () => clearInterval(interval);
+    }, [normalizing, normalizationJob?._id]);
+
+    const handleRunNormalization = async () => {
+        setNormalizing(true);
+        setNormalizationJob(null);
+        try {
+            const { data } = await axios.post(`${API_BASE_URL}/estimation/normalize`);
+            setNormalizationJob({ _id: data.jobId, status: 'queued' });
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to start normalization');
+            setNormalizing(false);
+        }
+    };
+
     const triggerScraping = async () => {
         setTriggeringJob(true);
         try {
-            await axios.post(`${API_BASE_URL}/estimation/scraping/trigger`);
+            const { data } = await axios.post(`${API_BASE_URL}/estimation/scraping/trigger`, {});
+            
+            // Explicitly track the new job ID to force the status component to refresh
+            if (data.jobId) {
+                setActiveScrapingJobId(data.jobId);
+            }
+            
             setActiveTab('scraping');
+            
+            // Minor delay to allow backend to initialize the job records
+            setTimeout(() => {
+                setTriggeringJob(false);
+            }, 1000);
+
         } catch (err) {
+            console.error('Scraping trigger error:', err);
             alert(err.response?.data?.message || 'Failed to start scraping');
-        } finally {
             setTriggeringJob(false);
         }
     };
@@ -236,20 +282,48 @@ const PriceIntelligenceDashboard = () => {
                         }}>
                             <RefreshCw size={14} /> {triggeringJob ? 'Starting...' : 'Trigger Full Scrape'}
                         </button>
-                        <button onClick={async () => {
-                            try {
-                                const { data } = await axios.post(`${API_BASE_URL}/estimation/normalize`);
-                                alert(`Normalization complete: ${JSON.stringify(data)}`);
-                            } catch (e) { alert('Normalization failed'); }
-                        }} style={{
-                            padding: '10px 20px', background: 'var(--surface)', border: '1px solid var(--border)',
-                            borderRadius: '8px', color: 'var(--text)', cursor: 'pointer',
+                        <button 
+                            disabled={normalizing || triggeringJob}
+                            onClick={handleRunNormalization}
+                            style={{
+                            padding: '10px 20px', 
+                            background: normalizing ? 'var(--surface-light)' : 'var(--surface)', 
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px', color: normalizing ? 'var(--text-muted)' : 'var(--text)', 
+                            cursor: normalizing ? 'not-allowed' : 'pointer',
                             fontSize: '0.85rem', fontWeight: '600'
                         }}>
-                            Run Normalization
+                            {normalizing ? 'Processing Pipeline...' : 'Run Normalization'}
                         </button>
                     </div>
-                    <EstimationAgentStatus />
+
+                    {normalizing && normalizationJob && (
+                        <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1rem', border: '1px solid var(--primary)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                <h4 style={{ fontSize: '0.9rem', fontWeight: '700', textTransform: 'capitalize' }}>
+                                    Status: {normalizationJob.status.replace('_', ' ')}
+                                </h4>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                    {normalizationJob.processedRecords} / {normalizationJob.totalRecords}
+                                </span>
+                            </div>
+                            <div style={{ width: '100%', height: '8px', background: 'var(--surface)', borderRadius: '4px', overflow: 'hidden', marginBottom: '1rem' }}>
+                                <div style={{ 
+                                    width: `${normalizationJob.totalRecords > 0 ? (normalizationJob.processedRecords / normalizationJob.totalRecords * 100) : 0}%`, 
+                                    height: '100%', background: 'linear-gradient(90deg, #7c3aed, #3b82f6)',
+                                    transition: 'width 0.5s ease'
+                                }} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', fontSize: '0.75rem' }}>
+                                <div style={{ color: 'var(--text-muted)' }}>Cleaned: <span style={{ color: 'var(--text)', fontWeight: '600' }}>{normalizationJob.results?.cleaned || 0}</span></div>
+                                <div style={{ color: 'var(--text-muted)' }}>Geocoded: <span style={{ color: 'var(--text)', fontWeight: '600' }}>{normalizationJob.results?.geocoded || 0}</span></div>
+                                <div style={{ color: 'var(--text-muted)' }}>Deduped: <span style={{ color: 'var(--text)', fontWeight: '600' }}>{normalizationJob.results?.deduplicated || 0}</span></div>
+                                <div style={{ color: 'var(--text-muted)' }}>Outliers: <span style={{ color: 'var(--text)', fontWeight: '600' }}>{normalizationJob.results?.outliersFound || 0}</span></div>
+                            </div>
+                        </div>
+                    )}
+
+                    <EstimationAgentStatus jobId={activeScrapingJobId} onComplete={() => setActiveScrapingJobId(null)} />
                 </div>
             )}
         </div>

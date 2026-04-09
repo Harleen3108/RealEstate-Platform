@@ -732,6 +732,36 @@ const AdminDashboard = () => {
         </button>
       )}
 
+      {/* Report Generation Logic */}
+      {(() => {
+        window.handleGenerateReport = () => {
+          const reportData = [
+            ["Metric", "Value"],
+            ["Total Assets Value", `Rs.${(stats.totalInvestedValue / 1000000).toFixed(1)}M`],
+            ["Active Listings", stats.activeListings || stats.totalProperties],
+            ["Total Users", (stats.totalUsers || 0) + (stats.totalAgencies || 0) + (stats.totalInvestors || 0)],
+            ["Pending Reviews", stats.pendingAgencies || 0],
+            ["Total Agencies", stats.totalAgencies || 0],
+            ["Total Investors", stats.totalInvestors || 0],
+            ["Total Leads", stats.totalLeads || 0],
+            ["Total Revenue", `Rs.${stats.totalRevenue?.toLocaleString()}`],
+            ["Conversion Rate", leadsAnalytics.summary.conversionRate],
+          ];
+
+          const csvContent = "data:text/csv;charset=utf-8," 
+            + reportData.map(e => e.join(",")).join("\n");
+
+          const encodedUri = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", encodedUri);
+          link.setAttribute("download", `Market_Report_${new Date().toISOString().split('T')[0]}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+        return null;
+      })()}
+
       {/* Platform Overview Dashboard */}
       {activeTab === "stats" && !selectedAgency && !selectedLead && (
         <div
@@ -1176,7 +1206,7 @@ const AdminDashboard = () => {
                   {
                     label: "Generate Report",
                     icon: BarChart3,
-                    action: () => alert("Report engine initializing..."),
+                    action: () => window.handleGenerateReport(),
                   },
                 ].map((btn, i) => (
                   <button

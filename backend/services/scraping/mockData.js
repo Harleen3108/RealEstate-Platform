@@ -156,8 +156,8 @@ function getMockListingsForCity(city, source) {
         amenities: l.amenities,
         furnishingStatus: l.furnishing,
         rawData: { title: l.title, rawPrice: l.price, rawArea: l.area, builder: l.builder },
-        scrapedAt: new Date(),
-        listingDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
+        scrapedAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+        listingDate: new Date(Date.now() - (Math.random() * 400 + 30) * 24 * 60 * 60 * 1000)
     }));
 }
 

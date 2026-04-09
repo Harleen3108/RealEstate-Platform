@@ -114,12 +114,23 @@ const MarketTrendChart = ({ trends = [], height = 250 }) => {
                     {/* X axis labels */}
                     {sortedTrends.map((t, i) => {
                         const x = padding.left + (i / (sortedTrends.length - 1 || 1)) * plotWidth;
-                        const label = t.period || (t.periodEnd ? new Date(t.periodEnd).toLocaleDateString('en-IN', { month: 'short' }) : '');
-                        if (sortedTrends.length > 8 && i % 2 !== 0) return null;
+                        const date = t.periodEnd ? new Date(t.periodEnd) : (t.period ? new Date(t.period) : null);
+                        
+                        let label = '';
+                        if (date) {
+                            const month = date.toLocaleDateString('en-IN', { month: 'short' });
+                            const year = date.getFullYear().toString().slice(-2);
+                            label = `${month} '${year}`;
+                        }
+
+                        // Dynamically adjust label frequency
+                        const skipInterval = sortedTrends.length > 18 ? 3 : sortedTrends.length > 9 ? 2 : 1;
+                        if (i % skipInterval !== 0 && i !== sortedTrends.length - 1) return null;
+
                         return (
                             <text key={`label-${i}`} x={x} y={padding.top + plotHeight + 20}
-                                textAnchor="middle" fontSize="10" fill="var(--text-muted)">
-                                {label.slice(-5)}
+                                textAnchor="middle" fontSize="9" fill="var(--text-muted)">
+                                {label}
                             </text>
                         );
                     })}
@@ -146,7 +157,7 @@ const MarketTrendChart = ({ trends = [], height = 250 }) => {
                     fontSize: '0.75rem', display: 'flex', gap: '16px', justifyContent: 'center'
                 }}>
                     <span style={{ color: 'var(--text-muted)' }}>
-                        {sortedTrends[hoveredIndex].period || new Date(sortedTrends[hoveredIndex].periodEnd).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                        {sortedTrends[hoveredIndex].period || new Date(sortedTrends[hoveredIndex].periodEnd).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
                     </span>
                     <span style={{ color: '#3b82f6', fontWeight: '600' }}>
                         Rs.{prices[hoveredIndex]?.toLocaleString('en-IN')}/sqft

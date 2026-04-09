@@ -18,21 +18,28 @@ class ScrapingOrchestrator {
         ];
     }
 
-    async runFullScrape(triggeredBy = 'cron', userId = null) {
-        const job = await ScrapingJob.create({
-            sourceName: 'all',
-            status: 'running',
-            triggeredBy,
-            triggeredByUser: userId,
-            startedAt: new Date(),
-            sources: this.scrapers.map(s => ({
-                name: s.sourceName,
-                status: 'pending',
-                listingsFound: 0,
-                listingsNew: 0,
-                errors: []
-            }))
-        });
+    async runFullScrape(triggeredBy = 'cron', userId = null, existingJobId = null) {
+        let job;
+        if (existingJobId) {
+            job = await ScrapingJob.findById(existingJobId);
+        }
+
+        if (!job) {
+            job = await ScrapingJob.create({
+                sourceName: 'all',
+                status: 'running',
+                triggeredBy,
+                triggeredByUser: userId,
+                startedAt: new Date(),
+                sources: this.scrapers.map(s => ({
+                    name: s.sourceName,
+                    status: 'pending',
+                    listingsFound: 0,
+                    listingsNew: 0,
+                    errors: []
+                }))
+            });
+        }
 
         console.log(`[ORCHESTRATOR] Started job ${job._id} (${triggeredBy})`);
 
@@ -40,15 +47,22 @@ class ScrapingOrchestrator {
         let totalNew = 0;
 
         for (const city of TARGET_CITIES) {
+            // Update source statuses to 'running' for this city atomically
+            await ScrapingJob.findByIdAndUpdate(job._id, {
+                $set: { 'sources.$[].status': 'running' }
+            });
+
             const cityResults = await Promise.allSettled(
                 this.scrapers.map(async (scraper, idx) => {
-                    const sourceEntry = job.sources[idx];
-                    sourceEntry.status = 'running';
-                    sourceEntry.startedAt = new Date();
-                    await job.save();
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Task timed out after 45s')), 45000)
+                    );
 
                     try {
-                        const listings = await scraper.scrape({ city });
+                        const listings = await Promise.race([
+                            scraper.scrape({ city }),
+                            timeoutPromise
+                        ]);
 
                         let newCount = 0;
                         for (const listing of listings) {
@@ -60,67 +74,94 @@ class ScrapingOrchestrator {
                                 );
                                 newCount++;
                             } catch (e) {
-                                if (e.code !== 11000) { // Ignore duplicate key errors
-                                    sourceEntry.errors.push(`${city}: ${e.message}`);
+                                if (e.code !== 11000) {
+                                    await ScrapingJob.findByIdAndUpdate(job._id, {
+                                        $push: { [`sources.${idx}.errors`]: `${city}: ${e.message}` }
+                                    });
                                 }
                             }
                         }
 
-                        sourceEntry.listingsFound += listings.length;
-                        sourceEntry.listingsNew += newCount;
-                        sourceEntry.status = 'completed';
-                        sourceEntry.completedAt = new Date();
-
+                        // Atomic update of counts to ensure UI reflects progress
+                        await ScrapingJob.findByIdAndUpdate(job._id, {
+                            $inc: { 
+                                [`sources.${idx}.listingsFound`]: listings.length,
+                                [`sources.${idx}.listingsNew`]: newCount
+                            }
+                        });
+                        
                         return { source: scraper.sourceName, city, count: listings.length, new: newCount };
                     } catch (error) {
-                        sourceEntry.status = 'failed';
-                        sourceEntry.errors.push(`${city}: ${error.message}`);
-                        sourceEntry.completedAt = new Date();
+                        console.error(`[ORCHESTRATOR] Scraper ${scraper.sourceName} failed for ${city}: ${error.message}`);
                         return { source: scraper.sourceName, city, count: 0, error: error.message };
                     }
                 })
             );
 
-            for (const result of cityResults) {
-                if (result.status === 'fulfilled') {
+            // Update terminal statuses for this city iteration
+            for (let idx = 0; idx < cityResults.length; idx++) {
+                const result = cityResults[idx];
+                const isSuccess = result.status === 'fulfilled' && !result.value.error;
+                
+                const update = {
+                    $set: { [`sources.${idx}.completedAt`]: new Date() }
+                };
+
+                if (!isSuccess) {
+                    const err = result.status === 'rejected' ? (result.reason?.message || 'Rejected') : result.value.error;
+                    update.$set[`sources.${idx}.status`] = 'failed';
+                    update.$push = { [`sources.${idx}.errors`]: `${city}: ${err}` };
+                } else {
+                    // Update total counts in local variables for final job update
                     totalListings += result.value.count;
                     totalNew += result.value.new || 0;
                 }
-            }
 
-            await job.save();
+                await ScrapingJob.findByIdAndUpdate(job._id, update);
+            }
         }
 
-        // Finalize job
-        const failedSources = job.sources.filter(s => s.status === 'failed').length;
-        job.status = failedSources === job.sources.length ? 'failed' :
-                     failedSources > 0 ? 'partial' : 'completed';
-        job.listingsFound = totalListings;
-        job.listingsNew = totalNew;
-        job.completedAt = new Date();
-        await job.save();
+        // Finalize job status
+        const finalJob = await ScrapingJob.findById(job._id);
+        const failedSources = finalJob.sources.filter(s => s.status === 'failed').length;
+        
+        await ScrapingJob.findByIdAndUpdate(job._id, {
+            $set: {
+                status: failedSources === finalJob.sources.length ? 'failed' :
+                        failedSources > 0 ? 'partial' : 'completed',
+                listingsFound: totalListings,
+                listingsNew: totalNew,
+                completedAt: new Date()
+            }
+        });
 
         console.log(`[ORCHESTRATOR] Job ${job._id} completed: ${totalListings} listings, ${totalNew} new`);
-
-        return job;
+        return finalJob;
     }
 
-    async runCityScrape(city, triggeredBy = 'api', userId = null) {
-        const job = await ScrapingJob.create({
-            sourceName: 'all',
-            city,
-            status: 'running',
-            triggeredBy,
-            triggeredByUser: userId,
-            startedAt: new Date(),
-            sources: this.scrapers.map(s => ({
-                name: s.sourceName,
-                status: 'pending',
-                listingsFound: 0,
-                listingsNew: 0,
-                errors: []
-            }))
-        });
+    async runCityScrape(city, triggeredBy = 'api', userId = null, existingJobId = null) {
+        let job;
+        if (existingJobId) {
+            job = await ScrapingJob.findById(existingJobId);
+        }
+
+        if (!job) {
+            job = await ScrapingJob.create({
+                sourceName: 'all',
+                city,
+                status: 'running',
+                triggeredBy,
+                triggeredByUser: userId,
+                startedAt: new Date(),
+                sources: this.scrapers.map(s => ({
+                    name: s.sourceName,
+                    status: 'pending',
+                    listingsFound: 0,
+                    listingsNew: 0,
+                    errors: []
+                }))
+            });
+        }
 
         const results = await Promise.allSettled(
             this.scrapers.map(async (scraper, idx) => {

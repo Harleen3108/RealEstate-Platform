@@ -63,13 +63,13 @@ class GeocodingService {
         }
     }
 
-    async geocodeListings() {
+    async geocodeListings(jobId = null) {
         console.log('[GEOCODING] Starting batch geocoding...');
         const listings = await ScrapedListing.find({
             $or: [{ geoLocation: null }, { geoLocation: { $exists: false } }, { 'geoLocation.coordinates': { $size: 0 } }],
             locality: { $exists: true, $ne: null },
             city: { $exists: true, $ne: null }
-        }).limit(500);
+        }); // Removing 25 limit to process all records in background
 
         let geocoded = 0, failed = 0;
         for (const listing of listings) {
@@ -81,6 +81,14 @@ class GeocodingService {
                     });
                     geocoded++;
                 } else { failed++; }
+
+                if (jobId && (geocoded + failed) % 5 === 0) {
+                    const NormalizationJob = require('../../models/NormalizationJob');
+                    await NormalizationJob.findByIdAndUpdate(jobId, {
+                        processedRecords: geocoded + failed,
+                        'results.geocoded': geocoded
+                    });
+                }
             } catch (error) { failed++; }
         }
 

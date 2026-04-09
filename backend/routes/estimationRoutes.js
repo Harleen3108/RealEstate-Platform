@@ -13,6 +13,8 @@ const NormalizerService = require('../services/normalization/NormalizerService')
 const GeocodingService = require('../services/normalization/GeocodingService');
 const DeduplicationService = require('../services/normalization/DeduplicationService');
 const OutlierDetector = require('../services/normalization/OutlierDetector');
+const NormalizationJob = require('../models/NormalizationJob');
+
 
 // @desc    Estimate price for given parameters (ad-hoc)
 // @route   POST /api/estimation/estimate
@@ -283,14 +285,39 @@ router.post('/compare', protect, async (req, res) => {
 router.get('/trends', protect, async (req, res) => {
     try {
         const { city, locality, propertyType } = req.query;
-        const query = {};
-        if (city) query.city = new RegExp(city, 'i');
-        if (locality) query.locality = new RegExp(locality, 'i');
-        if (propertyType) query.propertyType = propertyType;
+        
+        // If a specific city or locality is provided, return its direct history
+        if (city || locality) {
+            const query = {};
+            if (city) query.city = new RegExp(`^${city}$`, 'i');
+            if (locality) query.locality = new RegExp(`^${locality}$`, 'i');
+            if (propertyType) query.propertyType = propertyType;
 
-        const trends = await MarketTrend.find(query).sort({ periodEnd: -1 }).limit(24);
-        res.json(trends);
+            const trends = await MarketTrend.find(query).sort({ periodEnd: -1 }).limit(24);
+            return res.json(trends);
+        }
+
+        // No city specified: Show aggregate "National" trends by grouping all cities by month
+        const match = {};
+        if (propertyType) match.propertyType = propertyType;
+
+        const aggregatedTrends = await MarketTrend.aggregate([
+            { $match: match },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$periodEnd' } },
+                    avgPricePerSqft: { $avg: '$avgPricePerSqft' },
+                    listingCount: { $sum: '$listingCount' },
+                    periodEnd: { $first: '$periodEnd' }
+                }
+            },
+            { $sort: { periodEnd: -1 } },
+            { $limit: 24 }
+        ]);
+
+        res.json(aggregatedTrends);
     } catch (error) {
+        console.error('[TRENDS_API] Error:', error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -360,45 +387,127 @@ router.get('/scraping/status', protect, authorize('Admin'), async (req, res) => 
 // @access  Private/Admin
 router.post('/scraping/trigger', protect, authorize('Admin'), async (req, res) => {
     try {
-        const { city } = req.body;
+        const { city } = req.body || {};
         const orchestrator = new ScrapingOrchestrator();
 
-        let job;
-        if (city) {
-            job = await orchestrator.runCityScrape(city, 'manual', req.user._id);
-        } else {
-            job = await orchestrator.runFullScrape('manual', req.user._id);
-        }
+        // Create a placeholder job to get an ID for tracking
+        const job = await ScrapingJob.create({
+            sourceName: 'all',
+            city: city || 'All Cities',
+            status: 'running',
+            triggeredBy: 'manual',
+            triggeredByUser: req.user._id,
+            startedAt: new Date(),
+            sources: orchestrator.scrapers.map(s => ({
+                name: s.sourceName,
+                status: 'pending',
+                listingsFound: 0,
+                listingsNew: 0,
+                errors: []
+            }))
+        });
 
-        res.status(202).json({ message: 'Scraping job started', jobId: job._id, status: job.status });
+        // Run the scraping job in the background
+        setImmediate(async () => {
+            try {
+                if (city) {
+                    await orchestrator.runCityScrape(city, 'manual', req.user._id, job._id);
+                } else {
+                    await orchestrator.runFullScrape('manual', req.user._id, job._id);
+                }
+            } catch (err) {
+                console.error('[ASYNC_SCRAPE_FAIL]', err);
+                await ScrapingJob.findByIdAndUpdate(job._id, { 
+                    status: 'failed', 
+                    errorMessage: err.message 
+                });
+            }
+        });
+
+        res.status(202).json({ 
+            message: 'Scraping job started in background', 
+            jobId: job._id, 
+            status: 'running' 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-// @desc    Trigger normalization pipeline
+// @desc    Trigger normalization pipeline (Async)
 // @route   POST /api/estimation/normalize
 // @access  Private/Admin
 router.post('/normalize', protect, authorize('Admin'), async (req, res) => {
     try {
-        const normalizer = new NormalizerService();
-        const normResult = await normalizer.normalizeAll();
-
-        const geocoder = new GeocodingService();
-        const geoResult = await geocoder.geocodeListings();
-
-        const dedup = new DeduplicationService();
-        const dedupResult = await dedup.deduplicate();
-
-        const outlier = new OutlierDetector();
-        const outlierResult = await outlier.detectOutliers();
-
-        res.json({
-            normalization: normResult,
-            geocoding: geoResult,
-            deduplication: dedupResult,
-            outliers: outlierResult
+        const job = await NormalizationJob.create({
+            status: 'queued',
+            totalRecords: await ScrapedListing.countDocuments({})
         });
+
+        // Run the pipeline in the background
+        setImmediate(async () => {
+            try {
+                // Step 1: Cleaning
+                await NormalizationJob.findByIdAndUpdate(job._id, { status: 'cleaning' });
+                const normalizer = new NormalizerService();
+                const cleanResult = await normalizer.normalizeAll();
+                await NormalizationJob.findByIdAndUpdate(job._id, { 
+                    'results.cleaned': cleanResult.normalized,
+                    status: 'geocoding'
+                });
+
+                // Step 2: Geocoding (passes job id for granular updates)
+                const geocoder = new GeocodingService();
+                const geoResult = await geocoder.geocodeListings(job._id);
+                await NormalizationJob.findByIdAndUpdate(job._id, { 
+                    'results.geocoded': geoResult.geocoded,
+                    status: 'deduplicating'
+                });
+
+                // Step 3: Deduplication
+                const dedup = new DeduplicationService();
+                const dedupResult = await dedup.deduplicate();
+                await NormalizationJob.findByIdAndUpdate(job._id, { 
+                    'results.deduplicated': dedupResult.duplicatesRemoved,
+                    status: 'analyzing_outliers'
+                });
+
+                // Step 4: Outlier Detection
+                const outlier = new OutlierDetector();
+                const outlierResult = await outlier.detectOutliers();
+                await NormalizationJob.findByIdAndUpdate(job._id, { 
+                    'results.outliersFound': outlierResult.outliersDetected,
+                    status: 'completed',
+                    completedAt: new Date()
+                });
+
+            } catch (err) {
+                console.error('[ASYNC_NORM_FAIL]', err);
+                await NormalizationJob.findByIdAndUpdate(job._id, { 
+                    status: 'failed', 
+                    errorMessage: err.message 
+                });
+            }
+        });
+
+        res.status(202).json({ 
+            message: 'Normalization pipeline started in background', 
+            jobId: job._id 
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @desc    Get normalization job status
+// @route   GET /api/estimation/normalize/status/:jobId
+// @access  Private/Admin
+router.get('/normalize/status/:jobId', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const job = await NormalizationJob.findById(req.params.jobId);
+        if (!job) return res.status(404).json({ message: 'Job not found' });
+        res.json(job);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import {
     CheckCircle, X as CloseIcon, Menu, Phone, Mail, MapPin, Search, Globe, ChevronDown,
     LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut, MessageCircle, Home, Bell,
-    ChevronRight, Sun, Moon, Plus, FileText, BarChart3, Calculator, GitCompare
+    ChevronRight, Sun, Moon, Plus, FileText, BarChart3, Calculator, GitCompare, Heart, User
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
