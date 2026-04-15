@@ -22,7 +22,28 @@ const leadSchema = new mongoose.Schema({
         content: String, 
         date: { type: Date, default: Date.now } 
     }],
-    isFlagged: { type: Boolean, default: false }
+    isFlagged: { type: Boolean, default: false },
+    assignedMember: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    paymentDetails: {
+        purposeOrScopeOfWork: { type: String },
+        status: { type: String, enum: ['Active', 'Complete', 'Pending'], default: 'Pending' },
+        onboardingDate: { type: Date },
+        totalProjectValue: { type: Number, default: 0 },
+        advanceReceived: { type: Number, default: 0 },
+        advanceDate: { type: Date },
+        finalPayment: { type: Number, default: 0 },
+        finalPaymentDate: { type: Date },
+        totalCollected: { type: Number, default: 0 },
+        balanceDue: { type: Number, default: 0 }
+    }
 }, { timestamps: true });
+
+leadSchema.pre('save', function(next) {
+    if (this.paymentDetails) {
+        this.paymentDetails.totalCollected = (this.paymentDetails.advanceReceived || 0) + (this.paymentDetails.finalPayment || 0);
+        this.paymentDetails.balanceDue = (this.paymentDetails.totalProjectValue || 0) - this.paymentDetails.totalCollected;
+    }
+    next();
+});
 
 module.exports = mongoose.model('Lead', leadSchema);

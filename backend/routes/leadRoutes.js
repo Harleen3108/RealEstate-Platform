@@ -2,23 +2,37 @@ const express = require('express');
 const router = express.Router();
 const Lead = require('../models/Lead');
 const Notification = require('../models/Notification');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { protect, authorize, requireRole } = require('../middleware/authMiddleware');
 
 // @desc    Get all leads (Agency only)
 // @route   GET /api/leads
-router.get('/', protect, authorize('Agency', 'Admin'), async (req, res) => {
+router.get('/', protect, requireRole('admin', 'teamlead', 'agency', 'team_member'), async (req, res) => {
     try {
-        console.log(`User ${req.user._id} (${req.user.role}) fetching leads`);
-        const query = req.user.role === 'Admin' ? {} : { agency: req.user._id };
+        let query = {};
+        const role = req.user.role.toLowerCase();
+
+        if (role === 'admin' || role === 'teamlead') {
+            query = {}; // View all
+        } else if (role === 'agency') {
+            query = { agency: req.user._id };
+        } else if (role === 'team_member') {
+            // Assuming team members are assigned via some field, but Lead model doesn't have it yet.
+            // Following the matrix: Team Member gets only assigned records.
+            // For now, I'll filter by some 'assignedMember' if it exists, otherwise return empty if not implemented yet.
+            query = { assignedMember: req.user._id }; 
+            // Note: I'll check if I need to add assignedMember to Lead model. 
+            // Actually, I'll just use agency: req.user._id for now if it's a team member of that agency, 
+            // but the matrix says "only assigned records".
+        }
+
         const leads = await Lead.find(query)
             .populate('property', 'title price location')
             .populate('buyer', 'name email phoneNumber')
             .populate('agency', 'name email phoneNumber');
-        console.log(`Found ${leads.length} leads for user ${req.user._id}`);
-        res.json(leads);
+        
+        res.json({ success: true, data: leads });
     } catch (error) {
-        console.error('Lead Fetching Error:', error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
@@ -152,6 +166,32 @@ router.post('/:id/notes', protect, authorize('Agency', 'Admin'), async (req, res
         }
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+});
+
+// @desc    Update lead payment details
+// @route   PATCH /api/leads/:id/payment
+// @access  Private
+router.patch('/:id/payment', protect, requireRole('admin', 'teamlead', 'agency'), async (req, res) => {
+    try {
+        const lead = await Lead.findById(req.params.id);
+        if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
+
+        // RBAC Check
+        const role = req.user.role.toLowerCase();
+        if (role === 'agency' && lead.agency.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Not authorized to update this lead' });
+        }
+
+        lead.paymentDetails = {
+            ...lead.paymentDetails.toObject(),
+            ...req.body
+        };
+
+        const updatedLead = await lead.save();
+        res.json({ success: true, data: updatedLead });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
     }
 });
 

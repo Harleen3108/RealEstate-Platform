@@ -42,11 +42,13 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AnimatedCounter from "../../components/common/AnimatedCounter";
+import { usePermissions } from "../../hooks/usePermissions";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { tab } = useParams();
   const { user } = useAuth();
+  const permissions = usePermissions();
   const [stats, setStats] = useState({
     totalInvestors: 0,
     totalLeads: 0,
@@ -131,6 +133,15 @@ const AdminDashboard = () => {
     message: "",
     status: "New Lead",
     source: "Direct",
+  });
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState({
+    totalProjectValue: 0,
+    advanceReceived: 0,
+    purposeOrScopeOfWork: "",
+    onboardingDate: "",
+    status: "Pending",
   });
 
   const agencies = users.filter((u) => u.role === "Agency");
@@ -236,6 +247,7 @@ const AdminDashboard = () => {
         users: "users",
         properties: "properties",
         leads: "leads",
+        tracker: "tracker",
         settings: "settings",
       };
       setActiveTab(tabMap[tab] || "stats");
@@ -364,6 +376,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateUserStatus = async (id, status) => {
+    if (status === 'inactive' && !window.confirm("Are you sure you want to mark this employee as inactive?")) {
+      return;
+    }
+    try {
+      await axios.patch(`${API_BASE_URL}/users/${id}/status`, { status });
+      fetchAdminData();
+      if (userDetails?.user._id === id) {
+        setUserDetails({
+          ...userDetails,
+          user: { ...userDetails.user, status },
+        });
+      }
+      alert(`User status updated to ${status}`);
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
   const handleFlagLead = async (id) => {
     try {
       const response = await axios.patch(`${API_BASE_URL}/admin/leads/${id}/flag`);
@@ -377,6 +409,22 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error("Failed to flag lead", error);
       alert("Failed to update lead flag status");
+    }
+  };
+
+  const handleUpdatePayment = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.patch(`${API_BASE_URL}/leads/${selectedLead._id}/payment`, paymentFormData);
+      setShowPaymentModal(false);
+      fetchAdminData();
+      // Update local state if needed
+      const updatedLead = { ...selectedLead, paymentDetails: { ...selectedLead.paymentDetails, ...paymentFormData } };
+      setSelectedLead(updatedLead);
+      alert("Payment details updated successfully");
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || "Failed to update payment details");
     }
   };
 
@@ -4429,25 +4477,29 @@ const AdminDashboard = () => {
                               style={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: "6px",
+                                gap: "8px",
                               }}
                             >
                               <div
                                 style={{
-                                  width: "6px",
-                                  height: "6px",
+                                  width: "8px",
+                                  height: "8px",
                                   borderRadius: "50%",
-                                  background: "#10b981",
+                                  background: 
+                                    u.status === "active" ? "#10b981" : 
+                                    u.status === "inactive" ? "#9ca3af" : "#ef4444",
                                 }}
                               ></div>
                               <span
                                 style={{
                                   fontSize: "0.8rem",
                                   fontWeight: "600",
-                                  color: "#10b981",
+                                  color: 
+                                    u.status === "active" ? "#10b981" : 
+                                    u.status === "inactive" ? "#9ca3af" : "#ef4444",
                                 }}
                               >
-                                Active
+                                {u.status ? u.status.charAt(0).toUpperCase() + u.status.slice(1) : (u.isBlocked ? "Blocked" : "Active")}
                               </span>
                             </div>
                           </td>
@@ -5850,6 +5902,24 @@ const AdminDashboard = () => {
                   >
                     "{selectedLead.message}"
                   </div>
+                  {permissions.canUpdatePayment && (
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setPaymentFormData({
+                          totalProjectValue: selectedLead.paymentDetails?.totalProjectValue || 0,
+                          advanceReceived: selectedLead.paymentDetails?.advanceReceived || 0,
+                          purposeOrScopeOfWork: selectedLead.paymentDetails?.purposeOrScopeOfWork || "",
+                          onboardingDate: selectedLead.paymentDetails?.onboardingDate ? new Date(selectedLead.paymentDetails.onboardingDate).toISOString().split('T')[0] : "",
+                          status: selectedLead.paymentDetails?.status || "Pending",
+                        });
+                        setShowPaymentModal(true);
+                      }}
+                      style={{ marginTop: '1.5rem', width: '100%', padding: '1rem', fontWeight: '800' }}
+                    >
+                      Update Payment Details
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -6416,6 +6486,227 @@ const AdminDashboard = () => {
                   style={{ padding: "1rem 2rem", fontWeight: "700" }}
                 >
                   Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Onboarding & Payment Tracker Tab */}
+      {activeTab === "tracker" && permissions.canViewTracker && (
+        <div className="animate-fade">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+            <div>
+              <h2 style={{ fontSize: '2rem', fontWeight: '900', marginBottom: '0.4rem', letterSpacing: '-0.5px' }}>
+                Onboarding & Payment Tracker
+              </h2>
+              <p style={{ color: 'var(--text-muted)' }}>
+                Monitor client onboarding lifecycle and financial settlement metrics.
+              </p>
+            </div>
+            {permissions.canExportCSV && (
+              <button 
+                className="btn btn-outline"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.2rem', fontWeight: '700' }}
+                onClick={() => {
+                  const headers = ["Lead Name", "Email", "Scope of Work", "Onboarding Date", "Total Project Value", "Advance Received", "Balance Due", "Status"];
+                  const rows = leads.map(l => [
+                    l.name,
+                    l.email,
+                    l.paymentDetails?.purposeOrScopeOfWork || "N/A",
+                    l.paymentDetails?.onboardingDate ? new Date(l.paymentDetails.onboardingDate).toLocaleDateString() : "N/A",
+                    l.paymentDetails?.totalProjectValue || 0,
+                    l.paymentDetails?.advanceReceived || 0,
+                    l.paymentDetails?.balanceDue || 0,
+                    l.paymentDetails?.status || "N/A"
+                  ]);
+                  let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
+                  const encodedUri = encodeURI(csvContent);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", encodedUri);
+                  link.setAttribute("download", `onboarding_tracker_${new Date().toISOString().split('T')[0]}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+              >
+                <TrendingUp size={16} /> Export CSV Report
+              </button>
+            )}
+          </div>
+
+          <div className="glass-card" style={{ padding: '0', background: 'var(--surface)', border: '1px solid var(--border)', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: 'var(--surface-light)' }}>
+                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '800', letterSpacing: '0.5px' }}>CLIENT DETAILS</th>
+                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '800', letterSpacing: '0.5px' }}>SCOPE / SERVICE</th>
+                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '800', letterSpacing: '0.5px' }}>ONBOARDING</th>
+                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '800', letterSpacing: '0.5px' }}>VALUE (₹)</th>
+                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '800', letterSpacing: '0.5px' }}>COLLECTED (₹)</th>
+                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '800', letterSpacing: '0.5px' }}>BALANCE (₹)</th>
+                  <th style={{ padding: '1rem 1.5rem', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: '800', letterSpacing: '0.5px' }}>STAGE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads.filter(l => l.paymentDetails?.totalProjectValue > 0).length > 0 ? (
+                  leads.filter(l => l.paymentDetails?.totalProjectValue > 0).map(lead => (
+                    <tr 
+                      key={lead._id} 
+                      style={{ 
+                        borderBottom: '1px solid var(--border)',
+                        background: lead.paymentDetails?.status === 'Completed' ? 'rgba(16, 185, 129, 0.03)' : 'transparent'
+                      }}
+                    >
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--text)' }}>{lead.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{lead.email}</div>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text)' }}>
+                        {lead.paymentDetails?.purposeOrScopeOfWork || "---"}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text)' }}>
+                        {lead.paymentDetails?.onboardingDate ? new Date(lead.paymentDetails.onboardingDate).toLocaleDateString() : "---"}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', fontWeight: '800', color: 'var(--text)' }}>
+                        ₹{lead.paymentDetails?.totalProjectValue?.toLocaleString() || 0}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#10b981', fontWeight: '800' }}>
+                        ₹{lead.paymentDetails?.totalCollected?.toLocaleString() || 0}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: '#ef4444', fontWeight: '800' }}>
+                        ₹{lead.paymentDetails?.balanceDue?.toLocaleString() || 0}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <span style={{
+                          fontSize: '0.65rem',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          background: lead.paymentDetails?.status === 'Completed' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                          color: lead.paymentDetails?.status === 'Completed' ? '#10b981' : '#f59e0b',
+                          fontWeight: '800',
+                          textTransform: 'uppercase'
+                        }}>
+                          {lead.paymentDetails?.status || "NEW"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      No leads have been moved to the financial onboarding stage yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Tracker Insights Banner */}
+          <div style={{ 
+            marginTop: '2.5rem', 
+            padding: '2.5rem', 
+            borderRadius: '1.5rem', 
+            background: 'linear-gradient(90deg, #1e293b, #0f172a)',
+            border: '1px solid var(--border)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '0.5rem', color: 'white' }}>Revenue Synchronization</h3>
+              <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>
+                All collected amounts are automatically verified against bank statements every 12 hours.
+              </p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Outstanding</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#ef4444' }}>
+                ₹{leads.reduce((acc, lead) => acc + (lead.paymentDetails?.balanceDue || 0), 0).toLocaleString()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Lead Payment Update Modal */}
+      {showPaymentModal && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, width: "100%", height: "100%",
+          background: "rgba(0,0,0,0.8)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 1100, padding: "2rem", backdropFilter: "blur(10px)"
+        }}>
+          <div className="glass-card animate-fade" style={{
+            width: "100%", maxWidth: "500px", background: "var(--surface)",
+            border: "1px solid var(--border)", borderRadius: "1.5rem"
+          }}>
+            <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--border)", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: '900' }}>Update Payment Metrics</h3>
+              <button onClick={() => setShowPaymentModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)' }}>
+                <CloseIcon size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdatePayment} style={{ padding: "1.5rem" }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <div className="input-group">
+                  <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>PURPOSE / SCOPE</label>
+                  <input 
+                    type="text" 
+                    className="input-control"
+                    value={paymentFormData.purposeOrScopeOfWork}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, purposeOrScopeOfWork: e.target.value })}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>TOTAL VALUE (₹)</label>
+                    <input 
+                      type="number" 
+                      className="input-control"
+                      value={paymentFormData.totalProjectValue}
+                      onChange={(e) => setPaymentFormData({ ...paymentFormData, totalProjectValue: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>ADVANCE (₹)</label>
+                    <input 
+                      type="number" 
+                      className="input-control"
+                      value={paymentFormData.advanceReceived}
+                      onChange={(e) => setPaymentFormData({ ...paymentFormData, advanceReceived: Number(e.target.value) })}
+                    />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>ONBOARDING DATE</label>
+                  <input 
+                    type="date" 
+                    className="input-control"
+                    value={paymentFormData.onboardingDate}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, onboardingDate: e.target.value })}
+                  />
+                </div>
+                <div className="input-group">
+                  <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>PROCESS STATUS</label>
+                  <select 
+                    className="input-control"
+                    value={paymentFormData.status}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, status: e.target.value })}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+                <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--surface-light)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: '700' }}>
+                    <span>Calculated Balance:</span>
+                    <span style={{ color: '#ef4444' }}>₹{(paymentFormData.totalProjectValue - paymentFormData.advanceReceived).toLocaleString()}</span>
+                  </div>
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ padding: '1rem', fontWeight: '800', marginTop: '1rem' }}>
+                  Sync Financial Records
                 </button>
               </div>
             </form>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, requireRole } = require('../middleware/authMiddleware');
 
 // @desc    Get current user profile
 // @route   GET /api/users/profile
@@ -83,6 +83,37 @@ router.patch('/profile/password', protect, async (req, res) => {
         }
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+});
+
+// @desc    Update user status (Admin/TeamLead only)
+// @route   PATCH /api/users/:id/status
+// @access  Private
+router.patch('/:id/status', protect, requireRole('admin', 'teamlead'), async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!['active', 'inactive', 'blocked'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Invalid status' });
+        }
+
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (user.role === 'admin' && req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Only admins can change other admin status' });
+        }
+
+        user.status = status;
+        // Also update isBlocked for legacy compatibility if status is blocked
+        if (status === 'blocked') user.isBlocked = true;
+        if (status === 'active') user.isBlocked = false;
+
+        await user.save();
+        res.json({ success: true, data: user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 

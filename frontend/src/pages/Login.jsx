@@ -14,10 +14,10 @@ const Login = () => {
 
     React.useEffect(() => {
         if (!loading && user) {
-            const role = user.role;
-            if (role === 'Agency') navigate('/dashboard/agency');
-            else if (role === 'Investor') navigate('/dashboard/investor');
-            else if (role === 'Admin') navigate('/dashboard/admin');
+            const role = user.role.toLowerCase();
+            if (role === 'agency') navigate('/dashboard/agency');
+            else if (role === 'investor') navigate('/dashboard/investor');
+            else if (role === 'admin') navigate('/dashboard/admin');
             else navigate('/dashboard/buyer');
         }
     }, [user, loading, navigate]);
@@ -28,9 +28,10 @@ const Login = () => {
         setIsSubmitting(true);
         try {
             const data = await login(email, password);
-            if (data.role === 'Agency') navigate('/dashboard/agency');
-            else if (data.role === 'Investor') navigate('/dashboard/investor');
-            else if (data.role === 'Admin') navigate('/dashboard/admin');
+            const role = data.role.toLowerCase();
+            if (role === 'agency') navigate('/dashboard/agency');
+            else if (role === 'investor') navigate('/dashboard/investor');
+            else if (role === 'admin') navigate('/dashboard/admin');
             else navigate('/dashboard/buyer');
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');

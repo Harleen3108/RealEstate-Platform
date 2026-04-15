@@ -60,7 +60,7 @@ const DashboardLayout = () => {
     if (!user) return null;
 
     const menuItems = {
-        Agency: [
+        agency: [
             { label: 'Dashboard', path: '/dashboard/agency', icon: LayoutDashboard },
             { label: 'Inventory', path: '/dashboard/agency/properties', icon: Building2 },
             { label: 'Add Property', path: '/dashboard/agency/properties/add', icon: Plus },
@@ -73,7 +73,7 @@ const DashboardLayout = () => {
             { label: 'My Profile', path: '/dashboard/agency/profile', icon: Users },
             { label: 'Settings', path: '/dashboard/agency/settings', icon: Settings },
         ],
-        Investor: [
+        investor: [
             { label: 'Dashboard', path: '/dashboard/investor', icon: LayoutDashboard },
             { section: 'Account Portfolio' },
             { label: 'All Investments', path: '/dashboard/investor/investments', icon: TrendingUp, indent: true },
@@ -87,7 +87,7 @@ const DashboardLayout = () => {
             { label: 'Profile', path: '/dashboard/investor/profile', icon: Users },
             { label: 'Settings', path: '/dashboard/investor/settings', icon: Settings },
         ],
-        Buyer: [
+        buyer: [
             { label: 'Dashboard', path: '/dashboard/user/dashboard', icon: LayoutDashboard },
             { label: 'Browse', path: '/dashboard/user/browse', icon: Search },
             { label: 'Notifications', path: '/dashboard/user/notifications', icon: Bell },
@@ -97,12 +97,13 @@ const DashboardLayout = () => {
             { label: 'Price Intelligence', path: '/dashboard/buyer/price-intelligence', icon: Calculator, indent: true },
             { label: 'Compare Properties', path: '/dashboard/buyer/compare', icon: GitCompare, indent: true },
         ],
-        Admin: [
+        admin: [
             { label: 'Overview', path: '/dashboard/admin', icon: LayoutDashboard },
             { label: 'Agencies', path: '/dashboard/admin/agencies', icon: Building2 },
             { label: 'Investors', path: '/dashboard/admin/investors', icon: TrendingUp },
             { label: 'Properties', path: '/dashboard/admin/properties', icon: Home },
             { label: 'Leads', path: '/dashboard/admin/leads', icon: MessageCircle },
+            { label: 'Onboarding Tracker', path: '/dashboard/admin/tracker', icon: TrendingUp },
             { label: 'Users', path: '/dashboard/admin/users', icon: Users },
             { section: 'AI Insights' },
             { label: 'Price Intelligence', path: '/dashboard/admin/price-intelligence', icon: Calculator, indent: true },
@@ -112,7 +113,7 @@ const DashboardLayout = () => {
         ]
     };
 
-    const currentItems = menuItems[user.role] || [];
+    const currentItems = menuItems[user.role.toLowerCase()] || [];
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)', color: 'var(--text)', position: 'relative' }}>

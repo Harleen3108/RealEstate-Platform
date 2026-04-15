@@ -20,19 +20,35 @@ const seedLeads = async () => {
         const sources = ['Zillow Premium', 'Realtor.com', 'Facebook Ads', 'Organic Search', 'Direct'];
         const statuses = ['New Lead', 'Contacted', 'Site Visit', 'Negotiation', 'Booked', 'Sold', 'Lost', 'Closed'];
 
-        const mockLeads = [];
+        const demoLeads = [];
+        const names = [
+            'Aarav Sharma',
+            'Neha Verma',
+            'Rohan Mehta',
+            'Priya Nair',
+            'Kabir Singh',
+            'Ananya Iyer',
+            'Aditya Kapoor',
+            'Sneha Gupta',
+        ];
+        const messages = [
+            'I would like to schedule a call and learn more about this property.',
+            'Please share additional details, availability, and next steps.',
+            'We are interested in this listing and would like to arrange a site visit.',
+            'Kindly send the brochure and confirm the current asking price.',
+        ];
         for (let i = 0; i < 20; i++) {
             const createdAt = new Date();
             createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 30));
 
-            mockLeads.push({
+            demoLeads.push({
                 property: property._id,
                 buyer: user._id,
                 agency: agency._id,
-                name: `Test Lead ${i}`,
+                name: names[i % names.length],
                 email: `test${i}@example.com`,
                 phone: '1234567890',
-                message: 'I am interested in this property',
+                message: messages[i % messages.length],
                 status: statuses[Math.floor(Math.random() * statuses.length)],
                 source: sources[Math.floor(Math.random() * sources.length)],
                 createdAt: createdAt
@@ -40,8 +56,8 @@ const seedLeads = async () => {
         }
 
         await Lead.deleteMany({});
-        await Lead.insertMany(mockLeads);
-        console.log('Successfully seeded 20 mock leads.');
+        await Lead.insertMany(demoLeads);
+        console.log('Successfully seeded 20 demo leads.');
         process.exit(0);
     } catch (error) {
         console.error('Error seeding leads:', error);

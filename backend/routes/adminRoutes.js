@@ -5,13 +5,13 @@ const Property = require('../models/Property');
 const Lead = require('../models/Lead');
 const Investment = require('../models/Investment');
 const Notification = require('../models/Notification');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { protect, authorize, requireRole } = require('../middleware/authMiddleware');
 const fs = require('fs');
 const path = require('path');
 
 // @desc    Delete a property listing
 // @route   DELETE /api/admin/properties/:id
-router.delete('/properties/:id', protect, authorize('Admin'), async (req, res) => {
+router.delete('/properties/:id', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const property = await Property.findById(req.params.id);
         if (!property) return res.status(404).json({ message: 'Property not found' });
@@ -35,13 +35,13 @@ router.delete('/properties/:id', protect, authorize('Admin'), async (req, res) =
 
 // @desc    Get global stats
 // @route   GET /api/admin/stats
-router.get('/stats', protect, authorize('Admin'), async (req, res) => {
+router.get('/stats', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const totalProperties = await Property.countDocuments();
-        const totalAgencies = await User.countDocuments({ role: 'Agency' });
-        const totalInvestors = await User.countDocuments({ role: 'Investor' });
+        const totalAgencies = await User.countDocuments({ role: 'agency' });
+        const totalInvestors = await User.countDocuments({ role: 'investor' });
         const totalLeads = await Lead.countDocuments();
-        const totalUsers = await User.countDocuments({ role: 'Buyer' });
+        const totalUsers = await User.countDocuments({ role: 'buyer' });
         
         // Dynamic financial metrics
         const propertyValues = await Property.aggregate([
@@ -50,7 +50,7 @@ router.get('/stats', protect, authorize('Admin'), async (req, res) => {
         const totalInvestedValue = propertyValues.length > 0 ? propertyValues[0].total : 0;
         
         const activeListings = await Property.countDocuments({ status: 'Available' });
-        const pendingAgencies = await User.countDocuments({ role: 'Agency', isApproved: false });
+        const pendingAgencies = await User.countDocuments({ role: 'agency', isApproved: false });
         
         // Mocked revenue for dashboard realism
         const totalRevenue = totalInvestedValue * 0.01; // 1% management fee estimate
@@ -73,7 +73,7 @@ router.get('/stats', protect, authorize('Admin'), async (req, res) => {
 
 // @desc    Get lead analytics for admin dashboard
 // @route   GET /api/admin/lead-analytics
-router.get('/lead-analytics', protect, authorize('Admin'), async (req, res) => {
+router.get('/lead-analytics', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const totalLeads = await Lead.countDocuments();
         
@@ -125,7 +125,7 @@ router.get('/lead-analytics', protect, authorize('Admin'), async (req, res) => {
 
 // @desc    Get all users for management
 // @route   GET /api/admin/users
-router.get('/users', protect, authorize('Admin'), async (req, res) => {
+router.get('/users', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const users = await User.find({}).select('-password');
         res.json(users);
@@ -136,7 +136,7 @@ router.get('/users', protect, authorize('Admin'), async (req, res) => {
 
 // @desc    Update user approval status (e.g. for Agencies)
 // @route   PATCH /api/admin/users/:id/approve
-router.patch('/users/:id/approve', protect, authorize('Admin'), async (req, res) => {
+router.patch('/users/:id/approve', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
         if (user) {
@@ -154,7 +154,7 @@ router.patch('/users/:id/approve', protect, authorize('Admin'), async (req, res)
 
 // @desc    Create an Agency account directly
 // @route   POST /api/admin/agencies
-router.post('/agencies', protect, authorize('Admin'), async (req, res) => {
+router.post('/agencies', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     const { name, email, password, phoneNumber } = req.body;
     try {
         const userExists = await User.findOne({ email });
@@ -164,7 +164,7 @@ router.post('/agencies', protect, authorize('Admin'), async (req, res) => {
             name, 
             email, 
             password, 
-            role: 'Agency', 
+            role: 'agency', 
             isApproved: true, // Admin-created agencies are auto-approved
             phoneNumber 
         });
@@ -183,15 +183,15 @@ router.post('/agencies', protect, authorize('Admin'), async (req, res) => {
 
 // @desc    Delete a user
 // @route   DELETE /api/admin/users/:id
-router.delete('/users/:id', protect, authorize('Admin'), async (req, res) => {
+router.delete('/users/:id', protect, requireRole('admin'), async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
         if (user) {
-            if (user.role === 'Admin') {
+            if (user.role === 'admin') {
                 return res.status(400).json({ message: 'Cannot delete Admin accounts via this route' });
             }
             // Optional: Delete related properties if they are an agency
-            if (user.role === 'Agency') {
+            if (user.role === 'agency') {
                 await Property.deleteMany({ agency: user._id });
             }
             await user.deleteOne();
@@ -206,12 +206,12 @@ router.delete('/users/:id', protect, authorize('Admin'), async (req, res) => {
 
 // @desc    Toggle user block status
 // @route   PATCH /api/admin/users/:id/block
-router.patch('/users/:id/block', protect, authorize('Admin'), async (req, res) => {
+router.patch('/users/:id/block', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     const { isBlocked } = req.body;
     try {
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ message: 'User not found' });
-        if (user.role === 'Admin') return res.status(400).json({ message: 'Cannot block Admins' });
+        if (user.role === 'admin') return res.status(400).json({ message: 'Cannot block Admins' });
 
         user.isBlocked = isBlocked;
         await user.save();
@@ -232,7 +232,7 @@ router.patch('/users/:id/block', protect, authorize('Admin'), async (req, res) =
 
 // @desc    Get comprehensive user profile (profile + history + saved)
 // @route   GET /api/admin/users/:id/details
-router.get('/users/:id/details', protect, authorize('Admin'), async (req, res) => {
+router.get('/users/:id/details', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const user = await User.findById(req.params.id)
             .select('-password')
@@ -245,7 +245,7 @@ router.get('/users/:id/details', protect, authorize('Admin'), async (req, res) =
 
         // Get investments if user is an investor
         let investorData = null;
-        if (user.role === 'Investor') {
+        if (user.role === 'investor') {
             const investments = await Investment.find({ investor: user._id });
             investorData = { investments };
         }
@@ -270,7 +270,7 @@ router.get('/users/:id/details', protect, authorize('Admin'), async (req, res) =
 
 // @desc    Approve a property listing
 // @route   PATCH /api/admin/properties/:id/approve
-router.patch('/properties/:id/approve', protect, authorize('Admin'), async (req, res) => {
+router.patch('/properties/:id/approve', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const property = await Property.findByIdAndUpdate(
             req.params.id,
@@ -296,7 +296,7 @@ router.patch('/properties/:id/approve', protect, authorize('Admin'), async (req,
 
 // @desc    Toggle block status of a property
 // @route   PATCH /api/admin/properties/:id/block
-router.patch('/properties/:id/block', protect, authorize('Admin'), async (req, res) => {
+router.patch('/properties/:id/block', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const property = await Property.findById(req.params.id);
         if (!property) return res.status(404).json({ message: 'Property not found' });
@@ -324,7 +324,7 @@ router.patch('/properties/:id/block', protect, authorize('Admin'), async (req, r
 
 // @desc    Toggle flag status of a lead
 // @route   PATCH /api/admin/leads/:id/flag
-router.patch('/leads/:id/flag', protect, authorize('Admin'), async (req, res) => {
+router.patch('/leads/:id/flag', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const lead = await Lead.findById(req.params.id);
         if (!lead) return res.status(404).json({ message: 'Lead not found' });

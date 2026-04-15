@@ -20,6 +20,24 @@ const getVerdict = (listedPrice, aiPrice) => {
     return { label: 'FAIR PRICE', color: '#f59e0b', bg: '#fffbeb', icon: Bot, diff: diff.toFixed(0) };
 };
 
+const PLACEHOLDER_IMAGE =
+        "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+                    <defs>
+                        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#f8fafc"/>
+                            <stop offset="100%" stop-color="#e2e8f0"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="1200" height="800" fill="url(#g)"/>
+                    <rect x="260" y="210" width="680" height="360" fill="none" stroke="#cbd5e1" stroke-width="6"/>
+                    <path d="M360 520 L500 400 L620 500 L710 420 L860 520" fill="none" stroke="#94a3b8" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter"/>
+                    <circle cx="485" cy="350" r="30" fill="none" stroke="#94a3b8" stroke-width="10"/>
+                    <text x="600" y="650" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#64748b">Image unavailable</text>
+                </svg>
+        `);
+
 const PropertyMarketplace = ({ compact = false }) => {
     const [properties, setProperties] = useState([]);
     const [agencies, setAgencies] = useState([]);
@@ -102,7 +120,7 @@ const PropertyMarketplace = ({ compact = false }) => {
     });
 
     const getImageUrl = (url) => {
-        if (!url) return 'https://via.placeholder.com/400x220?text=Premium+Asset';
+        if (!url) return PLACEHOLDER_IMAGE;
         if (url.startsWith('http')) {
             if (window.location.hostname !== 'localhost' && url.includes('localhost:5000')) {
                 return url.replace('http://localhost:5000', BACKEND_URL);
@@ -110,6 +128,11 @@ const PropertyMarketplace = ({ compact = false }) => {
             return url;
         }
         return `${BACKEND_URL}${url}`;
+    };
+
+    const handleImageError = (event) => {
+        event.currentTarget.onerror = null;
+        event.currentTarget.src = PLACEHOLDER_IMAGE;
     };
 
     return (
@@ -142,7 +165,7 @@ const PropertyMarketplace = ({ compact = false }) => {
                         gap: '0.5rem', 
                         background: 'var(--surface-light)', 
                         border: '1px solid var(--border)',
-                        borderRadius: '10px',
+                        borderRadius: '3px',
                         flex: '1 1 150px'
                     }}>
                         <Search size={16} color="var(--text-muted)" />
@@ -169,7 +192,7 @@ const PropertyMarketplace = ({ compact = false }) => {
                                 padding: '12px',
                                 background: 'var(--background)',
                                 border: '1px solid var(--border)',
-                                borderRadius: '1rem',
+                                borderRadius: '3px',
                                 color: 'var(--text)',
                                 cursor: 'pointer',
                                 outline: 'none'
@@ -201,19 +224,19 @@ const PropertyMarketplace = ({ compact = false }) => {
                                  background: 'var(--surface)', 
                                  border: '1px solid var(--border)', 
                                  padding: compact ? '1rem' : '1.2rem',
-                                 borderRadius: '24px',
+                                 borderRadius: '3px',
                                  boxShadow: 'var(--shadow)',
                                  display: 'flex',
                                  flexDirection: 'column'
                              }}>
                                 <div style={{ 
                                     height: compact ? '180px' : '240px', 
-                                    borderRadius: '18px', 
+                                    borderRadius: '3px', 
                                     overflow: 'hidden', 
                                     marginBottom: '1.2rem', 
                                     position: 'relative' 
                                 }}>
-                                    <img src={getImageUrl(property.images?.[0])} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={getImageUrl(property.images?.[0])} onError={handleImageError} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                     <button 
                                         onClick={(e) => toggleSave(e, property._id)}
                                         style={{ 
@@ -223,7 +246,7 @@ const PropertyMarketplace = ({ compact = false }) => {
                                             background: 'rgba(255,255,255,0.2)', 
                                             backdropFilter: 'blur(10px)',
                                             border: '1px solid rgba(255,255,255,0.3)', 
-                                            borderRadius: '50%', 
+                                            borderRadius: '3px', 
                                             width: '40px', 
                                             height: '40px', 
                                             display: 'flex', 
@@ -243,7 +266,7 @@ const PropertyMarketplace = ({ compact = false }) => {
                                         background: 'var(--primary)', 
                                         color: 'white', 
                                         padding: '5px 12px', 
-                                        borderRadius: '10px', 
+                                        borderRadius: '3px', 
                                         fontSize: '0.65rem', 
                                         fontWeight: '800',
                                         letterSpacing: '0.5px',
@@ -322,7 +345,7 @@ const PropertyMarketplace = ({ compact = false }) => {
                                     </div>
                                 </div>
 
-                                <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '800' }}>
+                                <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '3px', fontSize: '0.95rem', fontWeight: '800' }}>
                                     View Details <ArrowRight size={18} />
                                 </Link>
                             </div>
@@ -332,7 +355,7 @@ const PropertyMarketplace = ({ compact = false }) => {
             )}
             
              {filteredProperties.length === 0 && !loading && (
-                <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px' }}>
+                <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '3px' }}>
                     <Home size={48} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.2 }} />
                     <h3 style={{ color: 'var(--text)', fontWeight: '800' }}>No properties match your current filters</h3>
                     <button className="btn btn-outline" style={{ marginTop: '1rem', borderColor: 'var(--border)', color: 'var(--text-muted)' }} onClick={() => setFilters({location: '', type: '', agency: '', minPrice: '', maxPrice: ''})}>Reset Filters</button>

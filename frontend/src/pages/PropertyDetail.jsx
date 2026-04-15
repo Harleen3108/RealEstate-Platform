@@ -6,6 +6,24 @@ import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, M
 import { useAuth } from '../context/AuthContext';
 import PropertyEstimationCard from '../components/estimation/PropertyEstimationCard';
 
+const PLACEHOLDER_IMAGE =
+        "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+                    <defs>
+                        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#f8fafc"/>
+                            <stop offset="100%" stop-color="#e2e8f0"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="1200" height="800" fill="url(#g)"/>
+                    <rect x="260" y="210" width="680" height="360" fill="none" stroke="#cbd5e1" stroke-width="6"/>
+                    <path d="M360 520 L500 400 L620 500 L710 420 L860 520" fill="none" stroke="#94a3b8" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter"/>
+                    <circle cx="485" cy="350" r="30" fill="none" stroke="#94a3b8" stroke-width="10"/>
+                    <text x="600" y="650" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#64748b">No image available</text>
+                </svg>
+        `);
+
 const PropertyDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -82,7 +100,7 @@ const PropertyDetail = () => {
     );
     
     const getImageUrl = (url) => {
-        if (!url) return 'https://via.placeholder.com/800x520';
+        if (!url) return PLACEHOLDER_IMAGE;
         if (url.startsWith('http')) {
             if (window.location.hostname !== 'localhost' && url.includes('localhost:5000')) {
                 return url.replace('http://localhost:5000', BACKEND_URL);
@@ -90,6 +108,11 @@ const PropertyDetail = () => {
             return url;
         }
         return `${BACKEND_URL}${url}`;
+    };
+
+    const handleImageError = (event) => {
+        event.currentTarget.onerror = null;
+        event.currentTarget.src = PLACEHOLDER_IMAGE;
     };
 
     const getEmbedUrl = (url) => {
@@ -158,31 +181,31 @@ const PropertyDetail = () => {
                     gridTemplateColumns: window.innerWidth > 768 ? '2fr 1fr 1fr' : '1fr', 
                     gridTemplateRows: window.innerWidth > 768 ? 'repeat(2, 250px)' : 'auto', 
                     gap: '12px', 
-                    borderRadius: '24px', 
+                    borderRadius: '3px', 
                     overflow: 'hidden', 
                     marginBottom: '2.5rem' 
                 }}>
-                    <div style={{ gridRow: window.innerWidth > 768 ? 'span 2' : 'auto', height: window.innerWidth > 768 ? '100%' : '300px' }}>
-                        <img src={getImageUrl(property.images?.[0])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ gridRow: window.innerWidth > 768 ? 'span 2' : 'auto', height: window.innerWidth > 768 ? '100%' : '300px', background: 'var(--surface-light)' }}>
+                        <img src={getImageUrl(property.images?.[0])} onError={handleImageError} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>
                     {(window.innerWidth > 768) && property.images?.[1] && (
                         <div>
-                            <img src={getImageUrl(property.images[1])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={getImageUrl(property.images[1])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
                     )}
                     {(window.innerWidth > 768) && property.images?.[2] && (
                         <div>
-                            <img src={getImageUrl(property.images[2])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={getImageUrl(property.images[2])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
                     )}
                     {(window.innerWidth > 768) && property.images?.[3] && (
                         <div>
-                            <img src={getImageUrl(property.images[3])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={getImageUrl(property.images[3])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                         </div>
                     )}
                     {(window.innerWidth > 768) && property.images?.[4] ? (
                         <div style={{ position: 'relative' }}>
-                            <img src={getImageUrl(property.images[4])} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={getImageUrl(property.images[4])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                             {property.images.length > 5 && (
                                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(249, 115, 22, 0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
                                     <Layout size={24} />
@@ -191,7 +214,7 @@ const PropertyDetail = () => {
                             )}
                         </div>
                     ) : (
-                        <div style={{ background: 'var(--surface-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                        <div style={{ background: 'var(--surface-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', minHeight: '250px' }}>
                             <Home size={40} />
                         </div>
                     )}
@@ -303,9 +326,9 @@ const PropertyDetail = () => {
 
                     {/* Right Column: Sticky Sidebar */}
                     <div style={{ position: window.innerWidth > 1024 ? 'sticky' : 'static', top: '2rem', height: 'fit-content' }}>
-                        <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '24px', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
+                        <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '3px', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
                             <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text)', marginBottom: '4px' }}>Express Interest</h3>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>Schedule a visitor get more details.</p>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>Schedule a visit to get more details.</p>
 
                             {enquirySent ? (
                                 <div style={{ textAlign: 'center', padding: '2rem 0' }}>

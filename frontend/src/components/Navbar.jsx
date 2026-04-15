@@ -79,7 +79,7 @@ const Navbar = () => {
                         <div style={{ 
                             width: isMobile ? '35px' : '45px', 
                             height: isMobile ? '35px' : '45px', 
-                            borderRadius: '8px', 
+                            borderRadius: '3px', 
                             overflow: 'hidden', 
                             border: '1px solid var(--border)', 
                             display: 'flex', 
@@ -144,7 +144,7 @@ const Navbar = () => {
                                         height: '16px', 
                                         background: 'var(--primary)', 
                                         color: 'white',
-                                        borderRadius: '50%', 
+                                        borderRadius: '3px', 
                                         fontSize: '0.6rem',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -177,7 +177,7 @@ const Navbar = () => {
                         
                         {user ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-                                <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                                <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} style={{ width: '40px', height: '40px', borderRadius: '3px', overflow: 'hidden', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                                     <div style={{ width: '100%', height: '100%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '800' }}>
                                         {user.name.slice(0,1).toUpperCase()}
                                     </div>
@@ -197,7 +197,7 @@ const Navbar = () => {
                                 }}>
                                     Login
                                 </Link>
-                                <Link to="/register" className="btn btn-primary" style={{ padding: '0.8rem 2.2rem', fontSize: '1rem', borderRadius: '12px', fontWeight: '800', textDecoration: 'none' }}>
+                                <Link to="/register" className="btn btn-primary" style={{ padding: '0.8rem 2.2rem', fontSize: '1rem', borderRadius: '3px', fontWeight: '800', textDecoration: 'none' }}>
                                     Join Now
                                 </Link>
                             </div>
@@ -215,7 +215,7 @@ const Navbar = () => {
                                     color: unreadCount > 0 ? 'var(--primary)' : 'var(--text)', 
                                     cursor: 'pointer', 
                                     padding: '8px',
-                                    borderRadius: '10px',
+                                    borderRadius: '3px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     position: 'relative'
@@ -230,7 +230,7 @@ const Navbar = () => {
                                         width: '8px', 
                                         height: '8px', 
                                         background: 'var(--primary)', 
-                                        borderRadius: '50%', 
+                                        borderRadius: '3px', 
                                         border: '1.5px solid var(--header-bg)' 
                                     }} />
                                 )}
@@ -244,7 +244,7 @@ const Navbar = () => {
                                 color: 'var(--text)', 
                                 cursor: 'pointer', 
                                 padding: '8px',
-                                borderRadius: '10px',
+                                borderRadius: '3px',
                                 display: 'flex',
                                 alignItems: 'center'
                             }}
@@ -259,7 +259,7 @@ const Navbar = () => {
                                 color: 'white', 
                                 cursor: 'pointer', 
                                 padding: '8px',
-                                borderRadius: '10px',
+                                borderRadius: '3px',
                                 display: 'flex',
                                 alignItems: 'center'
                             }}
@@ -283,7 +283,7 @@ const Navbar = () => {
             <div className={`mobile-only mobile-menu ${isMenuOpen ? 'active' : ''}`} style={{ zIndex: 1200, paddingTop: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.5rem 1.5rem 2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <img src="/logo.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '6px' }} />
+                        <img src="/logo.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '3px' }} />
                         <span style={{ fontWeight: '800', fontSize: '1rem' }}>Millionaire Club</span>
                     </div>
                     <button onClick={() => setIsMenuOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)' }}>
@@ -319,12 +319,12 @@ const Navbar = () => {
                             <Link to="/login" className="mobile-menu-item" style={{ background: 'var(--surface-light)' }}>
                                 <User size={20} /> Login
                             </Link>
-                            <Link to="/register" className="btn btn-primary" style={{ padding: '1.2rem', borderRadius: '14px', fontSize: '1rem', textDecoration: 'none', textAlign: 'center', fontWeight: '800' }}>Join Now</Link>
+                            <Link to="/register" className="btn btn-primary" style={{ padding: '1.2rem', borderRadius: '3px', fontSize: '1rem', textDecoration: 'none', textAlign: 'center', fontWeight: '800' }}>Join Now</Link>
                         </div>
                     )}
                 </div>
 
-                <div style={{ marginTop: 'auto', padding: '1.5rem', background: 'var(--surface-light)', borderRadius: '20px', textAlign: 'center', border: '1px solid var(--border)' }}>
+                <div style={{ marginTop: 'auto', padding: '1.5rem', background: 'var(--surface-light)', borderRadius: '3px', textAlign: 'center', border: '1px solid var(--border)' }}>
                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Expertly Curated</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: '900', color: 'var(--text)' }}>
                         Millionaire <span style={{ color: 'var(--primary)' }}>Club</span>

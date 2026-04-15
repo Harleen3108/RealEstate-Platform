@@ -15,6 +15,10 @@ const protect = async (req, res, next) => {
                 try { fs.appendFileSync(logFile, `[${new Date().toISOString()}] AUTH FAILED: User ${decoded.id} is blocked\n`); } catch(e) {}
                 return res.status(403).json({ message: 'Your account has been restricted by administration' });
             }
+            if (req.user && req.user.status !== 'active') {
+                fs.appendFileSync(logFile, `[${new Date().toISOString()}] AUTH FAILED: User ${decoded.id} status is ${req.user.status}\n`);
+                return res.status(403).json({ message: `Your account is ${req.user.status}. Contact admin.` });
+            }
             next();
         } catch (error) {
             try { fs.appendFileSync(logFile, `[${new Date().toISOString()}] AUTH FAILED: Token error ${error.message}\n`); } catch(e) {}
@@ -29,7 +33,11 @@ const protect = async (req, res, next) => {
 
 const authorize = (...roles) => {
     return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
+        // Support both capitalized (legacy) and lowercase (new) roles for transition
+        const userRole = req.user.role.toLowerCase();
+        const allowedRoles = roles.map(r => r.toLowerCase());
+        
+        if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({ 
                 message: `User role ${req.user.role} is not authorized to access this route` 
             });
@@ -38,4 +46,17 @@ const authorize = (...roles) => {
     };
 };
 
-module.exports = { protect, authorize };
+const requireRole = (...roles) => (req, res, next) => {
+    const userRole = req.user.role.toLowerCase();
+    const allowedRoles = roles.map(r => r.toLowerCase());
+    
+    if (!allowedRoles.includes(userRole)) {
+        return res.status(403).json({ 
+            success: false,
+            message: "Access denied" 
+        });
+    }
+    next();
+};
+
+module.exports = { protect, authorize, requireRole };
