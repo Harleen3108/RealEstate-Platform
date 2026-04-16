@@ -4,10 +4,11 @@ import axios from 'axios';
 import API_BASE_URL from '../apiConfig';
 import {
   Search, MapPin, ArrowRight, Instagram, Twitter, Facebook, Linkedin, Send,
-  User, Users, TrendingUp, ShieldCheck, Award
+  User, Users, TrendingUp, ShieldCheck, Award, Bed, Home as HomeIcon, Zap, Crown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PropertyCard from '../components/common/PropertyCard';
+import ArticleCard from '../components/common/ArticleCard';
 
 const heroSlides = [
   {
@@ -27,12 +28,13 @@ const heroSlides = [
   },
 ];
 
-const CATEGORIES = ['All', 'Apartment', 'Villa', 'Commercial', 'Land'];
+const CATEGORIES = ['All', 'Apartment', 'Villa', 'Commercial', 'Land', 'PG', 'CoLiving'];
 
 const Home = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [slideIndex, setSlideIndex] = useState(0);
@@ -41,10 +43,14 @@ const Home = () => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get(`${API_BASE_URL}/properties`);
-        setProperties(data);
+        const [propertiesRes, articlesRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/properties`),
+          axios.get(`${API_BASE_URL}/articles?limit=6`)
+        ]);
+        setProperties(propertiesRes.data);
+        setArticles(articlesRes.data.articles || []);
       } catch (err) {
-        console.error('Error fetching properties:', err);
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
@@ -342,6 +348,576 @@ const Home = () => {
             ))}
           </div>
         )}
+      </section>
+
+      {/* ===== BHK CATEGORY SECTION ===== */}
+      <section style={{ background: 'rgba(198,161,91,0.04)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        <div className="container" style={{ padding: 'clamp(4rem, 9vw, 6.5rem) 1.5rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <p className="eyebrow">Category Listings</p>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}>Properties by Bedroom</h2>
+          </div>
+
+          {/* BHK Categories - 4 Column Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '1.5rem',
+          }}
+          className="bhk-grid">
+            {/* 1 BHK */}
+            <div style={{
+              background: 'var(--background)',
+              border: '1.5px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: '2rem',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(198,161,91,0.15)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  background: 'rgba(198,161,91,0.12)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--primary)',
+                }}>
+                  <Bed size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>1 BHK</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+                    {approved.filter(p => p.bedrooms === 1).length} available
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
+                {approved.filter(p => p.bedrooms === 1).length > 0 ? (
+                  <>
+                    {approved.filter(p => p.bedrooms === 1).slice(0, 2).map((prop) => (
+                      <Link
+                        key={prop._id}
+                        to={`/marketplace`}
+                        style={{
+                          display: 'block',
+                          padding: '0.6rem 0',
+                          textDecoration: 'none',
+                          transition: 'all 0.2s ease',
+                          borderBottom: '1px solid rgba(198,161,91,0.1)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--primary)';
+                          e.currentTarget.style.paddingLeft = '6px';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'inherit';
+                          e.currentTarget.style.paddingLeft = '0';
+                        }}
+                      >
+                        <div style={{ color: 'var(--text)', fontSize: '0.85rem', fontWeight: 500 }}>
+                          {prop.title}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                          ₹{(prop.price / 100000).toFixed(1)}L
+                        </div>
+                      </Link>
+                    ))}
+                    <Link
+                      to="/marketplace?bedrooms=1"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        marginTop: '0.8rem',
+                        color: 'var(--primary)',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      View All →
+                    </Link>
+                  </>
+                ) : (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No properties</p>
+                )}
+              </div>
+            </div>
+
+            {/* 2 BHK */}
+            <div style={{
+              background: 'var(--background)',
+              border: '1.5px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: '2rem',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(198,161,91,0.15)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  background: 'rgba(198,161,91,0.12)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--primary)',
+                }}>
+                  <HomeIcon size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>2 BHK</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+                    {approved.filter(p => p.bedrooms === 2).length} available
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
+                {approved.filter(p => p.bedrooms === 2).length > 0 ? (
+                  <>
+                    {approved.filter(p => p.bedrooms === 2).slice(0, 2).map((prop) => (
+                      <Link
+                        key={prop._id}
+                        to={`/marketplace`}
+                        style={{
+                          display: 'block',
+                          padding: '0.6rem 0',
+                          textDecoration: 'none',
+                          transition: 'all 0.2s ease',
+                          borderBottom: '1px solid rgba(198,161,91,0.1)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--primary)';
+                          e.currentTarget.style.paddingLeft = '6px';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'inherit';
+                          e.currentTarget.style.paddingLeft = '0';
+                        }}
+                      >
+                        <div style={{ color: 'var(--text)', fontSize: '0.85rem', fontWeight: 500 }}>
+                          {prop.title}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                          ₹{(prop.price / 100000).toFixed(1)}L
+                        </div>
+                      </Link>
+                    ))}
+                    <Link
+                      to="/marketplace?bedrooms=2"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        marginTop: '0.8rem',
+                        color: 'var(--primary)',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      View All →
+                    </Link>
+                  </>
+                ) : (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No properties</p>
+                )}
+              </div>
+            </div>
+
+            {/* 3 BHK */}
+            <div style={{
+              background: 'var(--background)',
+              border: '1.5px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: '2rem',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(198,161,91,0.15)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  background: 'rgba(198,161,91,0.12)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--primary)',
+                }}>
+                  <Zap size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>3 BHK</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+                    {approved.filter(p => p.bedrooms === 3).length} available
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
+                {approved.filter(p => p.bedrooms === 3).length > 0 ? (
+                  <>
+                    {approved.filter(p => p.bedrooms === 3).slice(0, 2).map((prop) => (
+                      <Link
+                        key={prop._id}
+                        to={`/marketplace`}
+                        style={{
+                          display: 'block',
+                          padding: '0.6rem 0',
+                          textDecoration: 'none',
+                          transition: 'all 0.2s ease',
+                          borderBottom: '1px solid rgba(198,161,91,0.1)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--primary)';
+                          e.currentTarget.style.paddingLeft = '6px';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'inherit';
+                          e.currentTarget.style.paddingLeft = '0';
+                        }}
+                      >
+                        <div style={{ color: 'var(--text)', fontSize: '0.85rem', fontWeight: 500 }}>
+                          {prop.title}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                          ₹{(prop.price / 100000).toFixed(1)}L
+                        </div>
+                      </Link>
+                    ))}
+                    <Link
+                      to="/marketplace?bedrooms=3"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        marginTop: '0.8rem',
+                        color: 'var(--primary)',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      View All →
+                    </Link>
+                  </>
+                ) : (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No properties</p>
+                )}
+              </div>
+            </div>
+
+            {/* 4+ BHK */}
+            <div style={{
+              background: 'var(--background)',
+              border: '1.5px solid var(--border)',
+              borderRadius: 'var(--radius)',
+              padding: '2rem',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.boxShadow = '0 12px 24px rgba(198,161,91,0.15)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  background: 'rgba(198,161,91,0.12)',
+                  borderRadius: 'var(--radius-sm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--primary)',
+                }}>
+                  <Crown size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>4+ BHK</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+                    {approved.filter(p => p.bedrooms >= 4).length} available
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem' }}>
+                {approved.filter(p => p.bedrooms >= 4).length > 0 ? (
+                  <>
+                    {approved.filter(p => p.bedrooms >= 4).slice(0, 2).map((prop) => (
+                      <Link
+                        key={prop._id}
+                        to={`/marketplace`}
+                        style={{
+                          display: 'block',
+                          padding: '0.6rem 0',
+                          textDecoration: 'none',
+                          transition: 'all 0.2s ease',
+                          borderBottom: '1px solid rgba(198,161,91,0.1)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--primary)';
+                          e.currentTarget.style.paddingLeft = '6px';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'inherit';
+                          e.currentTarget.style.paddingLeft = '0';
+                        }}
+                      >
+                        <div style={{ color: 'var(--text)', fontSize: '0.85rem', fontWeight: 500 }}>
+                          {prop.title}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                          ₹{(prop.price / 100000).toFixed(1)}L
+                        </div>
+                      </Link>
+                    ))}
+                    <Link
+                      to="/marketplace?bedrooms=4"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        marginTop: '0.8rem',
+                        color: 'var(--primary)',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      View All →
+                    </Link>
+                  </>
+                ) : (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No properties</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FEATURED ARTICLES ===== */}
+      <section className="container" style={{ padding: 'clamp(4rem, 9vw, 6.5rem) 1.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <p className="eyebrow">Knowledge Hub</p>
+          <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', marginBottom: '1rem' }}>Latest Articles & Insights</h2>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '560px', margin: '0 auto' }}>
+            Expert tips, market trends, and guides to help you make informed real estate decisions
+          </p>
+        </div>
+
+        {articles.length > 0 ? (
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '2rem',
+              marginBottom: '2.5rem'
+            }}>
+              {articles.slice(0, 3).map((article) => (
+                <ArticleCard key={article._id} article={article} compact />
+              ))}
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <Link
+                to="/articles"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '0.95rem 2rem',
+                  background: 'var(--primary)',
+                  color: '#0F172A',
+                  textDecoration: 'none',
+                  fontWeight: '700',
+                  fontSize: '0.9rem',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  borderRadius: 'var(--radius-sm)',
+                  transition: 'gap 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.gap = '14px'}
+                onMouseLeave={(e) => e.currentTarget.style.gap = '10px'}
+              >
+                View All Articles
+                <ArrowRight size={18} />
+              </Link>
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      {/* ===== FINANCIAL TOOLS ===== */}
+      <section
+        style={{
+          background: 'linear-gradient(135deg, rgba(198,161,91,0.08) 0%, rgba(198,161,91,0.02) 100%)',
+          borderTop: '1px solid var(--border)',
+          borderBottom: '1px solid var(--border)',
+          padding: 'clamp(4rem, 9vw, 6.5rem) 1.5rem',
+        }}
+      >
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <p className="eyebrow">Smart Financing</p>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', marginBottom: '1rem' }}>Financial Tools</h2>
+            <p style={{ color: 'var(--text-muted)', maxWidth: '560px', margin: '0 auto' }}>
+              Calculate your EMI, explore financing options, and make informed decisions about your real estate investment
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '2rem',
+            marginTop: '2.5rem'
+          }}>
+            {/* EMI Calculator Card */}
+            <Link
+              to="/calculator/emi"
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+              }}
+            >
+              <div
+                style={{
+                  padding: '2.5rem 2rem',
+                  background: 'var(--background)',
+                  border: '1.5px solid var(--border)',
+                  borderRadius: 'var(--radius)',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(198,161,91,0.15)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'rgba(198,161,91,0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--primary)',
+                      marginBottom: '1.2rem',
+                      fontSize: '1.5rem',
+                    }}
+                  >
+                    📊
+                  </div>
+                  <h3 style={{ fontSize: '1.3rem', marginBottom: '0.5rem', fontWeight: 600 }}>EMI Calculator</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                    Calculate your monthly EMI, understand affordability, and explore bank loan options with our intelligent calculator
+                  </p>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: 'var(--primary)',
+                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    marginTop: '1.5rem',
+                    transition: 'gap 0.3s ease',
+                  }}
+                >
+                  Get Started
+                  <ArrowRight size={16} />
+                </div>
+              </div>
+            </Link>
+
+            {/* Additional Tool Placeholder */}
+            <div
+              style={{
+                padding: '2.5rem 2rem',
+                background: 'rgba(198,161,91,0.04)',
+                border: '1.5px dashed var(--border)',
+                borderRadius: 'var(--radius)',
+                opacity: 0.6,
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '2.5rem',
+                  marginBottom: '1rem',
+                }}
+              >
+                🔧
+              </div>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--text-muted)' }}>More Tools Coming</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                Vastu Calculator & More
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ===== ABOUT / TRUST ===== */}
@@ -652,6 +1228,19 @@ const Home = () => {
           © 2026 Avani Enterprises. Crafted for connoisseurs.
         </div>
       </footer>
+
+      <style>{`
+        @media (max-width: 1200px) {
+          .bhk-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .bhk-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

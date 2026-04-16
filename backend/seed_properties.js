@@ -138,6 +138,62 @@ const properties = [
         isApproved: true,
         images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1980&auto=format&fit=crop"],
         amenities: ["Beach Access", "Outdoor Kitchen", "Saltwater Pool"]
+    },
+    {
+        title: "Premium PG Accommodation",
+        description: "Fully furnished premium PG in the heart of the city. Perfect for young professionals and students. Includes meals, WiFi, and housekeeping.",
+        location: "Bangalore, Koramangala",
+        propertyType: "PG",
+        price: 30000,
+        size: 200,
+        bedrooms: 1,
+        bathrooms: 1,
+        agency: agencyId,
+        isApproved: true,
+        images: ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1935&auto=format&fit=crop"],
+        amenities: ["WiFi", "AC", "Meal Plan", "24/7 Security", "Laundry"]
+    },
+    {
+        title: "Co-Living Space Mumbai",
+        description: "Modern co-living space with shared common areas, high-speed WiFi, and a vibrant community. Ideal for professionals seeking work-life balance.",
+        location: "Mumbai, Lower Parel",
+        propertyType: "CoLiving",
+        price: 45000,
+        size: 350,
+        bedrooms: 1,
+        bathrooms: 1,
+        agency: agencyId,
+        isApproved: true,
+        images: ["https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop"],
+        amenities: ["Coworking Space", "WiFi", "Community Events", "Gym Access", "Furnished"]
+    },
+    {
+        title: "Executive PG Delhi",
+        description: "Luxurious PG offering private rooms with ensuite bathrooms. Located near metro with easy access to business hubs.",
+        location: "Delhi, Connaught Place",
+        propertyType: "PG",
+        price: 50000,
+        size: 250,
+        bedrooms: 1,
+        bathrooms: 1,
+        agency: agencyId,
+        isApproved: true,
+        images: ["https://images.unsplash.com/photo-1567096282100-97dca221d746?q=80&w=2070&auto=format&fit=crop"],
+        amenities: ["Private Bathroom", "WiFi", "Fitness Center", "24/7 Security", "Library"]
+    },
+    {
+        title: "Co-Living Hub Gurugram",
+        description: "Vibrant co-living community with state-of-the-art facilities. Features rooftop garden, co-working spaces, and recreational areas.",
+        location: "Gurugram, Sector 43",
+        propertyType: "CoLiving",
+        price: 55000,
+        size: 400,
+        bedrooms: 1,
+        bathrooms: 1,
+        agency: agencyId,
+        isApproved: true,
+        images: ["https://images.unsplash.com/photo-1586665053330-d181e51a339c?q=80&w=2070&auto=format&fit=crop"],
+        amenities: ["Rooftop Garden", "Coworking", "Swimming Pool", "Community Manager", "Furnished"]
     }
 ];
 
@@ -147,7 +203,7 @@ const seedProperties = async () => {
         console.log('Connected to MongoDB...');
 
         await Property.insertMany(properties);
-        console.log('10 properties seeded successfully!');
+        console.log('15 properties seeded successfully!');
         
         process.exit();
     } catch (error) {

@@ -28,6 +28,10 @@ import UserProfile from './pages/user/Profile';
 import UserSettings from './pages/user/Settings';
 import PriceIntelligenceDashboard from './pages/estimation/PriceIntelligenceDashboard';
 import PropertyComparisonView from './pages/estimation/PropertyComparisonView';
+import EMICalculator from './components/estimation/EMICalculator';
+import ArticlesBlog from './pages/ArticlesBlog';
+import ArticleDetail from './pages/ArticleDetail';
+import TenantDocuments from './pages/TenantDocuments';
 
 function App() {
   return (
@@ -41,6 +45,9 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/marketplace" element={<PropertyMarketplace />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/calculator/emi" element={<EMICalculator />} />
+            <Route path="/articles" element={<ArticlesBlog />} />
+            <Route path="/articles/:slug" element={<ArticleDetail />} />
             
             {/* Protected Dashboard Routes */}
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -83,6 +90,9 @@ function App() {
               <Route path="profile" element={<UserProfile />} />
               <Route path="settings" element={<UserSettings />} />
             </Route>
+
+            {/* Tenant Documents */}
+            <Route path="/tenant/documents" element={<TenantDocuments />} />
           </Routes>
         </main>
       </div>
