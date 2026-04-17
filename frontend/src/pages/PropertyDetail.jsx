@@ -5,6 +5,7 @@ import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
 import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User, ChevronRight, Layout } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PropertyEstimationCard from '../components/estimation/PropertyEstimationCard';
+import PackersMoversSection from '../components/common/PackersMoversSection';
 
 const PLACEHOLDER_IMAGE =
         "data:image/svg+xml;charset=UTF-8," +
@@ -321,6 +322,22 @@ const PropertyDetail = () => {
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Packers & Movers Integration */}
+                        <div style={{ marginTop: '3rem', background: 'var(--surface)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                            <PackersMoversSection
+                                listing={{
+                                    id: property._id,
+                                    city: property.location?.split(',')[property.location?.split(',').length - 1]?.trim(),
+                                    locality: property.location?.split(',')[0]?.trim(),
+                                    bhkType: `${property.bedrooms} BHK`,
+                                    address: property.location
+                                }}
+                                user={user}
+                                platformName="RealEstatePlatform"
+                                showOnlyIfLoggedIn={false}
+                            />
                         </div>
                     </div>
 

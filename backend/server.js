@@ -16,6 +16,7 @@ const estimationRoutes = require('./routes/estimationRoutes');
 const articleRoutes = require('./routes/articleRoutes');
 const calculatorRoutes = require('./routes/calculatorRoutes');
 const tenantRoutes = require('./routes/tenantRoutes');
+const packersMoversLeadRoutes = require('./routes/packersMoversLeadRoutes');
 
 const path = require('path');
 const upload = require('./middleware/uploadMiddleware');
@@ -41,6 +42,7 @@ app.use('/api/estimation', estimationRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/calculators', calculatorRoutes);
 app.use('/api/tenant', tenantRoutes);
+app.use('/api/packers-movers', packersMoversLeadRoutes);
 
 // File Upload Route
 app.post('/api/upload', upload.single('file'), (req, res) => {
