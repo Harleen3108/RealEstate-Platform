@@ -4,6 +4,20 @@
  */
 
 /**
+ * Get the proper API endpoint with full backend URL
+ * Supports both localhost and production
+ */
+const getApiEndpoint = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5001/api/packers-movers/leads';
+    }
+  }
+  return 'https://realestate-platform-r94s.onrender.com/api/packers-movers/leads';
+};
+
+/**
  * Build NoBroker redirect URL with pre-filled parameters
  * @param {Object} formData - Form data object
  * @param {string} formData.moveFrom - Source city/locality
@@ -222,10 +236,13 @@ export const validatePackersMoversForm = (formData) => {
  */
 export const storePackersMoversLead = async (
   leadData,
-  apiEndpoint = '/api/packers-movers/leads'
+  apiEndpoint = null
 ) => {
   try {
-    const response = await fetch(apiEndpoint, {
+    // Use proper API endpoint with full URL support
+    const endpoint = apiEndpoint || getApiEndpoint();
+    
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
