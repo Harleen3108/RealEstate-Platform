@@ -87,7 +87,7 @@ export const usePackersMoversAutoFill = ({ listing, user, enabled = true } = {})
 export const useBuildPackersMoversURL = (formData, options = {}) => {
   return useMemo(() => {
     if (!formData) return '';
-    const { buildNoBrokerURL } = require('./PackersMoversUtils');
+    const { buildNoBrokerURL } = require('../components/common/PackersMoversUtils');
     return buildNoBrokerURL(formData, options);
   }, [formData, options]);
 };
