@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
-import { Search, MapPin, DollarSign, Home, Filter, Heart, ArrowRight, Building2, Bed, Bath, Bot, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, MapPin, Home, Heart, ArrowRight, Bed, Bath, Bot, TrendingUp, TrendingDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ScheduleTourModal from '../components/common/ScheduleTourModal';
+import {
+    STATE_OPTIONS,
+    getCitiesForState,
+    inferCityFromProperty,
+    inferStateFromProperty,
+} from '../data/locationHierarchy';
 
 const formatINR = (num) => {
     if (!num) return '---';
@@ -40,12 +47,14 @@ const PLACEHOLDER_IMAGE =
 
 const PropertyMarketplace = ({ compact = false }) => {
     const [properties, setProperties] = useState([]);
-    const [agencies, setAgencies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [savedIds, setSavedIds] = useState([]);
+    const [tourProperty, setTourProperty] = useState(null);
     const { user } = useAuth();
     const navigate = useNavigate();
     const [filters, setFilters] = useState({
+        state: '',
+        city: '',
         location: '',
         type: '',
         agency: '',
@@ -60,12 +69,8 @@ const PropertyMarketplace = ({ compact = false }) => {
 
     const fetchInitialData = async () => {
         try {
-            const [propRes, userRes] = await Promise.all([
-                axios.get(`${API_BASE_URL}/properties`),
-                axios.get(`${API_BASE_URL}/auth/agencies`)
-            ]);
+            const propRes = await axios.get(`${API_BASE_URL}/properties`);
             setProperties(propRes.data);
-            setAgencies(userRes.data.filter(u => u.role === 'Agency'));
             setLoading(false);
 
             // Trigger batch AI estimation for properties missing estimates (fire-and-forget)
@@ -110,13 +115,19 @@ const PropertyMarketplace = ({ compact = false }) => {
         }
     };
 
+    const availableCities = filters.state ? getCitiesForState(filters.state) : [];
+
     const filteredProperties = properties.filter(p => {
         const agencyMatch = filters.agency === '' || p.agency?._id === filters.agency;
         const locationMatch = filters.location === '' || p.location.toLowerCase().includes(filters.location.toLowerCase());
         const typeMatch = filters.type === '' || p.propertyType === filters.type;
         const priceMatch = (filters.minPrice === '' || p.price >= Number(filters.minPrice)) && (filters.maxPrice === '' || p.price <= Number(filters.maxPrice));
+        const propertyState = inferStateFromProperty(p);
+        const propertyCity = inferCityFromProperty(p);
+        const stateMatch = filters.state === '' || propertyState.toLowerCase() === filters.state.toLowerCase();
+        const cityMatch = filters.city === '' || propertyCity.toLowerCase() === filters.city.toLowerCase();
         
-        return agencyMatch && locationMatch && typeMatch && priceMatch && p.status !== 'Blocked' && p.isApproved;
+        return agencyMatch && locationMatch && typeMatch && priceMatch && stateMatch && cityMatch && p.status !== 'Blocked' && p.isApproved;
     });
 
     const getImageUrl = (url) => {
@@ -137,76 +148,112 @@ const PropertyMarketplace = ({ compact = false }) => {
 
     return (
         <div className="section container animate-fade">
-            <div style={{ 
-                display: 'flex', 
-                flexDirection: 'row', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                marginBottom: compact ? '1.5rem' : 'clamp(1.5rem, 5vw, 3rem)',
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
                 gap: '1rem',
-                flexWrap: 'wrap'
+                flexWrap: 'wrap',
+                marginBottom: compact ? '1.25rem' : '1.75rem'
             }}>
                 <div>
-                    <h2 style={{ fontSize: compact ? '1.5rem' : 'clamp(1.5rem, 6vw, 2.5rem)', fontWeight: '800' }}>
+                    <p className="eyebrow">Curated Search</p>
+                    <h2 style={{ fontSize: compact ? '1.5rem' : 'clamp(1.5rem, 6vw, 2.75rem)', fontWeight: '700', margin: 0 }}>
                         {compact ? 'Browse' : 'Global'} <span className="text-gradient">Marketplace</span>
                     </h2>
-                    {!compact && <p className="desktop-only" style={{ color: 'var(--text-muted)' }}>Discover premium real estate opportunities</p>}
+                    {!compact && <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Discover premium real estate opportunities</p>}
                 </div>
-                <div style={{ 
-                    display: 'flex', 
-                    gap: compact ? '0.6rem' : '0.8rem', 
-                    alignItems: 'center',
-                    flexWrap: 'wrap' 
-                }}>
-                    <div className="glass-card" style={{ 
-                        padding: '0.4rem 0.8rem', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.5rem', 
-                        background: 'var(--surface-light)', 
-                        border: '1px solid var(--border)',
-                        borderRadius: '3px',
-                        flex: '1 1 150px'
-                    }}>
-                        <Search size={16} color="var(--text-muted)" />
-                        <input 
-                            type="text" 
-                            placeholder="Search..." 
-                            className="input-control" 
-                            style={{ 
-                                border: 'none', 
-                                background: 'transparent', 
-                                padding: '2px', 
-                                width: '100%', 
-                                color: 'var(--text)',
-                                fontSize: '0.85rem' 
-                            }}
+            </div>
+
+            <div className="search-bar-shell" style={{ marginBottom: '1.5rem' }}>
+                <div className="search-bar-grid">
+                    <select
+                        className="search-bar-select"
+                        value={filters.state}
+                        onChange={(e) => setFilters({ ...filters, state: e.target.value, city: '' })}
+                    >
+                        <option value="">Select State</option>
+                        {STATE_OPTIONS.map((state) => (
+                            <option key={state} value={state}>{state}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        className="search-bar-select"
+                        value={filters.city}
+                        onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                        disabled={!filters.state}
+                    >
+                        <option value="">Select City</option>
+                        {availableCities.map((city) => (
+                            <option key={city} value={city}>{city}</option>
+                        ))}
+                    </select>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', gridColumn: '1 / -1' }}>
+                        <Search size={18} color="var(--text-muted)" />
+                        <input
+                            type="text"
+                            className="search-bar-input"
+                            placeholder="Search locality, project, builder"
                             value={filters.location}
-                            onChange={(e) => setFilters({...filters, location: e.target.value})}
+                            onChange={(e) => setFilters({ ...filters, location: e.target.value })}
                         />
                     </div>
-                    <div style={{ display: 'flex', gap: '10px', flex: '1 1 250px', flexWrap: 'wrap' }}>
-                        <select 
-                            style={{ 
-                                flex: '1 1 120px',
-                                padding: '12px',
-                                background: 'var(--background)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '3px',
-                                color: 'var(--text)',
-                                cursor: 'pointer',
-                                outline: 'none'
-                            }}
-                            value={filters.type}
-                            onChange={(e) => setFilters({...filters, type: e.target.value})}
+
+                    <button
+                        type="button"
+                        className="search-bar-submit"
+                        onClick={() => setFilters({ ...filters })}
+                    >
+                        Search
+                    </button>
+                </div>
+
+                <div className="state-chip-row" aria-label="Marketplace states">
+                    {['All', ...STATE_OPTIONS].map((state) => (
+                        <button
+                            key={state}
+                            type="button"
+                            className={`state-chip ${filters.state === state || (state === 'All' && !filters.state) ? 'state-chip--active' : ''}`}
+                            onClick={() => setFilters({ ...filters, state: state === 'All' ? '' : state, city: '' })}
                         >
-                            <option value="">All Type</option>
-                            <option value="Apartment">Apartment</option>
-                            <option value="Villa">Villa</option>
-                            <option value="Commercial">Commercial</option>
-                            <option value="Land">Land</option>
-                        </select>
-                    </div>
+                            {state}
+                        </button>
+                    ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <select
+                        className="search-bar-select"
+                        style={{ flex: '1 1 180px' }}
+                        value={filters.type}
+                        onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                    >
+                        <option value="">All Types</option>
+                        <option value="Apartment">Apartment</option>
+                        <option value="Villa">Villa</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Land">Land</option>
+                    </select>
+
+                    <input
+                        className="search-bar-input"
+                        style={{ flex: '1 1 180px' }}
+                        type="number"
+                        placeholder="Min Price"
+                        value={filters.minPrice}
+                        onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
+                    />
+
+                    <input
+                        className="search-bar-input"
+                        style={{ flex: '1 1 180px' }}
+                        type="number"
+                        placeholder="Max Price"
+                        value={filters.maxPrice}
+                        onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                    />
                 </div>
             </div>
 
@@ -345,9 +392,19 @@ const PropertyMarketplace = ({ compact = false }) => {
                                     </div>
                                 </div>
 
-                                <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '3px', fontSize: '0.95rem', fontWeight: '800' }}>
-                                    View Details <ArrowRight size={18} />
-                                </Link>
+                                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                    <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '800' }}>
+                                        View Details <ArrowRight size={18} />
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline"
+                                        style={{ width: '100%', padding: '0.9rem', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '800' }}
+                                        onClick={() => setTourProperty(property)}
+                                    >
+                                        Schedule a Tour
+                                    </button>
+                                </div>
                             </div>
                         );
                     })}
@@ -358,9 +415,15 @@ const PropertyMarketplace = ({ compact = false }) => {
                 <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '3px' }}>
                     <Home size={48} color="var(--text-muted)" style={{ marginBottom: '1rem', opacity: 0.2 }} />
                     <h3 style={{ color: 'var(--text)', fontWeight: '800' }}>No properties match your current filters</h3>
-                    <button className="btn btn-outline" style={{ marginTop: '1rem', borderColor: 'var(--border)', color: 'var(--text-muted)' }} onClick={() => setFilters({location: '', type: '', agency: '', minPrice: '', maxPrice: ''})}>Reset Filters</button>
+                    <button className="btn btn-outline" style={{ marginTop: '1rem', borderColor: 'var(--border)', color: 'var(--text-muted)' }} onClick={() => setFilters({state: '', city: '', location: '', type: '', agency: '', minPrice: '', maxPrice: ''})}>Reset Filters</button>
                 </div>
             )}
+
+            <ScheduleTourModal
+                open={Boolean(tourProperty)}
+                property={tourProperty}
+                onClose={() => setTourProperty(null)}
+            />
         </div>
     );
 };

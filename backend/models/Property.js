@@ -4,6 +4,8 @@ const propertySchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     location: { type: String, required: true },
+    state: { type: String },
+    city: { type: String },
     propertyType: { 
         type: String, 
         enum: ['Apartment', 'Villa', 'Commercial', 'Land', 'PG', 'CoLiving'], 

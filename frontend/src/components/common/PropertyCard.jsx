@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Bed, Bath, Move } from 'lucide-react';
+import { MapPin, Bed, Bath, Move, CalendarDays } from 'lucide-react';
 import { BACKEND_URL } from '../../apiConfig';
 import { formatINR, titleCase, resolveImage, FALLBACK_IMAGE } from '../../utils/format';
 
@@ -10,6 +10,7 @@ const PropertyCard = ({
   ctaLabel = 'View Details',
   ctaTo,
   onCtaClick,
+  onScheduleClick,
   requiresAuthFor,
   user,
 }) => {
@@ -62,13 +63,23 @@ const PropertyCard = ({
           ) : null}
         </div>
 
-        <Link
-          to={gated ? '/login' : to}
-          onClick={handleClick}
-          className={`lx-card__cta ${isInvestment ? 'lx-card__cta--solid' : ''}`}
-        >
-          {gated ? 'Login to Continue' : ctaLabel}
-        </Link>
+        <div className="lx-card__actions">
+          <Link
+            to={gated ? '/login' : to}
+            onClick={handleClick}
+            className={`lx-card__cta ${isInvestment ? 'lx-card__cta--solid' : ''}`}
+          >
+            {gated ? 'Login to Continue' : ctaLabel}
+          </Link>
+
+          <button
+            type="button"
+            className="lx-card__cta lx-card__cta--ghost"
+            onClick={() => onScheduleClick?.(property)}
+          >
+            <CalendarDays size={14} /> Schedule a Tour
+          </button>
+        </div>
       </div>
     </article>
   );
