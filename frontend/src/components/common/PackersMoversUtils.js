@@ -242,6 +242,9 @@ export const storePackersMoversLead = async (
     // Use proper API endpoint with full URL support
     const endpoint = apiEndpoint || getApiEndpoint();
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -251,8 +254,11 @@ export const storePackersMoversLead = async (
         ...leadData,
         timestamp: new Date().toISOString(),
         source: 'packers_movers_integration'
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`Failed to store lead: ${response.statusText}`);
@@ -260,9 +266,10 @@ export const storePackersMoversLead = async (
 
     return await response.json();
   } catch (error) {
-    console.error('Error storing Packers & Movers lead:', error);
+    console.error('Error storing Packers & Movers lead:', error.message);
     // Don't throw - we don't want form submission to fail if lead storage fails
-    return { error: error.message };
+    // Return error object but don't break the redirect flow
+    return { error: error.message, success: false };
   }
 };
 

@@ -91,21 +91,31 @@ const MovingFormModal = ({
     }
 
     try {
-      // Store lead in database if enabled
+      // Store lead in database if enabled (non-blocking, fail-silent)
       if (storeLeadBeforeRedirect) {
         console.log('💾 Storing Packers & Movers lead...');
-        const leadResponse = await storePackersMoversLead({
-          ...formData,
-          userId: user?.id,
-          userName: user?.name,
-          userEmail: user?.email,
-          listingId: null // Can be passed from parent component
-        });
-        
-        if (leadResponse.success) {
-          console.log('✅ Lead stored successfully:', leadResponse.data);
-        } else if (leadResponse.error) {
-          console.warn('⚠️ Lead storage warning:', leadResponse.error);
+        try {
+          const leadResponse = await Promise.race([
+            storePackersMoversLead({
+              ...formData,
+              userId: user?.id,
+              userName: user?.name,
+              userEmail: user?.email,
+              listingId: null // Can be passed from parent component
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Lead storage timeout')), 3000)
+            )
+          ]);
+          
+          if (leadResponse.success) {
+            console.log('✅ Lead stored successfully:', leadResponse.data);
+          } else if (leadResponse.error) {
+            console.warn('⚠️ Lead storage warning:', leadResponse.error);
+          }
+        } catch (leadError) {
+          // Lead storage failed - but continue with redirect anyway
+          console.warn('⚠️ Could not store lead:', leadError.message);
         }
       }
 
