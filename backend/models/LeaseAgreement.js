@@ -153,13 +153,12 @@ const leaseAgreementSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-calculate end date if not provided
-leaseAgreementSchema.pre('save', function(next) {
+leaseAgreementSchema.pre('save', function() {
     if (!this.endDate && this.startDate && this.leasePeriodMonths) {
         const endDate = new Date(this.startDate);
         endDate.setMonth(endDate.getMonth() + this.leasePeriodMonths);
         this.endDate = endDate;
     }
-    next();
 });
 
 // Auto-update status based on dates

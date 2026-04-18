@@ -65,11 +65,10 @@ scrapedListingSchema.index({ city: 1, locality: 1, propertyType: 1, bedrooms: 1 
 scrapedListingSchema.index({ scrapedAt: 1 });
 
 // Computed price per sqft before save
-scrapedListingSchema.pre('save', function (next) {
+scrapedListingSchema.pre('save', function () {
     if (this.listedPrice && this.areaSqft && this.areaSqft > 0) {
         this.pricePerSqft = Math.round(this.listedPrice / this.areaSqft);
     }
-    next();
 });
 
 module.exports = mongoose.model('ScrapedListing', scrapedListingSchema);

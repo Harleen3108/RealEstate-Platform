@@ -68,6 +68,9 @@ const UserLayout = () => {
         { section: 'ACCOUNT' },
         { label: 'Profile', path: '/dashboard/user/profile', icon: User },
         { label: 'Settings', path: '/dashboard/user/settings', icon: Settings },
+        { label: 'Rent Receipts', path: '/dashboard/user/rent-receipts', icon: FileText },
+        { label: 'Lease Agreements', path: '/dashboard/user/lease-agreements', icon: FileText },
+        { label: 'Back to Home', path: '/', icon: Home },
     ];
 
     return (
@@ -108,21 +111,23 @@ const UserLayout = () => {
             }}>
                 {/* Logo Area */}
                 <div style={{ padding: '1.5rem 1.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ 
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'white'
-                    }}>
-                        <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text)', letterSpacing: '0.2px' }}>Millionaire Club</div>
-                    </div>
+                    <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+                        <div style={{ 
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'white'
+                        }}>
+                            <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: '800', fontSize: '1.1rem', color: 'var(--text)', letterSpacing: '0.2px' }}>Millionaire Club</div>
+                        </div>
+                    </Link>
                     <button className="mobile-only" onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)' }}>
                         <CloseIcon size={20} />
                     </button>

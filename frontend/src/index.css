@@ -828,7 +828,7 @@ h1, h2, h3, h4 {
 .testimonial-card__quote {
   font-size: clamp(1rem, 1.2vw, 1.15rem);
   line-height: 1.75;
-  color: var(--text);
+  color: #0F172A;
 }
 
 .testimonial-card__meta {
@@ -839,10 +839,11 @@ h1, h2, h3, h4 {
 
 .testimonial-card__meta strong {
   font-size: 1rem;
+  color: #0F172A;
 }
 
 .testimonial-card__meta span {
-  color: var(--text-muted);
+  color: #64748B;
 }
 
 .testimonial-nav {

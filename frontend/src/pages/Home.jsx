@@ -49,7 +49,6 @@ const Home = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [slideIndex, setSlideIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
@@ -70,11 +69,6 @@ const Home = () => {
         setLoading(false);
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => setSlideIndex((index) => (index + 1) % heroSlides.length), 6000);
-    return () => clearInterval(timer);
   }, []);
 
   const approved = properties.filter((property) => property.isApproved && property.status !== 'Blocked');
@@ -127,21 +121,22 @@ const Home = () => {
           color: '#F8FAFC',
         }}
       >
-        {heroSlides.map((slide, index) => (
-          <div
-            key={slide.title}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: `url(${slide.image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              opacity: index === slideIndex ? 1 : 0,
-              transition: 'opacity 1.8s ease-in-out, transform 8s ease',
-              transform: index === slideIndex ? 'scale(1.04)' : 'scale(1)',
-            }}
-          />
-        ))}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={heroSlides[0].image}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
         <div
           style={{
             position: 'absolute',
@@ -154,7 +149,7 @@ const Home = () => {
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: '760px' }}>
             <p className="eyebrow" style={{ color: '#C6A15B' }}>
-              {heroSlides[slideIndex].eyebrow}
+              {heroSlides[0].eyebrow}
             </p>
             <h1
               style={{
@@ -167,7 +162,7 @@ const Home = () => {
                 textShadow: '0 2px 30px rgba(0,0,0,0.35)',
               }}
             >
-              {heroSlides[slideIndex].title}
+              {heroSlides[0].title}
             </h1>
             <p
               style={{
@@ -280,28 +275,6 @@ const Home = () => {
                 </Link>
               ))}
             </div>
-          </div>
-
-          <div
-            className="desktop-only"
-            style={{ position: 'absolute', bottom: '2rem', right: '1.5rem', display: 'flex', gap: '8px' }}
-          >
-            {heroSlides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setSlideIndex(index)}
-                aria-label={`Slide ${index + 1}`}
-                style={{
-                  width: index === slideIndex ? '40px' : '14px',
-                  height: '3px',
-                  background: index === slideIndex ? 'var(--primary)' : 'rgba(248,250,252,0.45)',
-                  border: 'none',
-                  borderRadius: '2px',
-                  cursor: 'pointer',
-                  transition: 'all 0.4s ease',
-                }}
-              />
-            ))}
           </div>
         </div>
       </section>

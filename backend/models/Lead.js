@@ -38,12 +38,11 @@ const leadSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-leadSchema.pre('save', function(next) {
+leadSchema.pre('save', function() {
     if (this.paymentDetails) {
         this.paymentDetails.totalCollected = (this.paymentDetails.advanceReceived || 0) + (this.paymentDetails.finalPayment || 0);
         this.paymentDetails.balanceDue = (this.paymentDetails.totalProjectValue || 0) - this.paymentDetails.totalCollected;
     }
-    next();
 });
 
 module.exports = mongoose.model('Lead', leadSchema);

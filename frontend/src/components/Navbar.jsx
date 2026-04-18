@@ -4,7 +4,7 @@ import axios from 'axios';
 import API_BASE_URL from '../apiConfig';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Search, LogOut, User, Moon, Sun, CheckCircle, X as CloseIcon, Menu, Phone, Mail, MapPin, Globe, ChevronDown, Bell, Home, LayoutGrid, Info, FileText } from 'lucide-react';
+import { Search, LogOut, User, Moon, Sun, CheckCircle, X as CloseIcon, Menu, Phone, Mail, MapPin, Globe, ChevronDown, Bell, Home, LayoutGrid, Info, FileText, LayoutDashboard } from 'lucide-react';
 
 const Navbar = () => {
     const { user, logout, loading } = useAuth();
@@ -21,6 +21,15 @@ const Navbar = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    const fetchUnreadCount = async () => {
+        try {
+            const { data } = await axios.get(`${API_BASE_URL}/notifications`);
+            setUnreadCount(data.filter(n => !n.read).length);
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
     useEffect(() => {
         if (user && !location.pathname.startsWith('/dashboard')) {
             fetchUnreadCount();
@@ -34,14 +43,7 @@ const Navbar = () => {
         setIsMenuOpen(false);
     }, [location, windowWidth]);
 
-    const fetchUnreadCount = async () => {
-        try {
-            const { data } = await axios.get(`${API_BASE_URL}/notifications`);
-            setUnreadCount(data.filter(n => !n.read).length);
-        } catch (error) {
-            console.error('Error fetching unread count:', error);
-        }
-    };
+
 
     const handleLogout = () => {
         logout();
@@ -130,7 +132,7 @@ const Navbar = () => {
                         </Link>
 
                         {user && (
-                            <Link to="/tenant/documents" style={{ 
+                            <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} style={{ 
                                 textDecoration: 'none', 
                                 fontSize: '1rem', 
                                 fontWeight: '700', 
@@ -140,7 +142,7 @@ const Navbar = () => {
                                 gap: '8px',
                                 paddingBottom: '2px'
                             }}>
-                                <FileText size={18} /> My Documents
+                                <LayoutDashboard size={18} /> Dashboard
                             </Link>
                         )}
 
@@ -338,9 +340,7 @@ const Navbar = () => {
                             <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} className="mobile-menu-item">
                                 <User size={20} /> My Dashboard
                             </Link>
-                            <Link to="/tenant/documents" className="mobile-menu-item">
-                                <FileText size={20} /> My Documents
-                            </Link>
+
                             <button onClick={handleLogout} className="mobile-menu-item" style={{ border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', background: 'var(--surface-light)' }}>
                                 <LogOut size={20} /> Logout
                             </button>

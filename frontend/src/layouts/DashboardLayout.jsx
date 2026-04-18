@@ -170,27 +170,29 @@ const DashboardLayout = () => {
                         gap: isCollapsed ? '0' : '12px',
                         minHeight: '80px'
                     }}>
-                        <div style={{ 
-                            width: '42px',
-                            height: '42px',
-                            borderRadius: '10px',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: '#000',
-                            flexShrink: 0,
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                            transition: 'all 0.3s ease'
-                        }}>
-                            <img src="/logo.png" alt="Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
-                        </div>
-                        {!isCollapsed && (
-                            <div style={{ fontWeight: '800', fontSize: '1.1rem', letterSpacing: '0.2px', lineHeight: '1.2', flex: 1, color: 'var(--text)' }}>
-                                Millionaire <span style={{ color: 'var(--primary)' }}>Club</span>
+                        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: isCollapsed ? '0' : '12px', textDecoration: 'none' }}>
+                            <div style={{ 
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '10px',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: '#000',
+                                flexShrink: 0,
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                                transition: 'all 0.3s ease'
+                            }}>
+                                <img src="/logo.png" alt="Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
                             </div>
-                        )}
+                            {!isCollapsed && (
+                                <div style={{ fontWeight: '800', fontSize: '1.1rem', letterSpacing: '0.2px', lineHeight: '1.2', flex: 1, color: 'var(--text)' }}>
+                                    Millionaire <span style={{ color: 'var(--primary)' }}>Club</span>
+                                </div>
+                            )}
+                        </Link>
 
                         <button className="mobile-only" onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)' }}>
                             <CloseIcon size={20} />

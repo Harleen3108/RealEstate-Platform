@@ -173,16 +173,24 @@ const PropertyComparisonView = () => {
             </div>
 
             {/* Comparison Results */}
-            {comparison && comparison.results && (
+            {comparison && comparison.comparisons && (
                 <div style={{ overflowX: 'auto' }}>
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: `repeat(${comparison.results.length}, minmax(250px, 1fr))`,
-                        gap: '1rem', minWidth: comparison.results.length > 2 ? `${comparison.results.length * 260}px` : 'auto'
+                        gridTemplateColumns: `repeat(${comparison.comparisons.length}, minmax(250px, 1fr))`,
+                        gap: '1rem', minWidth: comparison.comparisons.length > 2 ? `${comparison.comparisons.length * 260}px` : 'auto'
                     }}>
-                        {comparison.results.map((item, idx) => {
-                            const est = item.estimation;
-                            const prop = item.property;
+                        {comparison.comparisons.map((item, idx) => {
+                            const est = item.aiEstimation;
+                            const prop = {
+                                title: item.title,
+                                location: item.location,
+                                price: item.listedPrice,
+                                propertyType: item.propertyType,
+                                size: item.size,
+                                bedrooms: item.bedrooms,
+                                bathrooms: item.bathrooms
+                            };
                             const DealIcon = getDealIcon(item.dealFlag);
 
                             return (
@@ -282,11 +290,11 @@ const PropertyComparisonView = () => {
                     </div>
 
                     {/* Summary */}
-                    {comparison.summary && (
+                    {comparison.recommendation && comparison.recommendation.reasoning && (
                         <div className="glass-card" style={{ padding: '1.5rem', marginTop: '1.5rem' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '0.5rem' }}>Comparison Summary</h3>
+                            <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '0.5rem' }}>AI Recommendation</h3>
                             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                                {comparison.summary}
+                                {comparison.recommendation.reasoning}
                             </div>
                         </div>
                     )}

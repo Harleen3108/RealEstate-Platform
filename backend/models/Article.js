@@ -70,14 +70,13 @@ articleSchema.index({ category: 1, published: 1, createdAt: -1 });
 articleSchema.index({ createdAt: 1 });
 
 // Auto-generate slug from title
-articleSchema.pre('save', function(next) {
+articleSchema.pre('save', function() {
     if (this.isModified('title') || this.isNew) {
         this.slug = this.title
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
     }
-    next();
 });
 
 module.exports = mongoose.model('Article', articleSchema);

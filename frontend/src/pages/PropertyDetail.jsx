@@ -180,13 +180,13 @@ const PropertyDetail = () => {
                 <div style={{ 
                     display: 'grid', 
                     gridTemplateColumns: window.innerWidth > 768 ? '2fr 1fr 1fr' : '1fr', 
-                    gridTemplateRows: window.innerWidth > 768 ? 'repeat(2, 250px)' : 'auto', 
+                    gridTemplateRows: window.innerWidth > 768 ? 'repeat(2, 200px)' : 'auto', 
                     gap: '12px', 
                     borderRadius: '3px', 
                     overflow: 'hidden', 
-                    marginBottom: '2.5rem' 
+                    marginBottom: '2rem' 
                 }}>
-                    <div style={{ gridRow: window.innerWidth > 768 ? 'span 2' : 'auto', height: window.innerWidth > 768 ? '100%' : '300px', background: 'var(--surface-light)' }}>
+                    <div style={{ gridRow: window.innerWidth > 768 ? 'span 2' : 'auto', height: window.innerWidth > 768 ? '100%' : '280px', background: 'var(--surface-light)' }}>
                         <img src={getImageUrl(property.images?.[0])} onError={handleImageError} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>
                     {(window.innerWidth > 768) && property.images?.[1] && (
@@ -223,8 +223,8 @@ const PropertyDetail = () => {
 
                 <div style={{ 
                     display: 'grid', 
-                    gridTemplateColumns: window.innerWidth > 1024 ? 'minmax(0, 2fr) 350px' : '1fr', 
-                    gap: window.innerWidth > 768 ? '4rem' : '2.5rem' 
+                    gridTemplateColumns: window.innerWidth > 1024 ? '1fr 380px' : '1fr', 
+                    gap: '2rem' 
                 }}>
                     {/* Left Column: Content */}
                     <div>
