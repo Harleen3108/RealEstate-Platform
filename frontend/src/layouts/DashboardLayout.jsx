@@ -102,6 +102,7 @@ const DashboardLayout = () => {
             { label: 'Agencies', path: '/dashboard/admin/agencies', icon: Building2 },
             { label: 'Investors', path: '/dashboard/admin/investors', icon: TrendingUp },
             { label: 'Properties', path: '/dashboard/admin/properties', icon: Home },
+            { label: 'Articles', path: '/dashboard/admin/articles', icon: FileText },
             { label: 'Leads', path: '/dashboard/admin/leads', icon: MessageCircle },
             { label: 'Onboarding Tracker', path: '/dashboard/admin/tracker', icon: TrendingUp },
             { label: 'Users', path: '/dashboard/admin/users', icon: Users },

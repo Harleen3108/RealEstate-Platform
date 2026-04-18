@@ -142,11 +142,11 @@ const EMICalculator = () => {
 
                 {/* Mode Selector */}
                 <div style={{
-                    display: 'flex',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, minmax(220px, 1fr))',
                     gap: '16px',
-                    justifyContent: 'center',
-                    marginBottom: '50px',
-                    flexWrap: 'wrap'
+                    maxWidth: '640px',
+                    margin: '0 auto 50px'
                 }}>
                     <button
                         onClick={() => {
@@ -157,6 +157,7 @@ const EMICalculator = () => {
                             padding: '14px 32px',
                             border: 'none',
                             borderRadius: '12px',
+                            width: '100%',
                             fontSize: '1rem',
                             fontWeight: '600',
                             cursor: 'pointer',
@@ -185,6 +186,7 @@ const EMICalculator = () => {
                             padding: '14px 32px',
                             border: 'none',
                             borderRadius: '12px',
+                            width: '100%',
                             fontSize: '1rem',
                             fontWeight: '600',
                             cursor: 'pointer',

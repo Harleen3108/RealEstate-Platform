@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { CalendarDays, Clock3, Mail, MapPin, Phone, X } from 'lucide-react';
 import API_BASE_URL from '../../apiConfig';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +28,9 @@ const ScheduleTourModal = ({ open, property, onClose, onSuccess }) => {
   useEffect(() => {
     if (!open) return;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     setFormData({
       ...defaultForm,
       name: user?.name || '',
@@ -34,6 +38,10 @@ const ScheduleTourModal = ({ open, property, onClose, onSuccess }) => {
       phone: user?.phoneNumber || user?.phone || '',
     });
     setFeedback('');
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [open, property?._id, user]);
 
   if (!open || !property) return null;
@@ -63,7 +71,7 @@ const ScheduleTourModal = ({ open, property, onClose, onSuccess }) => {
     }
   };
 
-  return (
+  const modalContent = (
     <div className="tour-modal-backdrop" role="presentation" onClick={onClose}>
       <div
         className="tour-modal"
@@ -187,6 +195,9 @@ const ScheduleTourModal = ({ open, property, onClose, onSuccess }) => {
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(modalContent, document.body);
 };
 
 export default ScheduleTourModal;

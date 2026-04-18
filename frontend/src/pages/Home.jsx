@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../apiConfig';
-import { Search, MapPin, ArrowRight, Send, User, Bed, Home as HomeIcon, Zap, Crown } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Send, Bed, Home as HomeIcon, Zap, Crown, Instagram, Linkedin, Facebook, Twitter, Phone, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PropertyCard from '../components/common/PropertyCard';
 import ArticleCard from '../components/common/ArticleCard';
@@ -80,27 +80,12 @@ const Home = () => {
   const approved = properties.filter((property) => property.isApproved && property.status !== 'Blocked');
   const selectedStateCities = selectedState ? getCitiesForState(selectedState) : [];
 
-  const filteredApproved = approved.filter((property) => {
-    const state = inferStateFromProperty(property);
-    const city = inferCityFromProperty(property);
-    const query = searchQuery.trim().toLowerCase();
-
-    const matchesState = !selectedState || state.toLowerCase() === selectedState.toLowerCase();
-    const matchesCity = !selectedCity || city.toLowerCase() === selectedCity.toLowerCase();
-    const matchesQuery =
-      !query ||
-      [property.title, property.location, property.description, property.builder]
-        .filter(Boolean)
-        .some((value) => value.toLowerCase().includes(query));
-
-    return matchesState && matchesCity && matchesQuery;
-  });
-
-  const featured = [...filteredApproved]
+  // Home hero search only routes users to marketplace filters; it does not curate these sections.
+  const featured = [...approved]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 8);
 
-  const opportunities = filteredApproved
+  const opportunities = approved
     .filter((property) => activeCategory === 'All' || property.propertyType === activeCategory)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 8);
@@ -199,7 +184,7 @@ const Home = () => {
             <form onSubmit={handleSearch} className="search-bar-shell" style={{ maxWidth: '860px' }}>
               <div className="search-bar-grid">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <MapPin size={18} color="#64748B" style={{ flexShrink: 0, marginLeft: '4px' }} />
+                  <MapPin size={18} color="rgba(16,34,61,0.58)" style={{ flexShrink: 0, marginLeft: '4px' }} />
                   <select
                     className="search-bar-select"
                     value={selectedState}
@@ -231,20 +216,22 @@ const Home = () => {
                   ))}
                 </select>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', gridColumn: '1 / -1' }}>
-                  <Search size={18} color="#64748B" style={{ flexShrink: 0, marginLeft: '4px' }} />
-                  <input
-                    type="text"
-                    className="search-bar-input"
-                    placeholder="Search locality, project, or builder"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                  />
+                <div className="search-bar-grid__search-row">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1 }}>
+                    <Search size={18} color="rgba(16,34,61,0.58)" style={{ flexShrink: 0, marginLeft: '4px' }} />
+                    <input
+                      type="text"
+                      className="search-bar-input"
+                      placeholder="Search locality, project, or builder"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                  </div>
+                  <button type="submit" className="search-bar-submit" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    Search
+                  </button>
                 </div>
-
-                <button type="submit" className="search-bar-submit">
-                  Search
-                </button>
               </div>
 
               <div className="state-chip-row" aria-label="Popular states">
@@ -410,37 +397,72 @@ const Home = () => {
           </p>
         </div>
 
-        {articles.length > 0 ? (
-          <div style={{ marginBottom: '2rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
-              {articles.slice(0, 3).map((article) => (
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
+            {articles.length > 0 ? (
+              articles.slice(0, 3).map((article) => (
                 <ArticleCard key={article._id} article={article} compact />
-              ))}
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <Link
-                to="/articles"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '0.95rem 2rem',
-                  background: 'var(--primary)',
-                  color: '#0F172A',
-                  textDecoration: 'none',
-                  fontWeight: '700',
-                  fontSize: '0.9rem',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  borderRadius: 'var(--radius-sm)',
-                }}
-              >
-                View All Articles
-                <ArrowRight size={18} />
-              </Link>
-            </div>
+              ))
+            ) : (
+              [
+                {
+                  title: 'How To Identify A High-Growth Micro-Market In 2026',
+                  description: 'A practical framework to evaluate demand depth, rental velocity, and infrastructure tailwinds before you invest.',
+                  image: 'https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=1600&auto=format&fit=crop',
+                },
+                {
+                  title: 'Rental Yield Vs Capital Appreciation: What Matters Most?',
+                  description: 'Understand when to prioritize cash flow and when to prioritize long-term value compounding in Indian metros.',
+                  image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1600&auto=format&fit=crop',
+                },
+                {
+                  title: 'Due Diligence Checklist Before Booking Any Property',
+                  description: 'From title checks to developer track record, use this checklist to avoid common mistakes and delays.',
+                  image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1600&auto=format&fit=crop',
+                },
+              ].map((item, index) => (
+                <div key={index} className="glass-card" style={{ padding: '2rem', display: 'grid', gap: '1rem', borderRadius: 0 }}>
+                  <div style={{ height: '190px', borderRadius: 0, overflow: 'hidden', marginBottom: '0.15rem' }}>
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  </div>
+                  <p className="eyebrow" style={{ marginBottom: 0 }}>Editorial</p>
+                  <h3 style={{ margin: 0, fontSize: '1.45rem' }}>{item.title}</h3>
+                  <p style={{ margin: 0, color: 'var(--text-muted)', lineHeight: 1.7 }}>{item.description}</p>
+                  <Link to="/articles" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
+                    Read Articles <ArrowRight size={16} style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+                  </Link>
+                </div>
+              ))
+            )}
           </div>
-        ) : null}
+
+          <div style={{ textAlign: 'center' }}>
+            <Link
+              to="/articles"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '0.95rem 2rem',
+                background: 'var(--primary)',
+                color: '#0F172A',
+                textDecoration: 'none',
+                fontWeight: '700',
+                fontSize: '0.9rem',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                borderRadius: 'var(--radius-sm)',
+              }}
+            >
+              View All Articles
+              <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
       </section>
 
       <section
@@ -540,48 +562,115 @@ const Home = () => {
         </div>
       </section>
 
-      <footer style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', padding: '4rem 0 2rem' }}>
-        <div className="container" style={{ display: 'grid', gap: '2rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+      <footer style={{ background: 'var(--background)', borderTop: '1px solid var(--border)', padding: '4rem 0 2rem' }}>
+        <div className="container" style={{ display: 'grid', gap: '2.25rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
           <div>
-            <h4 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Millionaire Club</h4>
-            <p style={{ color: 'var(--text-muted)', lineHeight: 1.75 }}>
-              Private access to luxury homes, trusted advisors, and curated investment opportunities.
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+              <img src="/logo.png" alt="Millionaire Club" style={{ width: '38px', height: '38px', borderRadius: '4px' }} />
+              <h4 style={{ fontSize: '1.1rem', margin: 0, lineHeight: 1.15 }}>
+                Millionaire <span style={{ color: 'var(--primary)' }}>Club</span>
+              </h4>
+            </div>
+            <p style={{ color: 'var(--text-muted)', lineHeight: 1.65, maxWidth: '320px', fontSize: '0.95rem' }}>
+              A unified platform for luxury property discovery, elite CRM, and professional portfolio tracking.
             </p>
+            <div style={{ display: 'flex', gap: '0.9rem', marginTop: '1.25rem' }}>
+              {[
+                { Icon: Instagram, href: 'https://www.instagram.com/avanienterprises.branding/', label: 'Instagram' },
+                { Icon: Linkedin, href: '#', label: 'LinkedIn' },
+                { Icon: Facebook, href: 'https://www.facebook.com/people/Avani-Enterprises/61576229620845/?rdid=iK5tOBcqbWYF7kfd&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1AXpRTxpoH%2F', label: 'Facebook' },
+                { Icon: Twitter, href: 'https://x.com/avanienterprises', label: 'X' },
+              ].map(({ Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target={href === '#' ? undefined : '_blank'}
+                  rel={href === '#' ? undefined : 'noreferrer noopener'}
+                  aria-label={label}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '6px',
+                    background: 'transparent',
+                    color: 'var(--text-muted)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <Icon size={18} />
+                </a>
+              ))}
+            </div>
           </div>
 
           <div>
-            <h4 style={{ fontSize: '0.82rem', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '1rem', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
+            <h4 style={{ fontSize: '0.98rem', marginBottom: '1rem', fontFamily: 'var(--font-sans)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+              Discover
+            </h4>
+            <div style={{ display: 'grid', gap: '0.7rem' }}>
+              <Link to="/marketplace?intent=buy" style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.95rem' }}>Buy</Link>
+              <Link to="/marketplace?intent=rent" style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.95rem' }}>Rent</Link>
+              <Link to="/marketplace?intent=sell" style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.95rem' }}>Sell</Link>
+              <Link to="/marketplace" style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.95rem' }}>All Listings</Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ fontSize: '0.98rem', marginBottom: '1rem', fontFamily: 'var(--font-sans)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
               Contact
             </h4>
-            <div style={{ display: 'grid', gap: '0.8rem', color: 'var(--text-muted)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <User size={16} color="var(--primary)" /> +91 92536 25099
+            <div style={{ display: 'grid', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <MapPin size={18} color="var(--primary)" style={{ marginTop: '4px', flexShrink: 0 }} />
+                <span>Tower B, 3rd Floor, Unitech Cyber Park, Sector 39, Gurugram, Haryana 122002</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Send size={16} color="var(--primary)" /> kp@avanienterprises.in
+                <Phone size={18} color="var(--primary)" /> <span>+91 92536 25099</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Mail size={18} color="var(--primary)" /> <span>kp@avanienterprises.in</span>
               </div>
             </div>
           </div>
 
           <div>
-            <h4 style={{ fontSize: '0.82rem', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '1rem', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
+            <h4 style={{ fontSize: '0.98rem', marginBottom: '1rem', fontFamily: 'var(--font-sans)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>
               Newsletter
             </h4>
-            <form onSubmit={(event) => event.preventDefault()} style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', background: 'var(--surface)' }}>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontSize: '0.95rem' }}>Receive private listings and market insights.</p>
+            <form onSubmit={(event) => event.preventDefault()} style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden', background: 'var(--surface)' }}>
               <input
                 type="email"
                 placeholder="Your email"
-                style={{ flex: 1, padding: '0.85rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '0.88rem' }}
+                style={{ flex: 1, padding: '0.95rem 1rem', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: '0.95rem' }}
               />
-              <button type="submit" style={{ padding: '0 1.2rem', background: 'var(--primary)', border: 'none', color: '#0F172A', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                <Send size={15} />
+              <button
+                type="submit"
+                aria-label="Subscribe"
+                style={{
+                  minWidth: '44px',
+                  padding: '0 1.15rem 0 0.95rem',
+                  background: 'var(--primary)',
+                  border: 'none',
+                  color: '#0F172A',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Send size={18} style={{ marginRight: '2px' }} />
               </button>
             </form>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', marginTop: '2rem', paddingTop: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-          © 2026 Millionaire Club. Crafted for connoisseurs.
+        <div style={{ borderTop: '1px solid var(--border)', marginTop: '2rem', paddingTop: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+          © 2026 Avani Enterprises. Crafted for connoisseurs.
         </div>
       </footer>
 

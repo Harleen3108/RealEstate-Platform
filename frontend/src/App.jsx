@@ -32,6 +32,8 @@ import EMICalculator from './components/estimation/EMICalculator';
 import ArticlesBlog from './pages/ArticlesBlog';
 import ArticleDetail from './pages/ArticleDetail';
 import TenantDocuments from './pages/TenantDocuments';
+import AboutUs from './pages/AboutUs';
+import AdminArticles from './pages/dashboards/AdminArticles';
 
 function App() {
   return (
@@ -41,6 +43,7 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/about" element={<AboutUs />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/marketplace" element={<PropertyMarketplace />} />
@@ -71,6 +74,7 @@ function App() {
               <Route path="admin/notifications" element={<NotificationHub />} />
               <Route path="admin/price-intelligence" element={<PriceIntelligenceDashboard />} />
               <Route path="admin/compare" element={<PropertyComparisonView />} />
+              <Route path="admin/articles" element={<AdminArticles />} />
               <Route path="admin/:tab?" element={<AdminDashboard />} />
               <Route path="buyer/notifications" element={<NotificationHub />} />
               <Route path="buyer/price-intelligence" element={<PriceIntelligenceDashboard />} />

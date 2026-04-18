@@ -9,6 +9,8 @@ import API_BASE_URL, { BACKEND_URL } from '../../apiConfig';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const DASHBOARD_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop';
+
 const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -321,7 +323,15 @@ const Dashboard = () => {
                                 <tr key={p._id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '0.8rem 1.2rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <img src={getImageUrl(p.images?.[0])} alt="" style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover' }} />
+                                            <img
+                                                src={getImageUrl(p.images?.[0])}
+                                                alt=""
+                                                onError={(event) => {
+                                                    event.currentTarget.onerror = null;
+                                                    event.currentTarget.src = DASHBOARD_FALLBACK_IMAGE;
+                                                }}
+                                                style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover' }}
+                                            />
                                             <div>
                                                 <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>{p.title}</div>
                                                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.location}</div>

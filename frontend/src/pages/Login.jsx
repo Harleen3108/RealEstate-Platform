@@ -165,11 +165,10 @@ const Login = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.85rem' }}>
                                 <input type="checkbox" style={{ accentColor: 'var(--primary)' }} /> Remember me
                             </label>
-                            <Link to="#" style={{ color: 'var(--primary)', fontSize: '0.85rem', fontWeight: '700', textDecoration: 'none' }}>Forgot password?</Link>
                         </div>
 
                         <button 

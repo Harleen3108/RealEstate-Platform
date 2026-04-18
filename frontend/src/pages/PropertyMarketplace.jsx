@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
 import { Search, MapPin, Home, Heart, ArrowRight, Bed, Bath, Bot, TrendingUp, TrendingDown } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ScheduleTourModal from '../components/common/ScheduleTourModal';
 import {
@@ -52,6 +52,7 @@ const PropertyMarketplace = ({ compact = false }) => {
     const [tourProperty, setTourProperty] = useState(null);
     const { user } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [filters, setFilters] = useState({
         state: '',
         city: '',
@@ -62,10 +63,38 @@ const PropertyMarketplace = ({ compact = false }) => {
         maxPrice: ''
     });
 
+    const allCities = Array.from(new Set(STATE_OPTIONS.flatMap((state) => getCitiesForState(state))));
+
     useEffect(() => {
         fetchInitialData();
         if (user) fetchSavedProperties();
     }, [user]);
+
+    useEffect(() => {
+        if (compact) return;
+
+        const params = new URLSearchParams(location.search);
+        const stateFromQuery = params.get('state') || '';
+        const cityFromQuery = params.get('city') || '';
+        const locationFromQuery = params.get('location') || '';
+        const typeFromQuery = params.get('type') || '';
+        const minPriceFromQuery = params.get('minPrice') || '';
+        const maxPriceFromQuery = params.get('maxPrice') || '';
+
+        const sanitizedState = STATE_OPTIONS.includes(stateFromQuery) ? stateFromQuery : '';
+        const allowedCities = sanitizedState ? getCitiesForState(sanitizedState) : allCities;
+        const sanitizedCity = cityFromQuery && allowedCities.includes(cityFromQuery) ? cityFromQuery : '';
+
+        setFilters((prev) => ({
+            ...prev,
+            state: sanitizedState,
+            city: sanitizedCity,
+            location: locationFromQuery,
+            type: typeFromQuery,
+            minPrice: minPriceFromQuery,
+            maxPrice: maxPriceFromQuery,
+        }));
+    }, [location.search, compact]);
 
     const fetchInitialData = async () => {
         try {
@@ -115,7 +144,21 @@ const PropertyMarketplace = ({ compact = false }) => {
         }
     };
 
-    const availableCities = filters.state ? getCitiesForState(filters.state) : [];
+    const availableCities = filters.state ? getCitiesForState(filters.state) : allCities;
+
+    const handleSearch = () => {
+        if (compact) return;
+
+        const params = new URLSearchParams();
+        if (filters.state) params.set('state', filters.state);
+        if (filters.city) params.set('city', filters.city);
+        if (filters.location.trim()) params.set('location', filters.location.trim());
+        if (filters.type) params.set('type', filters.type);
+        if (filters.minPrice) params.set('minPrice', filters.minPrice);
+        if (filters.maxPrice) params.set('maxPrice', filters.maxPrice);
+
+        navigate(params.toString() ? `/marketplace?${params.toString()}` : '/marketplace', { replace: true });
+    };
 
     const filteredProperties = properties.filter(p => {
         const agencyMatch = filters.agency === '' || p.agency?._id === filters.agency;
@@ -182,7 +225,6 @@ const PropertyMarketplace = ({ compact = false }) => {
                         className="search-bar-select"
                         value={filters.city}
                         onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                        disabled={!filters.state}
                     >
                         <option value="">Select City</option>
                         {availableCities.map((city) => (
@@ -204,7 +246,7 @@ const PropertyMarketplace = ({ compact = false }) => {
                     <button
                         type="button"
                         className="search-bar-submit"
-                        onClick={() => setFilters({ ...filters })}
+                        onClick={handleSearch}
                     >
                         Search
                     </button>

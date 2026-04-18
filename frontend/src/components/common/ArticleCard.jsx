@@ -2,6 +2,18 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Eye, Clock, ArrowRight } from 'lucide-react';
 
+const FALLBACK_COVER_IMAGES = {
+    lifestyle: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=1600&auto=format&fit=crop',
+    legal: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1600&auto=format&fit=crop',
+    'market trends': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1600&auto=format&fit=crop',
+    investment: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?q=80&w=1600&auto=format&fit=crop',
+    buying: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1600&auto=format&fit=crop',
+    selling: 'https://images.unsplash.com/photo-1460317442991-0ec209397118?q=80&w=1600&auto=format&fit=crop',
+    renting: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1600&auto=format&fit=crop',
+    maintenance: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=1600&auto=format&fit=crop',
+    default: 'https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1600&auto=format&fit=crop',
+};
+
 const ArticleCard = ({ article, compact = false }) => {
     const formatDate = (date) => {
         return new Date(date).toLocaleDateString('en-IN', {
@@ -11,11 +23,19 @@ const ArticleCard = ({ article, compact = false }) => {
         });
     };
 
+    const categoryKey = String(article.category || '').trim().toLowerCase();
+    const initialCoverImage = article.coverImage || article.image || FALLBACK_COVER_IMAGES[categoryKey] || FALLBACK_COVER_IMAGES.default;
+    const [coverImage, setCoverImage] = React.useState(initialCoverImage);
+
+    React.useEffect(() => {
+        setCoverImage(initialCoverImage);
+    }, [initialCoverImage]);
+
     return (
         <article className="glass-card animate-fade" style={{
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: '8px',
+            borderRadius: '0',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
@@ -26,33 +46,33 @@ const ArticleCard = ({ article, compact = false }) => {
         onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
             {/* Cover Image */}
-            {article.coverImage && (
-                <div style={{
-                    height: compact ? '160px' : '200px',
-                    overflow: 'hidden',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative'
-                }}>
-                    <img
-                        src={article.coverImage}
-                        alt={article.title}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            transition: 'transform 0.5s ease'
-                        }}
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                        onError={(e) => {
-                            e.target.style.display = 'none';
-                        }}
-                    />
-                </div>
-            )}
+            <div style={{
+                height: compact ? '160px' : '200px',
+                overflow: 'hidden',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
+            }}>
+                <img
+                    src={coverImage}
+                    alt={article.title}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.5s ease'
+                    }}
+                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                    onError={() => {
+                        if (coverImage !== FALLBACK_COVER_IMAGES.default) {
+                            setCoverImage(FALLBACK_COVER_IMAGES.default);
+                        }
+                    }}
+                />
+            </div>
 
             {/* Content */}
             <div style={{
@@ -124,7 +144,7 @@ const ArticleCard = ({ article, compact = false }) => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={14} />
-                        {article.readTime} min read
+                        {typeof article.readTime === 'number' ? `${article.readTime} min read` : article.readTime}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Eye size={14} />

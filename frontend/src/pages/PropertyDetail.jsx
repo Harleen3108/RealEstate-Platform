@@ -5,6 +5,7 @@ import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
 import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User, ChevronRight, Layout } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PropertyEstimationCard from '../components/estimation/PropertyEstimationCard';
+import PackersMoversSection from '../components/common/PackersMoversSection';
 
 const PLACEHOLDER_IMAGE =
         "data:image/svg+xml;charset=UTF-8," +
@@ -314,13 +315,33 @@ const PropertyDetail = () => {
                                         ></iframe>
                                     )
                                 ) : (
-                                    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
-                                        <MapPin size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                                        <p style={{ fontWeight: '600' }}>{property.location}</p>
-                                        <p style={{ fontSize: '0.8rem' }}>Map view not available for this property</p>
-                                    </div>
+                                    <iframe 
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(property.location || 'India')}&output=embed`}
+                                        width="100%" 
+                                        height="100%" 
+                                        style={{ border: 0 }} 
+                                        allowFullScreen="" 
+                                        loading="lazy" 
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                    ></iframe>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Packers & Movers Integration */}
+                        <div style={{ marginTop: '3rem', background: 'var(--surface)', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                            <PackersMoversSection
+                                listing={{
+                                    id: property._id,
+                                    city: property.location?.split(',')[property.location?.split(',').length - 1]?.trim(),
+                                    locality: property.location?.split(',')[0]?.trim(),
+                                    bhkType: `${property.bedrooms} BHK`,
+                                    address: property.location
+                                }}
+                                user={user}
+                                platformName="RealEstatePlatform"
+                                showOnlyIfLoggedIn={false}
+                            />
                         </div>
                     </div>
 

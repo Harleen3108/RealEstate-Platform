@@ -3,6 +3,30 @@ const router = express.Router();
 const Article = require('../models/Article');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
+const slugify = (value = '') =>
+    String(value)
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+const parseListField = (value) => {
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => String(item || '').trim())
+            .filter(Boolean);
+    }
+
+    if (typeof value === 'string') {
+        return value
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+
+    return [];
+};
+
 // ============================================
 // IMPORTANT: Route order matters in Express!
 // Specific routes MUST come before generic ones
@@ -11,12 +35,14 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 // GET /api/articles/slug/:slug - Get article by slug (PUBLIC)
 router.get('/slug/:slug', async (req, res) => {
     try {
-        const article = await Article.findOne({ slug: req.params.slug, published: true });
+        const article = await Article.findOneAndUpdate(
+            { slug: req.params.slug, published: true },
+            { $inc: { viewCount: 1 } },
+            { new: true }
+        );
         if (!article) {
             return res.status(404).json({ message: 'Article not found' });
         }
-        // Increment view count separately to avoid save conflicts
-        await Article.updateOne({ _id: article._id }, { $inc: { viewCount: 1 } });
         res.json(article);
     } catch (error) {
         console.error('Error fetching article:', error);
@@ -101,8 +127,45 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/articles/admin/all - Get all articles including drafts (ADMIN)
+router.get('/admin/all', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const { category, search, limit = 50, page = 1 } = req.query;
+        const query = {};
+
+        if (category) query.category = category;
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { excerpt: { $regex: search, $options: 'i' } },
+                { tags: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+        const articles = await Article.find(query)
+            .sort({ updatedAt: -1, createdAt: -1 })
+            .limit(parseInt(limit, 10))
+            .skip(skip);
+
+        const total = await Article.countDocuments(query);
+        res.json({
+            articles,
+            pagination: {
+                total,
+                page: parseInt(page, 10),
+                limit: parseInt(limit, 10),
+                pages: Math.ceil(total / parseInt(limit, 10))
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching admin articles:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // GET /api/articles/:id - Get article by ID (ADMIN)
-router.get('/:id', async (req, res) => {
+router.get('/:id', protect, authorize('Admin'), async (req, res) => {
     try {
         const article = await Article.findById(req.params.id);
         if (!article) {
@@ -126,8 +189,8 @@ router.post('/', protect, authorize('Admin'), async (req, res) => {
             content,
             excerpt,
             category,
-            tags: tags ? tags.split(',').map(t => t.trim()) : [],
-            keywords: keywords ? keywords.split(',').map(k => k.trim()) : [],
+            tags: parseListField(tags),
+            keywords: parseListField(keywords),
             author: author || req.user.name,
             coverImage,
             seoTitle: seoTitle || title,
@@ -138,6 +201,10 @@ router.post('/', protect, authorize('Admin'), async (req, res) => {
         await article.save();
         res.status(201).json(article);
     } catch (error) {
+        console.error('Error creating article:', error);
+        if (error?.code === 11000) {
+            return res.status(409).json({ message: 'An article with this title already exists' });
+        }
         res.status(500).json({ message: error.message });
     }
 });
@@ -145,27 +212,72 @@ router.post('/', protect, authorize('Admin'), async (req, res) => {
 // PUT /api/articles/:id - Update article (ADMIN)
 router.put('/:id', protect, authorize('Admin'), async (req, res) => {
     try {
-        const article = await Article.findById(req.params.id);
+        const article = await Article.findById(req.params.id).select('_id published');
         if (!article) {
             return res.status(404).json({ message: 'Article not found' });
         }
+
         const { title, content, excerpt, category, tags, keywords, author, coverImage, published, seoTitle, seoDescription, readTime } = req.body;
-        if (title) article.title = title;
-        if (content) article.content = content;
-        if (excerpt) article.excerpt = excerpt;
-        if (category) article.category = category;
-        if (tags) article.tags = tags.split(',').map(t => t.trim());
-        if (keywords) article.keywords = keywords.split(',').map(k => k.trim());
-        if (author) article.author = author;
-        if (coverImage) article.coverImage = coverImage;
-        if (typeof published === 'boolean') article.published = published;
-        if (seoTitle) article.seoTitle = seoTitle;
-        if (seoDescription) article.seoDescription = seoDescription;
-        if (readTime) article.readTime = readTime;
-        article.updatedAt = new Date();
-        await article.save();
-        res.json(article);
+
+        const updates = {};
+
+        if (typeof title !== 'undefined') {
+            const normalizedTitle = String(title || '').trim();
+            if (!normalizedTitle) {
+                return res.status(400).json({ message: 'Title cannot be empty' });
+            }
+            updates.title = normalizedTitle;
+            updates.slug = slugify(normalizedTitle);
+        }
+
+        if (typeof content !== 'undefined') {
+            const normalizedContent = String(content || '').trim();
+            if (!normalizedContent) {
+                return res.status(400).json({ message: 'Content cannot be empty' });
+            }
+            updates.content = normalizedContent;
+        }
+
+        if (typeof excerpt !== 'undefined') {
+            const normalizedExcerpt = String(excerpt || '').trim();
+            if (!normalizedExcerpt) {
+                return res.status(400).json({ message: 'Excerpt cannot be empty' });
+            }
+            updates.excerpt = normalizedExcerpt;
+        }
+
+        if (typeof category !== 'undefined') updates.category = category;
+        if (typeof tags !== 'undefined') updates.tags = parseListField(tags);
+        if (typeof keywords !== 'undefined') updates.keywords = parseListField(keywords);
+        if (typeof author !== 'undefined') updates.author = String(author || '').trim() || 'Real Estate Team';
+        if (typeof coverImage !== 'undefined') updates.coverImage = coverImage;
+        if (typeof seoTitle !== 'undefined') updates.seoTitle = seoTitle;
+        if (typeof seoDescription !== 'undefined') updates.seoDescription = seoDescription;
+
+        if (typeof readTime !== 'undefined') {
+            const parsedReadTime = Number(readTime);
+            updates.readTime = Number.isFinite(parsedReadTime) && parsedReadTime > 0 ? parsedReadTime : 5;
+        }
+
+        if (typeof published === 'boolean') {
+            updates.published = published;
+            if (published && !article.published) {
+                updates.publishedAt = new Date();
+            }
+        }
+
+        const updatedArticle = await Article.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true, runValidators: true }
+        );
+
+        res.json(updatedArticle);
     } catch (error) {
+        console.error('Error updating article:', error);
+        if (error?.code === 11000) {
+            return res.status(409).json({ message: 'An article with this title already exists' });
+        }
         res.status(500).json({ message: error.message });
     }
 });

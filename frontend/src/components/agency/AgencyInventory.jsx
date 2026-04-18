@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Building2, Plus, Edit, Trash2, MapPin, Upload, FileText, X as CloseIcon, Save, Bot } from 'lucide-react';
 import AnimatedCounter from '../common/AnimatedCounter';
 
+const INVENTORY_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop';
+
 const AgencyInventory = ({ 
     properties, 
     showPropForm, 
@@ -188,7 +190,15 @@ const AgencyInventory = ({
                             <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
                                 {propData.images.map((img, i) => (
                                     <div key={i} style={{ position: 'relative', width: '60px', height: '60px' }}>
-                                        <img src={getImageUrl(img)} style={{ width: '100%', height: '100%', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border)' }} alt="" />
+                                        <img
+                                            src={getImageUrl(img)}
+                                            onError={(event) => {
+                                                event.currentTarget.onerror = null;
+                                                event.currentTarget.src = INVENTORY_FALLBACK_IMAGE;
+                                            }}
+                                            style={{ width: '100%', height: '100%', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border)' }}
+                                            alt=""
+                                        />
                                         <button
                                             type="button"
                                             onClick={() => setPropData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))}
@@ -233,7 +243,15 @@ const AgencyInventory = ({
                     .map(p => (
                     <div key={p._id} className="glass-card animate-fade" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface)' }}>
                         <div style={{ height: '180px', position: 'relative' }}>
-                            <img src={getImageUrl(p.images[0])} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                            <img
+                                src={getImageUrl(p.images[0])}
+                                onError={(event) => {
+                                    event.currentTarget.onerror = null;
+                                    event.currentTarget.src = INVENTORY_FALLBACK_IMAGE;
+                                }}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                alt=""
+                            />
                             <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '5px' }}>
                                 {p.isApproved && <div style={{ background: '#10b981', color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '0.65rem', fontWeight: '800' }}>APPROVED</div>}
                                 <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '800' }}>{p.status}</div>

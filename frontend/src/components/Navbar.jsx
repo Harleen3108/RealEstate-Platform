@@ -52,7 +52,7 @@ const Navbar = () => {
     if (location.pathname.startsWith('/dashboard')) return null;
 
     const isMobile = windowWidth <= 768;
-    const navHeight = isMobile ? '70px' : '90px';
+    const navHeight = isMobile ? '54px' : '68px';
 
     return (
         <>
@@ -117,6 +117,16 @@ const Navbar = () => {
                             paddingBottom: '2px'
                         }}>
                             <Search size={18} /> Find Property
+                        </Link>
+
+                        <Link to="/about" style={{ 
+                            textDecoration: 'none', 
+                            fontSize: '1rem', 
+                            fontWeight: '700', 
+                            color: 'var(--text)', 
+                            paddingBottom: '2px'
+                        }}>
+                            About Us
                         </Link>
 
                         {user && (
@@ -314,6 +324,9 @@ const Navbar = () => {
                         </Link>
                         <Link to="/marketplace" className="mobile-menu-item">
                             <LayoutGrid size={20} /> Properties
+                        </Link>
+                        <Link to="/about" className="mobile-menu-item">
+                            <Info size={20} /> About Us
                         </Link>
                     </div>
                 </div>

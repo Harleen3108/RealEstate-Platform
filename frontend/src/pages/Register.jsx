@@ -8,7 +8,7 @@ const Register = () => {
         name: '',
         email: '',
         password: '',
-        role: 'Buyer',
+        role: 'buyer',
         phoneNumber: ''
     });
     const [showPassword, setShowPassword] = useState(false);
@@ -18,10 +18,10 @@ const Register = () => {
 
     React.useEffect(() => {
         if (!loading && user) {
-            const role = user.role;
-            if (role === 'Agency') navigate('/dashboard/agency');
-            else if (role === 'Investor') navigate('/dashboard/investor');
-            else if (role === 'Admin') navigate('/dashboard/admin');
+            const role = (user.role || '').toLowerCase();
+            if (role === 'agency') navigate('/dashboard/agency');
+            else if (role === 'investor') navigate('/dashboard/investor');
+            else if (role === 'admin') navigate('/dashboard/admin');
             else navigate('/dashboard/buyer');
         }
     }, [user, loading, navigate]);
@@ -30,9 +30,10 @@ const Register = () => {
         e.preventDefault();
         try {
             const data = await register(formData);
-            if (data.role === 'Agency') navigate('/dashboard/agency');
-            else if (data.role === 'Investor') navigate('/dashboard/investor');
-            else if (data.role === 'Admin') navigate('/dashboard/admin');
+            const role = (data.role || '').toLowerCase();
+            if (role === 'agency') navigate('/dashboard/agency');
+            else if (role === 'investor') navigate('/dashboard/investor');
+            else if (role === 'admin') navigate('/dashboard/admin');
             else navigate('/dashboard/buyer');
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed');
@@ -42,10 +43,10 @@ const Register = () => {
     if (loading) return null;
 
     const roles = [
-        { id: 'Buyer', label: 'Buyer', desc: 'Find your home' },
-        { id: 'Agency', label: 'Agency', desc: 'Manage listings' },
-        { id: 'Investor', label: 'Investor', desc: 'Track portfolios' },
-        { id: 'Admin', label: 'Admin', desc: 'System control' }
+        { id: 'buyer', label: 'Buyer', desc: 'Find your home' },
+        { id: 'agency', label: 'Agency', desc: 'Manage listings' },
+        { id: 'investor', label: 'Investor', desc: 'Track portfolios' },
+        { id: 'admin', label: 'Admin', desc: 'System control' }
     ];
 
     return (

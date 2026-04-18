@@ -14,6 +14,13 @@ const buildTourPayload = (body = {}) => ({
   message: body.message || '',
 });
 
+router.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Schedule tour endpoint is available',
+  });
+});
+
 router.post('/', async (req, res) => {
   try {
     const payload = buildTourPayload(req.body);

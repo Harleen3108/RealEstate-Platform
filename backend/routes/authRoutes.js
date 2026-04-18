@@ -11,6 +11,7 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 router.post('/register', async (req, res) => {
     const { name, email, password, role, phoneNumber } = req.body;
+    const normalizedRole = typeof role === 'string' ? role.toLowerCase() : role;
     console.log(`Registration attempt for: ${email}`);
     try {
         const userExists = await User.findOne({ email });
@@ -20,7 +21,7 @@ router.post('/register', async (req, res) => {
         }
 
         console.log('Creating user...');
-        const user = await User.create({ name, email, password, role, phoneNumber });
+        const user = await User.create({ name, email, password, role: normalizedRole, phoneNumber });
         console.log('User created successfully');
         res.status(201).json({
             _id: user._id,

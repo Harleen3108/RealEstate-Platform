@@ -28,10 +28,12 @@ const ArticlesBlog = () => {
             }
 
             const { data } = await axios.get(url);
-            setArticles(data.articles);
-            setTotalPages(data.pagination.pages);
+            setArticles(data.articles || []);
+            setTotalPages(data.pagination?.pages || 1);
         } catch (error) {
             console.error('Error fetching articles:', error);
+            setArticles([]);
+            setTotalPages(1);
         } finally {
             setLoading(false);
         }
@@ -51,18 +53,20 @@ const ArticlesBlog = () => {
             setCurrentPage(1);
         } catch (error) {
             console.error('Error searching articles:', error);
+            setArticles([]);
+            setTotalPages(1);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={{ background: 'var(--background)', minHeight: '100vh', paddingTop: '80px' }}>
+        <div style={{ background: 'var(--background)', minHeight: '100vh' }}>
             {/* Header */}
             <div style={{
                 background: 'linear-gradient(135deg, var(--navy) 0%, rgba(15,23,42,0.9) 100%)',
                 color: '#F8FAFC',
-                padding: 'clamp(3rem, 8vw, 5rem) 1.5rem',
+                padding: 'calc(clamp(3rem, 8vw, 5rem) + 75px) 1.5rem clamp(3rem, 8vw, 5rem)',
                 textAlign: 'center',
                 borderBottom: '1px solid var(--border)'
             }}>
@@ -70,6 +74,7 @@ const ArticlesBlog = () => {
                     <h1 style={{
                         fontSize: 'clamp(2rem, 6vw, 3.5rem)',
                         fontWeight: '800',
+                        color: '#F8FAFC',
                         marginBottom: '1rem',
                         letterSpacing: '-0.02em'
                     }}>
@@ -193,7 +198,7 @@ const ArticlesBlog = () => {
                         padding: '4rem 1.5rem',
                         color: 'var(--text-muted)'
                     }}>
-                        No articles found. Check back soon!
+                        No published articles found. Admin can add or publish articles from Dashboard to Admin to Articles.
                     </div>
                 ) : (
                     <>
