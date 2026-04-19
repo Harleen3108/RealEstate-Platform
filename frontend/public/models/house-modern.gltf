@@ -1,0 +1,101 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "MillionaireClub-DemoModelGenerator"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "scale": [
+        1.3,
+        1.05,
+        1.2
+      ]
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0
+          },
+          "indices": 1,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.82,
+          0.82,
+          0.86,
+          1
+        ],
+        "metallicFactor": 0.12,
+        "roughnessFactor": 0.62
+      }
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "data:application/octet-stream;base64,AACAvwAAAAAAAIC/AACAPwAAAAAAAIC/AACAPwAAAAAAAIA/AACAvwAAAAAAAIA/AACAv5qZmT8AAIC/AACAP5qZmT8AAIC/AACAP5qZmT8AAIA/AACAv5qZmT8AAIA/AAAAAGZm5j8AAIC/AAAAAGZm5j8AAIA/AAABAAUAAAAFAAQAAQACAAYAAQAGAAUAAgADAAcAAgAHAAYAAwAAAAQAAwAEAAcABAAIAAkABAAJAAcABQAGAAkABQAJAAgABAAFAAgABwAJAAYAAAADAAIAAAACAAEA",
+      "byteLength": 216
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 120,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 120,
+      "byteLength": 96,
+      "target": 34963
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 10,
+      "type": "VEC3",
+      "min": [
+        -1,
+        0,
+        -1
+      ],
+      "max": [
+        1,
+        1.8,
+        1
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5123,
+      "count": 48,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        9
+      ]
+    }
+  ]
+}

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
 import { MapPin, Bed, Bath, Move, CheckCircle2, CheckCircle, Building2, Phone, Mail, ArrowLeft, Heart, Share2, ShieldCheck, Info, Home, MessageCircle, User, ChevronRight, Layout } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PropertyEstimationCard from '../components/estimation/PropertyEstimationCard';
 import PackersMoversSection from '../components/common/PackersMoversSection';
+import Property3DTourModal from '../components/common/Property3DTourModal';
 
 const PLACEHOLDER_IMAGE =
         "data:image/svg+xml;charset=UTF-8," +
@@ -28,11 +29,13 @@ const PLACEHOLDER_IMAGE =
 const PropertyDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user } = useAuth();
     const [property, setProperty] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isSaved, setIsSaved] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
+    const [is3DTourOpen, setIs3DTourOpen] = useState(false);
     
     // Enquiry Form State
     const [formData, setFormData] = useState({
@@ -67,6 +70,13 @@ const PropertyDetail = () => {
         };
         fetchProperty();
     }, [id, user]);
+
+    useEffect(() => {
+        const shouldOpenTour = searchParams.get('tour3d');
+        if (shouldOpenTour === '1' || shouldOpenTour === 'true') {
+            setIs3DTourOpen(true);
+        }
+    }, [searchParams]);
 
     const toggleSave = async () => {
         if (!user) return navigate('/login');
@@ -114,6 +124,20 @@ const PropertyDetail = () => {
     const handleImageError = (event) => {
         event.currentTarget.onerror = null;
         event.currentTarget.src = PLACEHOLDER_IMAGE;
+    };
+
+    const open3DTour = () => {
+        setIs3DTourOpen(true);
+    };
+
+    const close3DTour = () => {
+        setIs3DTourOpen(false);
+
+        if (searchParams.get('tour3d')) {
+            const next = new URLSearchParams(searchParams);
+            next.delete('tour3d');
+            setSearchParams(next, { replace: true });
+        }
     };
 
     const getEmbedUrl = (url) => {
@@ -238,6 +262,37 @@ const PropertyDetail = () => {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', fontWeight: '700' }}>
                                         <MapPin size={18} /> {property.location}
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={open3DTour}
+                                        style={{
+                                            marginTop: '1rem',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            borderRadius: '12px',
+                                            border: '1px solid #334155',
+                                            background: '#0F172A',
+                                            color: '#e2e8f0',
+                                            padding: '0.7rem 1rem',
+                                            fontWeight: '800',
+                                            fontSize: '0.85rem',
+                                            letterSpacing: '0.02em',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            boxShadow: '0 12px 24px rgba(2, 6, 23, 0.35)'
+                                        }}
+                                        onMouseOver={(event) => {
+                                            event.currentTarget.style.borderColor = '#f59e0b';
+                                            event.currentTarget.style.color = '#fbbf24';
+                                        }}
+                                        onMouseOut={(event) => {
+                                            event.currentTarget.style.borderColor = '#334155';
+                                            event.currentTarget.style.color = '#e2e8f0';
+                                        }}
+                                    >
+                                        <Layout size={15} /> View 3D Tour
+                                    </button>
                                 </div>
                                 <div style={{ textAlign: window.innerWidth > 768 ? 'right' : 'left' }}>
                                     <div style={{ fontSize: window.innerWidth > 768 ? '2rem' : '1.8rem', fontWeight: '900', color: 'var(--primary)' }}>
@@ -411,6 +466,13 @@ const PropertyDetail = () => {
                     </div>
                 </div>
             </div>
+
+            <Property3DTourModal
+                open={is3DTourOpen}
+                onClose={close3DTour}
+                property={property}
+                modelPath={property?.threeDModelUrl || '/models/house.glb'}
+            />
         </div>
     );
 };

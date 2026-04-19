@@ -38,6 +38,11 @@ const AddProperty = () => {
         amenities: '',
         status: 'Available',
         images: [],
+        threeDModelUrl: '',
+        threeDModelImages: [],
+        tour360Url: '',
+        tour360Images: [],
+        tour360RoomNames: [],
         documents: []
     });
 
@@ -98,22 +103,32 @@ const AddProperty = () => {
     };
 
     const handleFileUpload = async (e, type) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
 
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const { data } = await axios.post(`${API_BASE_URL}/upload`, formData);
-            if (type === 'image') {
-                setPropData(prev => ({ ...prev, images: [...prev.images, data.url] }));
-            } else {
-                setPropData(prev => ({ ...prev, documents: [...prev.documents, data.url] }));
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const { data } = await axios.post(`${API_BASE_URL}/upload`, formData);
+                if (type === 'image') {
+                    setPropData(prev => ({ ...prev, images: [...prev.images, data.url] }));
+                } else if (type === 'model') {
+                    setPropData(prev => ({ ...prev, threeDModelUrl: data.url }));
+                } else if (type === 'panorama') {
+                    setPropData(prev => ({
+                        ...prev,
+                        tour360Images: [...(prev.tour360Images || []), data.url],
+                        tour360RoomNames: [...(prev.tour360RoomNames || []), `Scene ${(prev.tour360Images || []).length + 1}`],
+                    }));
+                } else if (type === 'doc') {
+                    setPropData(prev => ({ ...prev, documents: [...prev.documents, data.url] }));
+                }
+            } catch {
+                alert('File upload failed');
             }
-        } catch (error) {
-            alert('File upload failed');
         }
+        e.target.value = '';
     };
 
     const handleSubmit = async (e) => {
@@ -290,7 +305,7 @@ const AddProperty = () => {
                                 <div style={{ marginBottom: '1rem' }}>
                                     <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                                         <Upload size={16} /> Upload Images
-                                        <input type="file" hidden onChange={e => handleFileUpload(e, 'image')} />
+                                        <input type="file" accept="image/*" multiple hidden onChange={e => handleFileUpload(e, 'image')} />
                                     </label>
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -309,6 +324,66 @@ const AddProperty = () => {
                                 </div>
                             </div>
                             <div>
+                                <div style={{ marginBottom: '0.5rem', fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)' }}>360° Virtual Tour</div>
+
+                                <div style={{ marginBottom: '0.75rem' }}>
+                                    <input
+                                        type="url"
+                                        className="input-control"
+                                        placeholder="Matterport / Kuula URL (optional, overrides uploads)"
+                                        value={propData.tour360Url || ''}
+                                        onChange={e => setPropData({ ...propData, tour360Url: e.target.value })}
+                                        style={{ background: 'var(--surface-light)', color: 'var(--text)', width: '100%' }}
+                                    />
+                                    <small style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+                                        Paste a Matterport, Kuula, Momento360, or Theta360 share URL to embed the real walkthrough.
+                                    </small>
+                                </div>
+
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                        <Upload size={16} /> Upload 360° Panoramas
+                                        <input type="file" accept="image/*" multiple hidden onChange={e => handleFileUpload(e, 'panorama')} />
+                                    </label>
+                                    <small style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: '6px' }}>
+                                        Upload as many equirectangular (2:1) photospheres as you like. Each becomes a scene the buyer can walk between.
+                                    </small>
+                                </div>
+
+                                {(propData.tour360Images || []).length > 0 && (
+                                    <div style={{ display: 'grid', gap: '8px', marginBottom: '1rem' }}>
+                                        {(propData.tour360Images || []).map((img, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--surface-light)' }}>
+                                                <img src={getImageUrl(img)} alt="" style={{ width: '56px', height: '56px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }} />
+                                                <input
+                                                    type="text"
+                                                    className="input-control"
+                                                    value={propData.tour360RoomNames?.[i] || ''}
+                                                    onChange={e => setPropData(prev => {
+                                                        const names = [...(prev.tour360RoomNames || [])];
+                                                        names[i] = e.target.value;
+                                                        return { ...prev, tour360RoomNames: names };
+                                                    })}
+                                                    placeholder={`Scene ${i + 1} label (e.g. Living Room)`}
+                                                    style={{ background: 'var(--surface)', color: 'var(--text)', flex: 1, fontSize: '0.8rem', padding: '0.5rem 0.7rem' }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPropData(prev => ({
+                                                        ...prev,
+                                                        tour360Images: (prev.tour360Images || []).filter((_, idx) => idx !== i),
+                                                        tour360RoomNames: (prev.tour360RoomNames || []).filter((_, idx) => idx !== i),
+                                                    }))}
+                                                    style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--error)', color: 'white', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                                                    aria-label="Remove panorama"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <div style={{ marginBottom: '1rem' }}>
                                     <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                                         <FileText size={16} /> Property Documents

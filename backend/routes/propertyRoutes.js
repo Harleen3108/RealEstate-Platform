@@ -153,6 +153,8 @@ router.put('/:id', protect, authorize('Agency', 'Admin'), async (req, res) => {
             if (req.body.images) property.markModified('images');
             if (req.body.amenities) property.markModified('amenities');
             if (req.body.documents) property.markModified('documents');
+            if (req.body.tour360Images) property.markModified('tour360Images');
+            if (req.body.tour360RoomNames) property.markModified('tour360RoomNames');
 
             const updatedProperty = await property.save();
             res.json(updatedProperty);

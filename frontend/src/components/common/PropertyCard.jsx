@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Bed, Bath, Move, CalendarDays } from 'lucide-react';
+import { MapPin, Bed, Bath, Move, CalendarDays, Cuboid } from 'lucide-react';
 import { BACKEND_URL } from '../../apiConfig';
 import { formatINR, titleCase, resolveImage, FALLBACK_IMAGE } from '../../utils/format';
 
@@ -70,6 +70,13 @@ const PropertyCard = ({
             className={`lx-card__cta ${isInvestment ? 'lx-card__cta--solid' : ''}`}
           >
             {gated ? 'Login to Continue' : ctaLabel}
+          </Link>
+
+          <Link
+            to={`/property/${property._id}?tour3d=1`}
+            className="lx-card__cta lx-card__cta--ghost"
+          >
+            <Cuboid size={14} /> View 3D Tour
           </Link>
 
           <button

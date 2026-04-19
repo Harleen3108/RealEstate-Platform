@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull *)",
+      "Bash(npx vite *)",
+      "Bash(curl -s \"https://api.polyhaven.com/files/wooden_lounge\")",
+      "Bash(curl -s -I -H \"Origin: http://localhost:5173\" \"https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/wooden_lounge.jpg\")"
+    ]
+  }
+}

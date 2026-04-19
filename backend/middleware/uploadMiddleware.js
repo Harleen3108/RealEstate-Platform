@@ -19,16 +19,17 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5000000 }, // 5MB limit
+    limits: { fileSize: 25000000 }, // 25MB limit for high-quality images and 3D models
     fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|pdf|doc|docx/;
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = filetypes.test(file.mimetype);
+        const ext = path.extname(file.originalname).toLowerCase();
+        const imageDocExt = /\.(jpeg|jpg|png|pdf|doc|docx)$/;
+        const modelExt = /\.(glb|gltf)$/;
+        const mimeOk = /image\/jpeg|image\/jpg|image\/png|application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|model\/gltf-binary|model\/gltf\+json|application\/octet-stream/.test(file.mimetype);
 
-        if (mimetype && extname) {
+        if ((imageDocExt.test(ext) || modelExt.test(ext)) && mimeOk) {
             return cb(null, true);
         } else {
-            cb('Error: Only images (jpeg, jpg, png) and documents (pdf, doc, docx) are allowed!');
+            cb('Error: Only images (jpeg, jpg, png), documents (pdf, doc, docx), and 3D files (glb, gltf) are allowed!');
         }
     }
 });

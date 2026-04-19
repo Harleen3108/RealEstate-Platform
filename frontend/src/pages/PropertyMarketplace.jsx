@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_BASE_URL, { BACKEND_URL } from '../apiConfig';
-import { Search, MapPin, Home, Heart, ArrowRight, Bed, Bath, Bot, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, MapPin, Home, Heart, ArrowRight, Bed, Bath, Bot, TrendingUp, TrendingDown, Cuboid } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ScheduleTourModal from '../components/common/ScheduleTourModal';
@@ -162,7 +162,24 @@ const PropertyMarketplace = ({ compact = false }) => {
 
     const filteredProperties = properties.filter(p => {
         const agencyMatch = filters.agency === '' || p.agency?._id === filters.agency;
-        const locationMatch = filters.location === '' || p.location.toLowerCase().includes(filters.location.toLowerCase());
+        const searchText = filters.location.trim().toLowerCase();
+        const searchableText = [
+            p.title,
+            p.location,
+            p.city,
+            p.state,
+            p.builder,
+            p.propertyType,
+        ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        const searchTokens = searchText.split(/[\s,]+/).filter(Boolean);
+        const locationMatch =
+            searchText === '' ||
+            searchableText.includes(searchText) ||
+            searchTokens.every(token => searchableText.includes(token));
         const typeMatch = filters.type === '' || p.propertyType === filters.type;
         const priceMatch = (filters.minPrice === '' || p.price >= Number(filters.minPrice)) && (filters.maxPrice === '' || p.price <= Number(filters.maxPrice));
         const propertyState = inferStateFromProperty(p);
@@ -437,6 +454,13 @@ const PropertyMarketplace = ({ compact = false }) => {
                                 <div style={{ display: 'grid', gap: '0.75rem' }}>
                                     <Link to={`/property/${property._id}`} className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '800' }}>
                                         View Details <ArrowRight size={18} />
+                                    </Link>
+                                    <Link
+                                        to={`/property/${property._id}?tour3d=1`}
+                                        className="btn btn-outline"
+                                        style={{ width: '100%', padding: '0.9rem', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '800' }}
+                                    >
+                                        <Cuboid size={18} /> View 3D Tour
                                     </Link>
                                     <button
                                         type="button"
