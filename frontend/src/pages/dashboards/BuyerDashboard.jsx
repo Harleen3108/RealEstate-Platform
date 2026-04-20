@@ -71,12 +71,20 @@ const BuyerDashboard = () => {
 
     return (
         <div className="animate-fade">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+            <div className="dash-header">
                 <div>
-                    <h2 style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '0.4rem' }}>Buyer <span className="text-gradient">Console</span></h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Manage your interests and property tracklist</p>
+                    <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.2rem)', fontWeight: '800', marginBottom: '0.4rem' }}>Buyer <span className="text-gradient">Console</span></h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.85rem, 2vw, 1rem)' }}>Manage your interests and property tracklist</p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.4rem', borderRadius: '12px' }}>
+                <div style={{ 
+                    display: 'flex', 
+                    gap: '0.4rem', 
+                    background: 'var(--surface-light)', 
+                    border: '1px solid var(--border)', 
+                    padding: '0.4rem', 
+                    borderRadius: '12px',
+                    flexWrap: 'wrap'
+                }}>
                     {tabs.map(t => (
                         <button 
                             key={t.id}

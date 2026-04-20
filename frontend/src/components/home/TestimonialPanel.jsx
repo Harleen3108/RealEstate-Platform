@@ -3,11 +3,18 @@ import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
 const testimonials = [
   {
-    name: 'Aarav and Meera Shah',
+    name: 'Aarav Shah',
+    location: 'Mumbai',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1200&auto=format&fit=crop',
+    quote:
+      'Finding our dream home felt effortless with Millionaire Club. The listings felt carefully curated, and the guidance felt discreet, responsive, and genuinely premium.',
+  },
+  {
+    name: 'Meera Shah',
     location: 'Mumbai',
     image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop',
     quote:
-      'Finding our dream home felt effortless with Millionaire Club. The listings felt carefully curated, and the guidance felt discreet, responsive, and genuinely premium.',
+      'The platform made it easy to compare premium homes without feeling overwhelmed by clutter or noise. We loved the balance of trust and taste.',
   },
   {
     name: 'Riya Malhotra',
@@ -17,11 +24,18 @@ const testimonials = [
       'The experience was calm, refined, and incredibly efficient. Every interaction felt tailored to the way a luxury property search should work.',
   },
   {
-    name: 'Karan and Nisha Bhatia',
+    name: 'Karan Bhatia',
+    location: 'Gurgaon',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop',
+    quote:
+      'Millionaire Club is a unified platform for luxury property discovery and professional portfolio tracking. The guidance felt discreet and responsive.',
+  },
+  {
+    name: 'Nisha Bhatia',
     location: 'Gurgaon',
     image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1200&auto=format&fit=crop',
     quote:
-      'We loved the balance of trust and taste. The platform made it easy to compare premium homes without feeling overwhelmed by clutter or noise.',
+      'We loved the attention to detail and the curated feel of every listing. It is the gold standard for premium real estate platforms.',
   },
 ];
 

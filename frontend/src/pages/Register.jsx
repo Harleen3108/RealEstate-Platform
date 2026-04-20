@@ -140,7 +140,7 @@ const Register = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="register-2col">
                             <div className="input-group">
                                 <label style={{ display: 'block', color: 'var(--text)', fontSize: '0.85rem', fontWeight: '700', marginBottom: '8px' }}>Email</label>
                                 <div style={{ position: 'relative' }}>

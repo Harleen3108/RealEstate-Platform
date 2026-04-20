@@ -434,14 +434,7 @@ const DashboardLayout = () => {
                     <Outlet />
                 </main>
 
-                <footer style={{ 
-                    padding: '1.5rem 2.5rem', 
-                    borderTop: '1px solid var(--border)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '0.75rem',
-                    color: 'var(--text-muted)'
-                }}>
+                <footer className="dash-footer">
                     <div>Avani Enterprises - Millionaire Club © 2026</div>
                     {/* <div style={{ letterSpacing: '0.5px', textTransform: 'uppercase' }}>Powered by DataStore Snapshot v2.0</div> */}
                 </footer>

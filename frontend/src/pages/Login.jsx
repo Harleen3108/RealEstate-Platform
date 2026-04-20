@@ -61,8 +61,7 @@ const Login = () => {
                     boxShadow: 'var(--shadow)',
                     background: 'var(--surface)',
                     border: '1px solid var(--border)',
-                    flexWrap: 'wrap',
-                    minHeight: window.innerWidth > 768 ? "550px" : "auto"
+                    flexWrap: 'wrap'
                 }}>
                     {/* Left Side - Hero Image */}
                     <div className="desktop-only" style={{ 

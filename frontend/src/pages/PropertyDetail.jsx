@@ -201,36 +201,28 @@ const PropertyDetail = () => {
 
             <div className="container">
                 {/* Image Grid - Masonry style */}
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: window.innerWidth > 768 ? '2fr 1fr 1fr' : '1fr', 
-                    gridTemplateRows: window.innerWidth > 768 ? 'repeat(2, 200px)' : 'auto', 
-                    gap: '12px', 
-                    borderRadius: '3px', 
-                    overflow: 'hidden', 
-                    marginBottom: '2rem' 
-                }}>
-                    <div style={{ gridRow: window.innerWidth > 768 ? 'span 2' : 'auto', height: window.innerWidth > 768 ? '100%' : '280px', background: 'var(--surface-light)' }}>
-                        <img src={getImageUrl(property.images?.[0])} onError={handleImageError} alt={property.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div className="pd-image-grid">
+                    <div className="pd-image-grid__hero">
+                        <img src={getImageUrl(property.images?.[0])} onError={handleImageError} alt={property.title} />
                     </div>
-                    {(window.innerWidth > 768) && property.images?.[1] && (
-                        <div>
-                            <img src={getImageUrl(property.images[1])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    {property.images?.[1] && (
+                        <div className="pd-image-grid__thumb">
+                            <img src={getImageUrl(property.images[1])} onError={handleImageError} alt="" />
                         </div>
                     )}
-                    {(window.innerWidth > 768) && property.images?.[2] && (
-                        <div>
-                            <img src={getImageUrl(property.images[2])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    {property.images?.[2] && (
+                        <div className="pd-image-grid__thumb">
+                            <img src={getImageUrl(property.images[2])} onError={handleImageError} alt="" />
                         </div>
                     )}
-                    {(window.innerWidth > 768) && property.images?.[3] && (
-                        <div>
-                            <img src={getImageUrl(property.images[3])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    {property.images?.[3] && (
+                        <div className="pd-image-grid__thumb">
+                            <img src={getImageUrl(property.images[3])} onError={handleImageError} alt="" />
                         </div>
                     )}
-                    {(window.innerWidth > 768) && property.images?.[4] ? (
-                        <div style={{ position: 'relative' }}>
-                            <img src={getImageUrl(property.images[4])} onError={handleImageError} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    {property.images?.[4] ? (
+                        <div className="pd-image-grid__thumb" style={{ position: 'relative' }}>
+                            <img src={getImageUrl(property.images[4])} onError={handleImageError} alt="" />
                             {property.images.length > 5 && (
                                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(249, 115, 22, 0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}>
                                     <Layout size={24} />
@@ -239,26 +231,22 @@ const PropertyDetail = () => {
                             )}
                         </div>
                     ) : (
-                        <div style={{ background: 'var(--surface-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', minHeight: '250px' }}>
+                        <div className="pd-image-grid__thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', minHeight: '250px' }}>
                             <Home size={40} />
                         </div>
                     )}
                 </div>
 
-                <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: window.innerWidth > 1024 ? '1fr 380px' : '1fr', 
-                    gap: '2rem' 
-                }}>
+                <div className="pd-layout">
                     {/* Left Column: Content */}
                     <div>
                         <div style={{ marginBottom: '2.5rem' }}>
                             <div style={{ background: '#ffedd5', color: '#f97316', padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', display: 'inline-block', marginBottom: '1rem' }}>
                                 {property.propertyType?.toUpperCase() || 'PREMIUM PROPERTY'}
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexDirection: window.innerWidth > 768 ? 'row' : 'column', gap: '1rem' }}>
+                            <div className="pd-title-row">
                                 <div>
-                                    <h1 style={{ fontSize: window.innerWidth > 768 ? '2.5rem' : '1.8rem', fontWeight: '900', color: 'var(--text)', marginBottom: '0.5rem' }}>{property.title}</h1>
+                                    <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: '900', color: 'var(--text)', marginBottom: '0.5rem' }}>{property.title}</h1>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', fontWeight: '700' }}>
                                         <MapPin size={18} /> {property.location}
                                     </div>
@@ -294,8 +282,8 @@ const PropertyDetail = () => {
                                         <Layout size={15} /> View 3D Tour
                                     </button>
                                 </div>
-                                <div style={{ textAlign: window.innerWidth > 768 ? 'right' : 'left' }}>
-                                    <div style={{ fontSize: window.innerWidth > 768 ? '2rem' : '1.8rem', fontWeight: '900', color: 'var(--primary)' }}>
+                                <div className="text-left-mobile" style={{ textAlign: 'right' }}>
+                                    <div style={{ fontSize: 'clamp(1.8rem, 4vw, 2rem)', fontWeight: '900', color: 'var(--primary)' }}>
                                         ₹{property.price?.toLocaleString()}
                                     </div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>per month / total</div>
@@ -304,7 +292,7 @@ const PropertyDetail = () => {
                         </div>
 
                         {/* Quick Stats */}
-                        <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth > 600 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', marginBottom: '3rem' }}>
+                        <div className="pd-stats-grid">
                             {[
                                 { icon: Home, label: 'SQUARE FEET', value: `${property.size} SQFT`, color: 'var(--primary)' },
                                 { icon: Bed, label: 'BEDROOMS', value: `${property.bedrooms} Beds`, color: 'var(--primary)' },
@@ -327,7 +315,7 @@ const PropertyDetail = () => {
                         {/* Amenities */}
                         <div style={{ marginBottom: '3rem' }}>
                             <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text)', marginBottom: '1.5rem' }}>Key Amenities</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth > 600 ? 'repeat(3, 1fr)' : 'repeat(1, 1fr)', gap: '1.2rem' }}>
+                            <div className="pd-amenities-grid">
                                 {property.amenities?.map((amenity, i) => (
                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem', background: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                                         <div style={{ background: 'var(--surface-light)', padding: '8px', borderRadius: '8px', color: 'var(--primary)' }}>
@@ -401,7 +389,7 @@ const PropertyDetail = () => {
                     </div>
 
                     {/* Right Column: Sticky Sidebar */}
-                    <div style={{ position: window.innerWidth > 1024 ? 'sticky' : 'static', top: '2rem', height: 'fit-content' }}>
+                    <div className="pd-sidebar">
                         <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: '3px', boxShadow: 'var(--shadow)', border: '1px solid var(--border)' }}>
                             <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text)', marginBottom: '4px' }}>Express Interest</h3>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>Schedule a visit to get more details.</p>

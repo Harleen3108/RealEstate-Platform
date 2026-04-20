@@ -202,12 +202,7 @@ const ArticlesBlog = () => {
                     </div>
                 ) : (
                     <>
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                            gap: '2rem',
-                            marginBottom: '3rem'
-                        }}>
+                        <div className="blog-grid">
                             {articles.map((article) => (
                                 <ArticleCard
                                     key={article._id}

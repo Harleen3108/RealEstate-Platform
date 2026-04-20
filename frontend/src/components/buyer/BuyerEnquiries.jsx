@@ -13,8 +13,8 @@ const BuyerEnquiries = ({ enquiries }) => {
 
     if (enquiries.length === 0) {
         return (
-            <div className="glass-card" style={{ padding: '2.5rem', background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-muted)' }}>
+            <div className="glass-card" style={{ padding: 'clamp(1rem, 5vw, 2.5rem)', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <div style={{ textAlign: 'center', padding: 'clamp(2rem, 10vw, 5rem)', color: 'var(--text-muted)' }}>
                     <MessageCircle size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
                     <p>You haven't initiated any property enquiries yet.</p>
                     <Link to="/marketplace" className="btn btn-outline" style={{ marginTop: '1.5rem' }}>View Assets</Link>
@@ -24,7 +24,7 @@ const BuyerEnquiries = ({ enquiries }) => {
     }
 
     return (
-        <div className="glass-card" style={{ padding: '2.5rem', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="glass-card" style={{ padding: 'clamp(1rem, 5vw, 2.5rem)', background: 'var(--surface)', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {windowWidth > 768 && (
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr', padding: '1rem 1.5rem', opacity: 0.8, fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-muted)', background: 'var(--surface-light)', borderRadius: '8px', marginBottom: '1rem' }}>

@@ -842,13 +842,7 @@ const AdminDashboard = () => {
               >
                 Market Overview
               </h4>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: windowWidth > 600 ? "repeat(auto-fit, minmax(180px, 1fr))" : "1fr",
-                  gap: "1rem",
-                }}
-              >
+              <div className="dash-grid" style={{ gap: "1rem" }}>
                 {[
                   {
                     label: "Total Assets Value",
@@ -2033,11 +2027,10 @@ const AdminDashboard = () => {
         <div className="animate-fade">
           {/* Header with Stats */}
           <div
+            className="dash-grid"
             style={{
-              display: "grid",
-              gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
-              gap: "1rem",
               marginBottom: "1.5rem",
+              gap: "1rem",
             }}
           >
             {[
@@ -6542,12 +6535,12 @@ const AdminDashboard = () => {
       {/* Onboarding & Payment Tracker Tab */}
       {activeTab === "tracker" && permissions.canViewTracker && (
         <div className="animate-fade">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+          <div className="dash-header">
             <div>
-              <h2 style={{ fontSize: '2rem', fontWeight: '900', marginBottom: '0.4rem', letterSpacing: '-0.5px' }}>
+              <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: '900', marginBottom: '0.4rem', letterSpacing: '-0.5px' }}>
                 Onboarding & Payment Tracker
               </h2>
-              <p style={{ color: 'var(--text-muted)' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.85rem, 2vw, 1rem)' }}>
                 Monitor client onboarding lifecycle and financial settlement metrics.
               </p>
             </div>
@@ -6582,7 +6575,7 @@ const AdminDashboard = () => {
             )}
           </div>
 
-          <div className="glass-card" style={{ padding: '0', background: 'var(--surface)', border: '1px solid var(--border)', overflowX: 'auto' }}>
+          <div className="table-container">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead style={{ background: 'var(--surface-light)' }}>
                 <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
@@ -6653,23 +6646,25 @@ const AdminDashboard = () => {
           {/* Tracker Insights Banner */}
           <div style={{ 
             marginTop: '2.5rem', 
-            padding: '2.5rem', 
+            padding: 'clamp(1.5rem, 5vw, 2.5rem)', 
             borderRadius: '1.5rem', 
             background: 'linear-gradient(90deg, #1e293b, #0f172a)',
             border: '1px solid var(--border)',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1.5rem'
           }}>
-            <div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '0.5rem', color: 'white' }}>Revenue Synchronization</h3>
+            <div style={{ flex: '1 1 300px' }}>
+              <h3 style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: '800', marginBottom: '0.5rem', color: 'white' }}>Revenue Synchronization</h3>
               <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>
                 All collected amounts are automatically verified against bank statements every 12 hours.
               </p>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: windowWidth <= 600 ? 'left' : 'right', flex: '1 1 200px' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Outstanding</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#ef4444' }}>
+              <div style={{ fontSize: 'clamp(1.5rem, 5vw, 1.8rem)', fontWeight: '900', color: '#ef4444' }}>
                 ₹{leads.reduce((acc, lead) => acc + (lead.paymentDetails?.balanceDue || 0), 0).toLocaleString()}
               </div>
             </div>

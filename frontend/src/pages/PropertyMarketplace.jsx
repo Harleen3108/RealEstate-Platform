@@ -321,7 +321,7 @@ const PropertyMarketplace = ({ compact = false }) => {
                     <div className="animate-pulse" style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>Scanning marketplace...</div>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: compact ? 'repeat(auto-fill, minmax(280px, 1fr))' : 'repeat(auto-fill, minmax(350px, 1fr))', gap: compact ? '1.5rem' : '2.5rem' }}>
+                <div className={compact ? 'mp-grid mp-grid--compact' : 'mp-grid'}>
                     {filteredProperties.map(property => {
                         const isSaved = savedIds.includes(property._id);
                         return (

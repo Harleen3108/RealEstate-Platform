@@ -114,11 +114,13 @@ const Home = () => {
       <section
         style={{
           position: 'relative',
-          height: 'clamp(560px, 88vh, 780px)',
+          minHeight: 'clamp(560px, 88vh, 780px)',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
           color: '#F8FAFC',
+          paddingTop: '80px',
+          paddingBottom: '2rem',
         }}
       >
         <video
@@ -371,7 +373,7 @@ const Home = () => {
         </div>
 
         <div style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
+          <div className="articles-grid">
             {articles.length > 0 ? (
               articles.slice(0, 3).map((article) => (
                 <ArticleCard key={article._id} article={article} compact />
@@ -455,7 +457,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+          <div className="tools-grid">
             {[
               { title: 'EMI Calculator', description: 'Plan monthly payments and compare affordability.', to: '/calculator/emi' },
               { title: 'Price Intelligence', description: 'Review market timing, confidence, and AI estimate context.', to: '/dashboard/agency/price-intelligence' },
@@ -486,7 +488,7 @@ const Home = () => {
             <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}>Properties by Bedroom</h2>
           </div>
 
-          <div className="bhk-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+          <div className="bhk-grid">
             {bhkCards.map(({ label, icon: Icon, query }) => {
               const bucket = bhkCounts[query] || [];
               return (
@@ -536,7 +538,7 @@ const Home = () => {
       </section>
 
       <footer style={{ background: 'var(--background)', borderTop: '1px solid var(--border)', padding: '4rem 0 2rem' }}>
-        <div className="container" style={{ display: 'grid', gap: '2.25rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+        <div className="container footer-grid">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
               <img src="/logo.png" alt="Millionaire Club" style={{ width: '38px', height: '38px', borderRadius: '4px' }} />

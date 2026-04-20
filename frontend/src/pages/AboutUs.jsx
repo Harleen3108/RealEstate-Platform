@@ -43,19 +43,11 @@ const AboutUs = () => {
       <div style={{ height: '75px' }} />
 
       {/* Brand Section */}
-      <section style={{
-        padding: '60px 40px',
-        maxWidth: '1400px',
-        margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '60px',
-        alignItems: 'center',
-      }}>
+      <section className="about-hero">
         {/* Title and Navigation */}
         <div>
           <h1 style={{
-            fontSize: '3.2rem',
+            fontSize: 'clamp(2rem, 5vw, 3.2rem)',
             fontWeight: '800',
             marginBottom: '40px',
             color: 'var(--text)',
@@ -181,7 +173,7 @@ const AboutUs = () => {
           gap: '24px',
         }}>
           <h2 style={{
-            fontSize: '2.8rem',
+            fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
             fontWeight: '800',
             color: 'var(--text)',
             lineHeight: '1.2',
@@ -223,11 +215,7 @@ const AboutUs = () => {
       </section>
 
       {/* About Us Details Section */}
-      <section style={{
-        padding: '100px 40px',
-        maxWidth: '1400px',
-        margin: '0 auto',
-      }}>
+      <section className="about-details">
         {/* Header */}
         <div style={{
           marginBottom: '60px',
@@ -244,7 +232,7 @@ const AboutUs = () => {
           </div>
 
           <h2 style={{
-            fontSize: '3rem',
+            fontSize: 'clamp(1.8rem, 4vw, 3rem)',
             fontWeight: '800',
             color: 'var(--text)',
             lineHeight: '1.2',

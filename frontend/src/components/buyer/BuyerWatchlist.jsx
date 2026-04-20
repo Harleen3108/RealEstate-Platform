@@ -12,7 +12,7 @@ const formatINR = (num) => {
 const BuyerWatchlist = ({ savedProperties, handleRemoveSaved, getImageUrl }) => {
     if (savedProperties.length === 0) {
         return (
-            <div className="glass-card" style={{ padding: '5rem', textAlign: 'center', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="glass-card" style={{ padding: 'clamp(2rem, 10vw, 5rem)', textAlign: 'center', background: 'var(--surface)', border: '1px solid var(--border)' }}>
                 <div style={{ width: '80px', height: '80px', background: 'var(--surface-light)', border: '1px solid var(--border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                     <Heart size={40} color="var(--primary)" style={{ opacity: 0.3 }} />
                 </div>
@@ -26,7 +26,7 @@ const BuyerWatchlist = ({ savedProperties, handleRemoveSaved, getImageUrl }) => 
     }
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div className="dash-grid">
             {savedProperties.map(p => (
                 <div key={p._id} className="glass-card animate-fade" style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '1rem' }}>
                     <div style={{ height: '180px', borderRadius: '12px', overflow: 'hidden', marginBottom: '1.2rem', position: 'relative' }}>
