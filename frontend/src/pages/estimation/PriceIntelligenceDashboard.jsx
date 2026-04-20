@@ -164,7 +164,7 @@ const PriceIntelligenceDashboard = () => {
             {activeTab === 'overview' && (
                 <div>
                     {/* Stat Cards */}
-                    <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 900 ? 'repeat(4, 1fr)' : windowWidth > 600 ? 'repeat(2, 1fr)' : '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 900 ? 'repeat(4, 1fr)' : 'repeat(2, minmax(0, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                         {statCards.map((card, i) => (
                             <div key={i} className="glass-card" style={{ padding: '1.2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: `${card.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

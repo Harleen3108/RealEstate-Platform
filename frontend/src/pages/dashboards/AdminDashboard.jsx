@@ -275,7 +275,7 @@ const AdminDashboard = () => {
       setStats(statsRes.data);
       setUsers(usersRes.data);
       setProperties(propertiesRes.data);
-      setLeads(leadsRes.data);
+      setLeads(Array.isArray(leadsRes.data) ? leadsRes.data : leadsRes.data.data || []);
       setLeadsAnalytics(leadsAnalyticsRes.data);
       setLoading(false);
     } catch (error) {
@@ -767,7 +767,7 @@ const AdminDashboard = () => {
   const totalLeadCount = leads.length;
 
   return (
-    <div className="animate-fade">
+    <div className="animate-fade" style={{ width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
       {/* Back Button for Detail Views */}
       {(selectedAgency || selectedUser || selectedLead) && (
         <button
@@ -822,7 +822,7 @@ const AdminDashboard = () => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: windowWidth > 1024 ? "minmax(0, 3fr) minmax(0, 1fr)" : "1fr",
+            gridTemplateColumns: windowWidth > 1024 ? "minmax(0, 3fr) minmax(0, 1fr)" : "minmax(0, 1fr)",
             gap: "1.2rem",
           }}
         >
@@ -1391,21 +1391,23 @@ const AdminDashboard = () => {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: windowWidth <= 768 ? "stretch" : "center",
               marginBottom: "2rem",
+              flexDirection: windowWidth <= 768 ? "column" : "row",
+              gap: "1rem",
             }}
           >
-            <div>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <h3
                 style={{
-                  fontSize: "1.8rem",
+                  fontSize: windowWidth <= 480 ? "1.4rem" : "1.8rem",
                   fontWeight: "800",
                   marginBottom: "0.4rem",
                 }}
               >
                 Agency Management
               </h3>
-              <p style={{ color: "var(--text-muted)" }}>
+              <p style={{ color: "var(--text-muted)", fontSize: windowWidth <= 480 ? "0.85rem" : "0.95rem" }}>
                 Oversee and regulate <AnimatedCounter value={activeAgencies.length} /> registered firms
                 across the network.
               </p>
@@ -1418,8 +1420,11 @@ const AdminDashboard = () => {
                   padding: "0.8rem 1.5rem",
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: "8px",
                   boxShadow: "0 10px 20px -5px rgba(194, 65, 12, 0.3)",
+                  whiteSpace: "nowrap",
+                  alignSelf: windowWidth <= 768 ? "stretch" : "auto",
                 }}
               >
                 <UserPlus size={18} />{" "}
@@ -1431,14 +1436,14 @@ const AdminDashboard = () => {
           {!selectedAgency ? (
             <div className="glass-card" style={{ padding: "0" }}>
               {showCreateAgency ? (
-                <div style={{ padding: windowWidth <= 768 ? "1rem" : "2rem" }} className="animate-fade">
+                <div style={{ padding: windowWidth <= 768 ? "0.5rem" : "2rem" }} className="animate-fade">
                   <form
                     onSubmit={handleCreateAgency}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
+                      gridTemplateColumns: windowWidth > 900 ? "repeat(2, minmax(0, 1fr))" : "1fr",
                       gap: windowWidth <= 768 ? "1rem" : "1.5rem",
-                      padding: windowWidth <= 768 ? "1.2rem" : "2rem",
+                      padding: windowWidth <= 480 ? "1rem" : windowWidth <= 768 ? "1.2rem" : "2rem",
                       background: "var(--surface-light)",
                       borderRadius: "12px",
                       border: "1px solid var(--border)",
@@ -1498,7 +1503,7 @@ const AdminDashboard = () => {
                         }
                       />
                     </div>
-                    <div style={{ gridColumn: "span 2" }}>
+                    <div style={{ gridColumn: "1 / -1" }}>
                       <button
                         type="submit"
                         className="btn btn-primary"
@@ -1747,7 +1752,7 @@ const AdminDashboard = () => {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: windowWidth > 1024 ? "minmax(0, 1fr) minmax(0, 2fr)" : "1fr",
+                    gridTemplateColumns: windowWidth > 1024 ? "minmax(0, 1fr) minmax(0, 2fr)" : "minmax(0, 1fr)",
                     gap: "2rem",
                   }}
                 >
@@ -2141,13 +2146,13 @@ const AdminDashboard = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: windowWidth > 1024 ? "1fr 300px" : "1fr",
+              gridTemplateColumns: windowWidth > 1024 ? "minmax(0, 1fr) 300px" : "minmax(0, 1fr)",
               gap: "1.2rem",
               alignItems: "start",
             }}
           >
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}
+              style={{ display: "flex", flexDirection: "column", gap: "1.2rem", minWidth: 0 }}
             >
               {/* Property Management Form */}
               {showPropForm && (
@@ -2698,8 +2703,8 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <div style={{ overflowX: "auto", width: "100%", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", minWidth: windowWidth <= 480 ? "520px" : "auto" }}>
                     <thead>
                       <tr
                         style={{
@@ -3285,8 +3290,8 @@ const AdminDashboard = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
-              gap: "1rem",
+              gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : "repeat(2, minmax(0, 1fr))",
+              gap: windowWidth <= 480 ? "0.75rem" : "1rem",
               marginBottom: "1.5rem",
             }}
           >
@@ -3416,7 +3421,7 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: windowWidth > 992 ? "minmax(0, 1fr) minmax(0, 2fr)" : "1fr",
+                  gridTemplateColumns: windowWidth > 992 ? "minmax(0, 1fr) minmax(0, 2fr)" : "minmax(0, 1fr)",
                   gap: "2rem",
                 }}
               >
@@ -4283,14 +4288,16 @@ const AdminDashboard = () => {
               {/* Table Header / Filters */}
               <div
                 style={{
-                  padding: "1.5rem",
+                  padding: windowWidth <= 480 ? "1rem" : "1.5rem",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                   borderBottom: "1px solid var(--border)",
+                  flexWrap: "wrap",
+                  gap: "0.75rem",
                 }}
               >
-                <div style={{ display: "flex", gap: "1rem" }}>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", width: "100%" }}>
                   <select
                     className="input-control"
                     value={userFilters.role}
@@ -4301,8 +4308,8 @@ const AdminDashboard = () => {
                       background: "var(--surface-light)",
                       border: "1px solid var(--border)",
                       color: "var(--text)",
-                      width: "auto",
-                      minWidth: "120px",
+                      flex: "1 1 110px",
+                      minWidth: 0,
                       padding: "6px 12px",
                     }}
                   >
@@ -4321,8 +4328,8 @@ const AdminDashboard = () => {
                       background: "var(--surface-light)",
                       border: "1px solid var(--border)",
                       color: "var(--text)",
-                      width: "auto",
-                      minWidth: "120px",
+                      flex: "1 1 110px",
+                      minWidth: 0,
                       padding: "6px 12px",
                     }}
                   >
@@ -4330,7 +4337,7 @@ const AdminDashboard = () => {
                     <option>Active</option>
                     <option>Suspended</option>
                   </select>
-                  <div style={{ position: "relative" }}>
+                  <div style={{ position: "relative", flex: "1 1 200px", minWidth: 0 }}>
                     <Search
                       size={14}
                       style={{
@@ -4356,7 +4363,8 @@ const AdminDashboard = () => {
                         paddingLeft: "30px",
                         background: "var(--surface-light)",
                         border: "1px solid var(--border)",
-                        width: "200px",
+                        width: "100%",
+                        boxSizing: "border-box",
                         fontSize: "0.85rem",
                       }}
                     />
@@ -4790,8 +4798,8 @@ const AdminDashboard = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : windowWidth > 600 ? "repeat(2, 1fr)" : "1fr",
-                  gap: "1.5rem",
+                  gridTemplateColumns: windowWidth > 1024 ? "repeat(4, 1fr)" : "repeat(2, minmax(0, 1fr))",
+                  gap: windowWidth <= 480 ? "0.75rem" : "1.5rem",
                   marginBottom: "2.5rem",
                 }}
               >
@@ -5566,7 +5574,10 @@ const AdminDashboard = () => {
             <div className="animate-fade">
               <button
                 className="btn btn-outline"
-                onClick={() => setSelectedLead(null)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSelectedLead(null);
+                }}
                 style={{
                   marginBottom: "2rem",
                   display: "flex",
@@ -5574,6 +5585,7 @@ const AdminDashboard = () => {
                   gap: "8px",
                   border: "none",
                   color: "var(--text)",
+                  cursor: "pointer",
                 }}
               >
                 <ChevronRight
@@ -5773,11 +5785,19 @@ const AdminDashboard = () => {
                     </div>
                     <button
                       className="btn btn-outline"
-                      onClick={() => selectedLead.property?._id && navigate(`/property/${selectedLead.property._id}`)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!selectedLead.property?._id) {
+                          alert('Property information not available');
+                          return;
+                        }
+                        navigate(`/property/${selectedLead.property._id}`);
+                      }}
                       style={{
                         width: "100%",
                         borderColor: "var(--border)",
                         color: "var(--text)",
+                        cursor: "pointer",
                       }}
                     >
                       View Full Listing
@@ -5885,11 +5905,15 @@ const AdminDashboard = () => {
                     </div>
                     <button
                       className="btn btn-outline"
-                      onClick={() => handleFlagLead(selectedLead._id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleFlagLead(selectedLead._id);
+                      }}
                       style={{
                         width: "100%",
                         borderColor: selectedLead.isFlagged ? "#10b981" : "#ef4444",
                         color: selectedLead.isFlagged ? "#10b981" : "#ef4444",
+                        cursor: "pointer",
                       }}
                     >
                       {selectedLead.isFlagged ? "Resolve Audit Flag" : "Flag for Review"}

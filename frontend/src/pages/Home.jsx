@@ -375,7 +375,7 @@ const Home = () => {
         <div style={{ marginBottom: '2rem' }}>
           <div className="articles-grid">
             {articles.length > 0 ? (
-              articles.slice(0, 3).map((article) => (
+              articles.slice(0, 4).map((article) => (
                 <ArticleCard key={article._id} article={article} compact />
               ))
             ) : (

@@ -95,7 +95,7 @@ const InvestorOverview = ({ stats, investments, setActiveTab, aiEstimates = {} }
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 1024 ? '1fr 2fr' : '1fr', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth > 768 ? 'minmax(0, 1fr) minmax(0, 2fr)' : 'minmax(0, 1fr)', gap: windowWidth <= 480 ? '1rem' : '2rem' }}>
                 <div className="glass-card" style={{ padding: '2rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                         <h4 style={{ fontSize: '1.2rem', color: 'var(--text)', fontWeight: '800' }}>Property Distribution</h4>

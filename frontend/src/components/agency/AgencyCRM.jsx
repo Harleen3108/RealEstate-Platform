@@ -12,9 +12,9 @@ const AgencyCRM = ({
     handleAddNote 
 }) => {
     return (
-        <div className="animate-fade">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h4 style={{ fontSize: '1.4rem', color: 'var(--text)', fontWeight: '800' }}>Sales CRM - Kanban Pipeline</h4>
+        <div className="animate-fade" style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h4 style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.4rem)', color: 'var(--text)', fontWeight: '800' }}>Sales CRM - Kanban Pipeline</h4>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Drag leads between phases to track progress</div>
             </div>
 

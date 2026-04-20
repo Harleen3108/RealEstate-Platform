@@ -183,13 +183,13 @@ const InvestorDashboard = () => {
     ];
 
     return (
-        <div className="animate-fade" style={{ paddingBottom: '3rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-                <div>
-                    <h2 style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '0.4rem' }}>Investor <span className="text-gradient">Hub</span></h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Real-time performance of your real estate assets</p>
+        <div className="animate-fade" style={{ paddingBottom: '3rem', width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ minWidth: 0, flex: '1 1 auto' }}>
+                    <h2 style={{ fontSize: 'clamp(1.4rem, 5vw, 2.2rem)', fontWeight: '800', marginBottom: '0.4rem' }}>Investor <span className="text-gradient">Hub</span></h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}>Real-time performance of your real estate assets</p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.4rem', borderRadius: '12px', overflowX: 'auto', maxWidth: '100%' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.4rem', borderRadius: '12px', overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
                     {tabs.map(t => (
                         <button 
                             key={t.id}

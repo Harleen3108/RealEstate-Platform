@@ -338,7 +338,7 @@ const DashboardLayout = () => {
             </aside>
 
             {/* Main Content Area */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
                 {/* HeaderBar */}
                 <header style={{ 
                     height: '70px', 
@@ -430,7 +430,7 @@ const DashboardLayout = () => {
                     </div>
                 </header>
 
-                <main style={{ flex: 1, padding: 'clamp(1rem, 5vw, 2.5rem)' }}>
+                <main style={{ flex: 1, padding: windowWidth <= 480 ? '0.75rem' : 'clamp(1rem, 5vw, 2.5rem)', minWidth: 0, maxWidth: '100%', overflowX: 'hidden' }}>
                     <Outlet />
                 </main>
 

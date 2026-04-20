@@ -61,14 +61,16 @@ const Dashboard = () => {
 
             try {
                 const propRes = await axios.get(`${API_BASE_URL}/properties/agency/${user._id}`);
-                properties = propRes.data;
+                const propData = propRes.data;
+                properties = Array.isArray(propData) ? propData : (propData?.data || propData?.properties || []);
             } catch (err) {
                 console.error('Failed to fetch agency properties (500?):', err.response?.status, err.message);
             }
 
             try {
                 const leadRes = await axios.get(`${API_BASE_URL}/leads`);
-                leads = leadRes.data;
+                const leadData = leadRes.data;
+                leads = Array.isArray(leadData) ? leadData : (leadData?.data || leadData?.leads || []);
             } catch (err) {
                 console.error('Failed to fetch agency leads (401?):', err.response?.status, err.message);
             }
@@ -125,26 +127,28 @@ const Dashboard = () => {
     );
 
     return (
-        <div className="dashboard-container" style={{ color: 'var(--text)' }}>
+        <div className="dashboard-container" style={{ color: 'var(--text)', width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
             {/* Upper Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
-                <div>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '0.5rem' }}>Performance Dashboard</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                    <h1 style={{ fontSize: 'clamp(1.4rem, 4.5vw, 1.8rem)', fontWeight: '800', marginBottom: '0.5rem' }}>Performance Dashboard</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Welcome back, here's what's happening today.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 0 }}>
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                        <input 
-                            type="text" 
-                            placeholder="Search properties..." 
-                            style={{ 
-                                padding: '0.6rem 1rem 0.6rem 2.5rem', 
-                                borderRadius: '10px', 
-                                border: '1px solid var(--border)', 
+                        <input
+                            type="text"
+                            placeholder="Search properties..."
+                            style={{
+                                padding: '0.6rem 1rem 0.6rem 2.5rem',
+                                borderRadius: '10px',
+                                border: '1px solid var(--border)',
                                 background: 'var(--surface)',
-                                width: '250px' 
-                            }} 
+                                width: '100%',
+                                maxWidth: '250px',
+                                boxSizing: 'border-box'
+                            }}
                         />
                     </div>
                     <button style={{ 
@@ -179,7 +183,7 @@ const Dashboard = () => {
             </div>
 
             {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.8rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.8rem', marginBottom: '1.5rem' }}>
                 {Object.entries(stats).map(([key, stat]) => (
                     <div key={key} style={{ 
                         background: 'var(--surface)', 
@@ -206,7 +210,7 @@ const Dashboard = () => {
             </div>
 
             {/* Middle Section: Pipeline & Recent Leads */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.2rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.2rem', marginBottom: '1.5rem' }}>
                 {/* Sales Pipeline */}
                 <div style={{ background: 'var(--surface)', padding: '1.2rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>

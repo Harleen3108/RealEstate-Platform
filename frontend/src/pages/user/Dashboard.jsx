@@ -44,17 +44,17 @@ const UserDashboard = () => {
     if (loading) return <div>Loading...</div>;
 
     return (
-        <div className="animate-fade">
+        <div className="animate-fade" style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
             {/* Welcome Header */}
             <div style={{ marginBottom: '2.5rem' }}>
-                <h1 style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '0.5rem' }}>
+                <h1 style={{ fontSize: 'clamp(1.4rem, 5vw, 2.2rem)', fontWeight: '800', marginBottom: '0.5rem' }}>
                     Welcome back, <span className="text-gradient">{user?.name?.split(' ')[0] || 'User'}</span>
                 </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>Manage your real estate journey and saved listings here.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.85rem, 2.5vw, 1rem)' }}>Manage your real estate journey and saved listings here.</p>
             </div>
 
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
                 <div className="glass-card" style={{ padding: '1.2rem', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
                         <div style={{ background: 'rgba(229, 90, 22, 0.1)', padding: '8px', borderRadius: '10px' }}>
@@ -99,14 +99,14 @@ const UserDashboard = () => {
             </div>
 
             {/* Main Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'clamp(1.25rem, 3vw, 2.5rem)' }}>
                 {/* Saved Properties */}
-                <div>
+                <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.4rem', fontWeight: '700' }}>Saved Properties</h3>
+                        <h3 style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.4rem)', fontWeight: '700' }}>Saved Properties</h3>
                         <Link to="/dashboard/user/saved" style={{ color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '600', textDecoration: 'none' }}>View All</Link>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
                         {savedProperties.length > 0 ? savedProperties.map(prop => (
                             <div key={prop._id} className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
                                 <div style={{ height: '180px', position: 'relative' }}>

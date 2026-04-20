@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Download, Plus, Edit2, Trash2, Eye, FileText } from 'lucide-react';
+import API_BASE_URL from '../../apiConfig';
 import '../../styles/TenantDocuments.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const LeaseAgreementManager = () => {
     const [leases, setLeases] = useState([]);

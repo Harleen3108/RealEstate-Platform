@@ -62,7 +62,7 @@ const AgencyInventory = ({
             </div>
 
             {!showPropForm && (
-                <div className="glass-card" style={{ padding: '1.2rem', background: 'var(--surface)', border: '1px solid var(--border)', marginBottom: '2rem', display: 'grid', gridTemplateColumns: windowWidth > 1024 ? 'repeat(4, 1fr)' : windowWidth > 600 ? 'repeat(2, 1fr)' : '1fr', gap: '1rem' }}>
+                <div className="glass-card" style={{ padding: '1.2rem', background: 'var(--surface)', border: '1px solid var(--border)', marginBottom: '2rem', display: 'grid', gridTemplateColumns: windowWidth > 1024 ? 'repeat(4, 1fr)' : 'repeat(2, minmax(0, 1fr))', gap: '1rem' }}>
                     <div className="input-group">
                         <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block' }}>LOCATION</label>
                         <input 

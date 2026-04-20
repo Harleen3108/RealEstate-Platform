@@ -75,15 +75,18 @@ const AgencyDashboard = () => {
                 axios.get(`${API_BASE_URL}/leads`)
             ]);
             
-            const myProps = propRes.data; 
+            const propData = propRes.data;
+            const myProps = Array.isArray(propData) ? propData : (propData?.data || propData?.properties || []);
+            const leadData = leadRes.data;
+            const leadsArr = Array.isArray(leadData) ? leadData : (leadData?.data || leadData?.leads || []);
             setProperties(myProps);
             setStats({
                 totalProperties: myProps.length,
                 available: myProps.filter(p => p.status === 'Available').length,
                 sold: myProps.filter(p => p.status === 'Sold').length,
-                totalLeads: leadRes.data.length
+                totalLeads: leadsArr.length
             });
-            setLeads(leadRes.data);
+            setLeads(leadsArr);
             setLoading(false);
         } catch (error) {
             console.error(error);
@@ -217,15 +220,15 @@ const AgencyDashboard = () => {
     ];
 
     return (
-        <div className="animate-fade">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-                <h2 style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--text)' }}>Agency <span className="text-gradient">Hub</span></h2>
-                <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.4rem', borderRadius: '12px' }}>
+        <div className="animate-fade" style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <h2 style={{ fontSize: 'clamp(1.4rem, 5vw, 2.2rem)', fontWeight: '800', color: 'var(--text)', minWidth: 0, flex: '1 1 auto' }}>Agency <span className="text-gradient">Hub</span></h2>
+                <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.4rem', borderRadius: '12px', overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
                     {tabs.map(t => (
-                        <button 
+                        <button
                             key={t.id}
                             className={`btn ${activeTab === t.id ? 'btn-primary' : ''}`}
-                            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', background: activeTab === t.id ? 'var(--primary)' : 'transparent', color: activeTab === t.id ? 'white' : 'var(--text-muted)', transition: 'all 0.2s ease' }}
+                            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', background: activeTab === t.id ? 'var(--primary)' : 'transparent', color: activeTab === t.id ? 'white' : 'var(--text-muted)', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
                             onClick={() => setActiveTab(t.id)}
                         >
                             <t.icon size={16} /> {t.label}

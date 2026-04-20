@@ -115,10 +115,10 @@ const SalesPipeline = () => {
                 </div>
             )}
 
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
-                gap: '1rem', 
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '1rem',
                 paddingBottom: '2rem'
             }}>
                 {stages.map(stage => {

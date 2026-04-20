@@ -70,7 +70,7 @@ const BuyerDashboard = () => {
     ];
 
     return (
-        <div className="animate-fade">
+        <div className="animate-fade" style={{ width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
             <div className="dash-header">
                 <div>
                     <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.2rem)', fontWeight: '800', marginBottom: '0.4rem' }}>Buyer <span className="text-gradient">Console</span></h2>
