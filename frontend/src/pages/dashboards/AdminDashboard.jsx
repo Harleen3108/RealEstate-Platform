@@ -2450,16 +2450,20 @@ const AdminDashboard = () => {
                       />
                     </div>
                     <div className="input-group">
-                      <label style={{ color: "var(--text)" }}>
-                        <Upload size={14} /> Upload Image
+                      <div style={{ marginBottom: "0.5rem", color: "var(--text-muted)", fontWeight: "600", fontSize: "0.85rem" }}>
+                        Property Images
+                      </div>
+                      <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', width: '100%', justifyContent: 'center', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.75rem', borderRadius: '8px', color: 'var(--text)' }}>
+                        <Upload size={16} /> Choose Images
+                        <input
+                          type="file"
+                          multiple
+                          hidden
+                          onChange={(e) => handleFileUpload(e, "image")}
+                        />
                       </label>
-                      <input
-                        type="file"
-                        onChange={(e) => handleFileUpload(e, "image")}
-                        style={{ fontSize: "0.8rem", marginTop: "5px" }}
-                      />
                       <div
-                        style={{ display: "flex", gap: "8px", marginTop: "8px", flexWrap: "wrap" }}
+                        style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}
                       >
                         {propData.images.map((img, i) => (
                           <div key={i} style={{ position: "relative", width: "60px", height: "60px" }}>
@@ -2503,16 +2507,19 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="input-group">
-                      <label style={{ color: "var(--text)" }}>
-                        <Upload size={14} /> Upload 3D Model (.glb/.gltf)
+                      <div style={{ marginBottom: "0.5rem", color: "var(--text-muted)", fontWeight: "600", fontSize: "0.85rem" }}>
+                        3D Virtual Tour
+                      </div>
+                      <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', width: '100%', justifyContent: 'center', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.75rem', borderRadius: '8px', color: 'var(--text)' }}>
+                        <Upload size={16} /> Upload 3D Model
+                        <input
+                          type="file"
+                          accept=".glb,.gltf"
+                          hidden
+                          onChange={(e) => handleFileUpload(e, "model")}
+                        />
                       </label>
-                      <input
-                        type="file"
-                        accept=".glb,.gltf"
-                        onChange={(e) => handleFileUpload(e, "model")}
-                        style={{ fontSize: "0.8rem", marginTop: "5px" }}
-                      />
-                      <div style={{ marginTop: "8px" }}>
+                      <div style={{ marginTop: "12px" }}>
                         <input
                           type="text"
                           className="input-control"
@@ -2523,7 +2530,10 @@ const AdminDashboard = () => {
                             background: "var(--surface-light)",
                             border: "1px solid var(--border)",
                             color: "var(--text)",
-                            width: "100%"
+                            width: "100%",
+                            padding: "0.75rem",
+                            borderRadius: "8px",
+                            fontSize: "0.85rem"
                           }}
                         />
                       </div>
@@ -2532,15 +2542,19 @@ const AdminDashboard = () => {
                       className="input-group"
                       style={{ gridColumn: windowWidth > 480 ? "span 2" : "span 1" }}
                     >
-                      <label style={{ color: "var(--text)" }}>
-                        <FileText size={14} /> Property Documents
+                      <div style={{ marginBottom: "0.5rem", color: "var(--text-muted)", fontWeight: "600", fontSize: "0.85rem" }}>
+                        Legal & Documents
+                      </div>
+                      <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', width: 'fit-content', background: 'var(--surface-light)', border: '1px solid var(--border)', padding: '0.75rem 1.2rem', borderRadius: '8px', color: 'var(--text)' }}>
+                        <FileText size={16} /> Attach Documents
+                        <input
+                          type="file"
+                          multiple
+                          hidden
+                          onChange={(e) => handleFileUpload(e, "doc")}
+                        />
                       </label>
-                      <input
-                        type="file"
-                        onChange={(e) => handleFileUpload(e, "doc")}
-                        style={{ fontSize: "0.8rem", marginTop: "5px" }}
-                      />
-                      <div style={{ fontSize: "0.75rem", marginTop: "5px" }}>
+                      <div style={{ fontSize: "0.75rem", marginTop: "8px", color: "var(--text-muted)" }}>
                         {propData.documents.length} files attached
                       </div>
                     </div>
