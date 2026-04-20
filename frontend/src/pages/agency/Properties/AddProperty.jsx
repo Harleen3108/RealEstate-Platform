@@ -308,6 +308,22 @@ const AddProperty = () => {
                                         <input type="file" accept="image/*" multiple hidden onChange={e => handleFileUpload(e, 'image')} />
                                     </label>
                                 </div>
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                        <Upload size={16} /> Upload 3D Model (.glb)
+                                        <input type="file" accept=".glb,.gltf" hidden onChange={e => handleFileUpload(e, 'model')} />
+                                    </label>
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <input
+                                            type="text"
+                                            className="input-control"
+                                            placeholder="Or paste 3D Model URL"
+                                            value={propData.threeDModelUrl || ''}
+                                            onChange={e => setPropData({ ...propData, threeDModelUrl: e.target.value })}
+                                            style={{ background: 'var(--surface-light)', color: 'var(--text)', width: '100%' }}
+                                        />
+                                    </div>
+                                </div>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                     {propData.images.map((img, i) => (
                                         <div key={i} style={{ position: 'relative', width: '80px', height: '80px' }}>

@@ -121,6 +121,7 @@ const AdminDashboard = () => {
     agency: "", // Required for Admin creation
     images: [],
     documents: [],
+    threeDModelUrl: "",
   });
 
   const [showLeadForm, setShowLeadForm] = useState(false);
@@ -485,6 +486,11 @@ const AdminDashboard = () => {
           ...prev,
           images: [...prev.images, data.url],
         }));
+      } else if (type === "model") {
+        setPropData((prev) => ({
+          ...prev,
+          threeDModelUrl: data.url,
+        }));
       } else {
         setPropData((prev) => ({
           ...prev,
@@ -541,6 +547,7 @@ const AdminDashboard = () => {
         agency: "",
         images: [],
         documents: [],
+        threeDModelUrl: "",
       });
       fetchAdminData();
     } catch (error) {
@@ -2493,6 +2500,32 @@ const AdminDashboard = () => {
                             </button>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                    <div className="input-group">
+                      <label style={{ color: "var(--text)" }}>
+                        <Upload size={14} /> Upload 3D Model (.glb/.gltf)
+                      </label>
+                      <input
+                        type="file"
+                        accept=".glb,.gltf"
+                        onChange={(e) => handleFileUpload(e, "model")}
+                        style={{ fontSize: "0.8rem", marginTop: "5px" }}
+                      />
+                      <div style={{ marginTop: "8px" }}>
+                        <input
+                          type="text"
+                          className="input-control"
+                          placeholder="Or paste 3D Model URL"
+                          value={propData.threeDModelUrl || ""}
+                          onChange={(e) => setPropData({ ...propData, threeDModelUrl: e.target.value })}
+                          style={{
+                            background: "var(--surface-light)",
+                            border: "1px solid var(--border)",
+                            color: "var(--text)",
+                            width: "100%"
+                          }}
+                        />
                       </div>
                     </div>
                     <div
