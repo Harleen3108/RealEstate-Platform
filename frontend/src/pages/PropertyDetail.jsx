@@ -106,7 +106,7 @@ const PropertyDetail = () => {
 
     if (loading) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-            <Info className="animate-pulse" size={40} color="var(--primary)" />
+            <div style={{ width: 44, height: 44, border: '4px solid rgba(198,161,91,0.18)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'mc-spin 0.9s linear infinite' }} />
         </div>
     );
     

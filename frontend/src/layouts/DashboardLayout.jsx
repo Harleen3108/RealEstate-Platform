@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import {
     LayoutDashboard, Building2, TrendingUp, Users, Settings, LogOut,
     ChevronRight, MessageCircle, Home, Search, Bell, Sun, Moon, Plus,
-    FileText, BarChart3, X as CloseIcon, Menu, Calculator, GitCompare
+    FileText, BarChart3, X as CloseIcon, Menu, Calculator, GitCompare, Truck
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -104,6 +104,7 @@ const DashboardLayout = () => {
             { label: 'Properties', path: '/dashboard/admin/properties', icon: Home },
             { label: 'Articles', path: '/dashboard/admin/articles', icon: FileText },
             { label: 'Leads', path: '/dashboard/admin/leads', icon: MessageCircle },
+            { label: 'Movers Leads', path: '/dashboard/admin/movers-leads', icon: Truck },
             { label: 'Onboarding Tracker', path: '/dashboard/admin/tracker', icon: TrendingUp },
             { label: 'Users', path: '/dashboard/admin/users', icon: Users },
             { section: 'AI Insights' },

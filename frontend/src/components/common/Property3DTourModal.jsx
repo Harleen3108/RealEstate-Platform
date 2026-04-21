@@ -109,22 +109,35 @@ const Property3DTourModal = ({ open, onClose, property, modelPath = '/models/hou
               onClick={onClose}
               aria-label="Close 3D tour"
               style={{
-                borderRadius: 12,
-                border: '1px solid rgba(148, 163, 184, 0.18)',
-                background: 'rgba(15, 23, 42, 0.72)',
-                width: isSmall ? 36 : 42,
-                height: isSmall ? 36 : 42,
-                color: '#e2e8f0',
+                position: isSmall ? 'fixed' : 'relative',
+                top: isSmall ? 12 : 'auto',
+                right: isSmall ? 12 : 'auto',
+                zIndex: 10,
+                borderRadius: 999,
+                border: 'none',
+                background: '#ffffff',
+                width: isSmall ? 44 : 46,
+                height: isSmall ? 44 : 46,
+                color: '#0F172A',
                 cursor: 'pointer',
                 lineHeight: 0,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                boxShadow: '0 10px 24px rgba(2, 6, 23, 0.35)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+                transition: 'background 0.2s ease, transform 0.2s ease',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#f0f0f0';
+                e.currentTarget.style.transform = 'scale(1.08)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.transform = 'scale(1)';
               }}
             >
-              <X size={16} />
+              <X size={20} strokeWidth={3} color="#0F172A" />
             </button>
           </div>
 

@@ -101,7 +101,7 @@ const ScheduleTourModal = ({ open, property, onClose, onSuccess }) => {
             </div>
           </div>
           <button type="button" className="tour-modal__close" onClick={onClose} aria-label="Close modal">
-            <X size={18} />
+            <X size={20} strokeWidth={3} />
           </button>
         </div>
 

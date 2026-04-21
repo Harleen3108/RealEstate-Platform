@@ -69,7 +69,7 @@ const PropertyCard = ({
             onClick={handleClick}
             className={`lx-card__cta ${isInvestment ? 'lx-card__cta--solid' : ''}`}
           >
-            {gated ? 'Login to Continue' : ctaLabel}
+            {gated ? (isInvestment ? 'Invest Now' : 'Login to Continue') : ctaLabel}
           </Link>
 
           <Link

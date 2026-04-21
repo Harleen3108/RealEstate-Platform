@@ -39,6 +39,8 @@ import {
   Save,
   Upload,
   Menu, // Added Menu as per instruction
+  Truck,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AnimatedCounter from "../../components/common/AnimatedCounter";
@@ -62,6 +64,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [properties, setProperties] = useState([]);
   const [leads, setLeads] = useState([]);
+  const [moversLeads, setMoversLeads] = useState([]);
+  const [moversLoading, setMoversLoading] = useState(false);
   const [leadsAnalytics, setLeadsAnalytics] = useState({
     summary: { totalLeads: 0, contactedLeads: 0, closedLeads: 0, conversionRate: "0%" },
     sourcePerformance: [],
@@ -248,6 +252,7 @@ const AdminDashboard = () => {
         users: "users",
         properties: "properties",
         leads: "leads",
+        "movers-leads": "movers-leads",
         tracker: "tracker",
         settings: "settings",
       };
@@ -262,6 +267,32 @@ const AdminDashboard = () => {
     const intervalId = setInterval(fetchAdminData, 30000);
     return () => clearInterval(intervalId);
   }, [tab]);
+
+  useEffect(() => {
+    if (activeTab === 'movers-leads') fetchMoversLeads();
+  }, [activeTab]);
+
+  const fetchMoversLeads = async () => {
+    setMoversLoading(true);
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/packers-movers/leads?limit=200`);
+      setMoversLeads(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) {
+      console.error('Failed to fetch movers leads:', err);
+    } finally {
+      setMoversLoading(false);
+    }
+  };
+
+  const handleDeleteMoversLead = async (id) => {
+    if (!window.confirm('Delete this movers lead permanently?')) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/packers-movers/leads/${id}`);
+      setMoversLeads((list) => list.filter((l) => l._id !== id));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete');
+    }
+  };
 
   const fetchAdminData = async () => {
     try {
@@ -6556,6 +6587,102 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      {/* Movers Leads Tab */}
+      {activeTab === "movers-leads" && (
+        <div className="animate-fade">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ fontSize: windowWidth <= 480 ? "1.4rem" : "1.8rem", fontWeight: 800, marginBottom: "0.35rem" }}>Movers Leads</h3>
+              <p style={{ color: "var(--text-muted)", fontSize: windowWidth <= 480 ? "0.82rem" : "0.95rem" }}>
+                Packers &amp; movers callback requests from the homepage and property pages.
+              </p>
+            </div>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              padding: "0.5rem 0.9rem", borderRadius: 999,
+              background: "rgba(198, 161, 91, 0.12)", border: "1px solid rgba(198, 161, 91, 0.28)",
+              color: "var(--primary)", fontWeight: 700, fontSize: "0.8rem",
+            }}>
+              <Truck size={14} /> <AnimatedCounter value={moversLeads.length} /> total
+            </div>
+          </div>
+
+          <div className="glass-card" style={{ padding: 0, overflow: "hidden", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16 }}>
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: windowWidth <= 480 ? 680 : "auto" }}>
+                <thead style={{ background: "var(--surface-light)" }}>
+                  <tr style={{ textAlign: "left", borderBottom: "1px solid var(--border)" }}>
+                    {['Name', 'Phone', 'City (From → To)', 'Move Date', 'Size', 'Status', 'Submitted', 'Actions'].map((h) => (
+                      <th key={h} style={{ padding: "0.85rem 1rem", fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)", fontWeight: 800 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {moversLoading ? (
+                    <tr><td colSpan={8} style={{ padding: "3rem", textAlign: "center" }}>
+                      <div style={{ display: "inline-block", width: 32, height: 32, border: "3px solid rgba(198,161,91,0.18)", borderTopColor: "var(--primary)", borderRadius: "50%", animation: "mc-spin 0.9s linear infinite" }} />
+                    </td></tr>
+                  ) : moversLeads.length === 0 ? (
+                    <tr><td colSpan={8} style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                      No movers leads yet.
+                    </td></tr>
+                  ) : moversLeads.map((lead) => (
+                    <tr key={lead._id} style={{ borderBottom: "1px solid var(--border)" }}>
+                      <td style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text)" }}>
+                        {lead.userName || '—'}
+                        {lead.userEmail && <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 500 }}>{lead.userEmail}</div>}
+                      </td>
+                      <td style={{ padding: "0.85rem 1rem", color: "var(--text)", fontSize: "0.88rem" }}>
+                        <a href={`tel:${lead.phone}`} style={{ color: "var(--primary)", textDecoration: "none", fontWeight: 600 }}>{lead.phone}</a>
+                      </td>
+                      <td style={{ padding: "0.85rem 1rem", color: "var(--text)", fontSize: "0.85rem" }}>
+                        <span style={{ fontWeight: 600 }}>{lead.moveFrom}</span>
+                        {lead.moveTo && lead.moveTo !== lead.moveFrom && (
+                          <><span style={{ color: "var(--text-muted)", margin: "0 6px" }}>→</span><span>{lead.moveTo}</span></>
+                        )}
+                      </td>
+                      <td style={{ padding: "0.85rem 1rem", color: "var(--text-muted)", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                        <Calendar size={12} style={{ verticalAlign: "middle", marginRight: 4 }} />
+                        {lead.moveDate ? new Date(lead.moveDate).toLocaleDateString() : '—'}
+                      </td>
+                      <td style={{ padding: "0.85rem 1rem", color: "var(--text-muted)", fontSize: "0.82rem", textTransform: "uppercase", fontWeight: 700 }}>{lead.propertySize || '—'}</td>
+                      <td style={{ padding: "0.85rem 1rem" }}>
+                        <span style={{
+                          padding: "3px 10px", borderRadius: 999, fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
+                          background: lead.status === 'new' ? 'rgba(59,130,246,0.14)' : lead.status === 'contacted' ? 'rgba(245,158,11,0.14)' : lead.status === 'completed' ? 'rgba(16,185,129,0.14)' : 'rgba(239,68,68,0.14)',
+                          color: lead.status === 'new' ? '#3b82f6' : lead.status === 'contacted' ? '#f59e0b' : lead.status === 'completed' ? '#10b981' : '#ef4444',
+                          border: '1px solid currentColor',
+                        }}>{lead.status || 'new'}</span>
+                      </td>
+                      <td style={{ padding: "0.85rem 1rem", color: "var(--text-muted)", fontSize: "0.78rem", whiteSpace: "nowrap" }}>
+                        {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : '—'}
+                      </td>
+                      <td style={{ padding: "0.85rem 1rem" }}>
+                        <button
+                          onClick={() => handleDeleteMoversLead(lead._id)}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 6,
+                            padding: "6px 12px", borderRadius: 8,
+                            border: "1px solid rgba(239, 68, 68, 0.35)", background: "rgba(239, 68, 68, 0.08)",
+                            color: "#ef4444", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer",
+                            transition: "all 0.2s ease",
+                          }}
+                          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.18)'; }}
+                          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; }}
+                          title="Delete lead"
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Onboarding & Payment Tracker Tab */}
       {activeTab === "tracker" && permissions.canViewTracker && (
         <div className="animate-fade">

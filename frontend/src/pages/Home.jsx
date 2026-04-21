@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../apiConfig';
-import { Search, MapPin, ArrowRight, Send, Bed, Home as HomeIcon, Zap, Crown, Instagram, Linkedin, Facebook, Twitter, Phone, Mail } from 'lucide-react';
+import { Search, MapPin, ArrowRight, Send, Bed, Home as HomeIcon, Zap, Crown, Instagram, Linkedin, Facebook, Twitter, Phone, Mail, Building2, Briefcase, TreePine, Users, Truck, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PropertyCard from '../components/common/PropertyCard';
 import ArticleCard from '../components/common/ArticleCard';
@@ -35,6 +35,16 @@ const heroSlides = [
 
 const HOME_CATEGORIES = ['All', 'Apartment', 'Villa', 'Commercial', 'Land', 'PG', 'CoLiving'];
 
+const MAIN_CATEGORIES = [
+  { label: 'Villas', type: 'Villa', icon: Crown, image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1200&auto=format&fit=crop', gated: false },
+  { label: 'Apartments', type: 'Apartment', icon: Building2, image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200&auto=format&fit=crop', gated: false },
+  { label: 'PGs', type: 'PG', icon: Users, image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop', gated: true },
+  { label: 'Commercial', type: 'Commercial', icon: Briefcase, image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop', gated: false },
+  { label: 'Land', type: 'Land', icon: TreePine, image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop', gated: false },
+];
+
+const EXPLORE_STATES = ['Maharashtra', 'Haryana', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Gujarat'];
+
 const bhkCards = [
   { label: '1 BHK', icon: Bed, query: 1 },
   { label: '2 BHK', icon: HomeIcon, query: 2 },
@@ -53,16 +63,23 @@ const Home = () => {
   const [selectedState, setSelectedState] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [tourProperty, setTourProperty] = useState(null);
+  const [moversForm, setMoversForm] = useState({ name: '', phone: '', city: '', date: '', size: '' });
+  const [moversSubmitting, setMoversSubmitting] = useState(false);
+  const [moversStatus, setMoversStatus] = useState(null);
+  const [exploreState, setExploreState] = useState('Maharashtra');
+  const [verifiedAgencies, setVerifiedAgencies] = useState([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const [propertiesRes, articlesRes] = await Promise.all([
+        const [propertiesRes, articlesRes, agenciesRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/properties`),
           axios.get(`${API_BASE_URL}/articles?limit=6`),
+          axios.get(`${API_BASE_URL}/auth/agencies`),
         ]);
         setProperties(propertiesRes.data);
         setArticles(articlesRes.data.articles || []);
+        setVerifiedAgencies(Array.isArray(agenciesRes.data) ? agenciesRes.data : []);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -73,6 +90,14 @@ const Home = () => {
 
   const approved = properties.filter((property) => property.isApproved && property.status !== 'Blocked');
   const selectedStateCities = selectedState ? getCitiesForState(selectedState) : [];
+  const approvedCities = new Set(approved.map((property) => inferCityFromProperty(property)).filter(Boolean));
+
+  const formatMetric = (value) => {
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}K`;
+    }
+    return `${value}`;
+  };
 
   // Home hero search only routes users to marketplace filters; it does not curate these sections.
   const featured = [...approved]
@@ -101,6 +126,44 @@ const Home = () => {
   };
 
   const handleTourClick = (property) => setTourProperty(property);
+
+  const handleCategoryClick = (category) => {
+    if (category.gated && !user) {
+      alert('Please login to view PG listings');
+      navigate('/login');
+      return;
+    }
+    navigate(`/marketplace?type=${encodeURIComponent(category.type)}`);
+  };
+
+  const exploreStateProperties = approved
+    .filter((p) => inferStateFromProperty(p) === exploreState)
+    .slice(0, 3);
+
+  const handleMoversSubmit = async (event) => {
+    event.preventDefault();
+    if (moversSubmitting) return;
+    setMoversSubmitting(true);
+    setMoversStatus(null);
+    try {
+      await axios.post(`${API_BASE_URL}/packers-movers/leads`, {
+        userName: moversForm.name,
+        phone: moversForm.phone,
+        moveFrom: moversForm.city,
+        moveTo: moversForm.city,
+        moveDate: moversForm.date,
+        propertySize: moversForm.size,
+        serviceType: 'full_service',
+        source: 'home_banner',
+      });
+      setMoversStatus({ type: 'success', message: 'Your request has been received. A dedicated concierge will contact you shortly.' });
+      setMoversForm({ name: '', phone: '', city: '', date: '', size: '' });
+    } catch (err) {
+      setMoversStatus({ type: 'error', message: err.response?.data?.message || 'Could not submit, try again.' });
+    } finally {
+      setMoversSubmitting(false);
+    }
+  };
 
   const bhkCounts = {
     1: approved.filter((property) => property.bedrooms === 1),
@@ -180,8 +243,8 @@ const Home = () => {
 
             <form onSubmit={handleSearch} className="search-bar-shell" style={{ maxWidth: '860px' }}>
               <div className="search-bar-grid">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <MapPin size={18} color="rgba(16,34,61,0.58)" style={{ flexShrink: 0, marginLeft: '4px' }} />
+                <div style={{ position: 'relative' }}>
+                  <MapPin size={16} color="#c6a15b" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }} />
                   <select
                     className="search-bar-select"
                     value={selectedState}
@@ -189,6 +252,7 @@ const Home = () => {
                       setSelectedState(event.target.value);
                       setSelectedCity('');
                     }}
+                    style={{ paddingLeft: '2.4rem' }}
                   >
                     <option value="">Select State</option>
                     {STATE_OPTIONS.map((state) => (
@@ -214,15 +278,15 @@ const Home = () => {
                 </select>
 
                 <div className="search-bar-grid__search-row">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1 }}>
-                    <Search size={18} color="rgba(16,34,61,0.58)" style={{ flexShrink: 0, marginLeft: '4px' }} />
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <Search size={16} color="#c6a15b" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }} />
                     <input
                       type="text"
                       className="search-bar-input"
                       placeholder="Search locality, project, or builder"
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
-                      style={{ flex: 1 }}
+                      style={{ paddingLeft: '2.4rem' }}
                     />
                   </div>
                   <button type="submit" className="search-bar-submit" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
@@ -281,8 +345,81 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Trusted by Indian Families — social proof */}
+      <section className="container trusted-section" style={{ padding: 'clamp(3rem, 7vw, 5rem) 1.5rem 1rem' }}>
+        <div className="trusted-grid">
+          <div className="trusted-copy reveal">
+            <p className="eyebrow">Building Trust</p>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)', margin: '0.3rem 0 1rem', lineHeight: 1.15 }}>
+              Trusted by <span className="text-gradient">buyers across India</span>
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.7, margin: 0, maxWidth: '480px' }}>
+              The figures below reflect the current property feed and verified agency directory, giving you a clear view of platform activity.
+            </p>
+            <div className="trusted-stats">
+              {[
+                { label: 'Approved Listings', value: formatMetric(approved.length) },
+                { label: 'Cities Covered', value: formatMetric(approvedCities.size) },
+                { label: 'Verified Agencies', value: formatMetric(verifiedAgencies.length) },
+              ].map((s, i) => (
+                <div key={s.label} className="reveal" data-reveal-delay={i + 1}>
+                  <div className="trusted-stats__value">{s.value}</div>
+                  <div className="trusted-stats__label">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="trusted-collage reveal" data-reveal-delay="1">
+            <div className="trusted-tile trusted-tile--lg">
+              <img src="https://images.unsplash.com/photo-1611095973763-414019e72400?q=80&w=900&auto=format&fit=crop" alt="Happy Indian family at home" loading="lazy" />
+            </div>
+            <div className="trusted-tile">
+              <img src="https://images.unsplash.com/photo-1607863680198-23d4b2565df0?q=80&w=700&auto=format&fit=crop" alt="Indian couple receiving keys" loading="lazy" />
+            </div>
+            <div className="trusted-tile">
+              <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?q=80&w=700&auto=format&fit=crop" alt="Family with kids in new home" loading="lazy" />
+            </div>
+            <div className="trusted-tile trusted-tile--wide">
+              <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1200&auto=format&fit=crop" alt="Luxury lifestyle interior" loading="lazy" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Categories */}
+      <section className="container" style={{ padding: 'clamp(3rem, 7vw, 5rem) 1.5rem 1rem' }}>
+        <div className="reveal" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <p className="eyebrow">Browse By Type</p>
+          <h2 style={{ fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)', margin: 0 }}>Find Your Space</h2>
+        </div>
+        <div className="main-categories-grid">
+          {MAIN_CATEGORIES.map((cat, idx) => (
+            <button
+              key={cat.label}
+              type="button"
+              onClick={() => handleCategoryClick(cat)}
+              className="main-category-card reveal"
+              data-reveal-delay={Math.min(idx, 4)}
+            >
+              <div className="main-category-card__media">
+                <img src={cat.image} alt={cat.label} loading="lazy" />
+                <div className="main-category-card__overlay" />
+              </div>
+              <div className="main-category-card__body">
+                <div className="main-category-card__icon"><cat.icon size={18} /></div>
+                <div style={{ textAlign: 'left' }}>
+                  <div className="main-category-card__label">{cat.label}</div>
+                  {cat.gated && <div className="main-category-card__sub">Login required</div>}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="container" style={{ padding: 'clamp(4rem, 9vw, 6.5rem) 1.5rem 2rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <p className="eyebrow">Handpicked</p>
           <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}>Featured Listings</h2>
           <p style={{ color: 'var(--text-muted)', maxWidth: '560px', margin: '1rem auto 0' }}>
@@ -308,7 +445,7 @@ const Home = () => {
       </section>
 
       <section className="container" style={{ padding: '2rem 1.5rem clamp(4rem, 9vw, 6.5rem)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
+        <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
           <div>
             <p className="eyebrow">Investment Grade</p>
             <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>Top Opportunities</h2>
@@ -361,10 +498,134 @@ const Home = () => {
         )}
       </section>
 
+      {/* Explore by State */}
+      <section className="container" style={{ padding: 'clamp(3rem, 7vw, 5rem) 1.5rem' }}>
+        <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+          <div>
+            <p className="eyebrow">Regional Highlights</p>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', margin: 0 }}>Explore by State</h2>
+          </div>
+        </div>
+
+        <div className="explore-state-tabs" role="tablist">
+          {EXPLORE_STATES.map((state) => (
+            <button
+              key={state}
+              type="button"
+              role="tab"
+              aria-selected={exploreState === state}
+              className={`explore-state-tab ${exploreState === state ? 'explore-state-tab--active' : ''}`}
+              onClick={() => setExploreState(state)}
+            >
+              {state}
+            </button>
+          ))}
+        </div>
+
+        {exploreStateProperties.length > 0 ? (
+          <>
+            <div className="lx-grid" style={{ marginTop: '1.5rem' }}>
+              {exploreStateProperties.map((property) => (
+                <PropertyCard key={property._id} property={property} onScheduleClick={handleTourClick} />
+              ))}
+            </div>
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => navigate(`/marketplace?state=${encodeURIComponent(exploreState)}`)}
+                style={{ padding: '0.85rem 2rem', borderRadius: '999px', borderColor: 'var(--primary)', color: 'var(--primary)', fontWeight: 700, letterSpacing: '0.04em' }}
+              >
+                View More in {exploreState} <ArrowRight size={16} style={{ marginLeft: 6, verticalAlign: 'middle' }} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)', marginTop: '1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px' }}>
+            No active listings in {exploreState} yet. Check back soon.
+          </div>
+        )}
+      </section>
+
+      {/* Packers & Movers Banner */}
+      <section className="container" style={{ padding: 'clamp(3rem, 7vw, 5rem) 1.5rem' }}>
+        <div className="movers-banner reveal">
+          <div className="movers-banner__copy">
+            <div className="movers-banner__icon"><Truck size={22} /></div>
+            <p className="eyebrow" style={{ color: '#fde68a' }}>Relocation Partner</p>
+            <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', margin: '0.4rem 0 0.6rem', color: '#fff' }}>Need Help Moving?</h2>
+            <p style={{ color: 'rgba(255,255,255,0.78)', margin: 0, maxWidth: '420px' }}>
+              Trusted packers & movers at negotiated rates for Millionaire Club clients. Share your details — we&apos;ll call within the hour.
+            </p>
+          </div>
+          <form onSubmit={handleMoversSubmit} className="movers-banner__form">
+            <input
+              type="text"
+              required
+              placeholder="Your name"
+              value={moversForm.name}
+              onChange={(e) => setMoversForm({ ...moversForm, name: e.target.value })}
+              className="movers-input"
+            />
+            <input
+              type="tel"
+              required
+              pattern="[0-9+ \-]{7,}"
+              placeholder="Phone number"
+              value={moversForm.phone}
+              onChange={(e) => setMoversForm({ ...moversForm, phone: e.target.value })}
+              className="movers-input"
+            />
+            <input
+              type="text"
+              required
+              placeholder="City"
+              value={moversForm.city}
+              onChange={(e) => setMoversForm({ ...moversForm, city: e.target.value })}
+              className="movers-input"
+            />
+            <select
+              required
+              value={moversForm.size}
+              onChange={(e) => setMoversForm({ ...moversForm, size: e.target.value })}
+              className="movers-input"
+              style={{ appearance: 'none', cursor: 'pointer', backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23c6a15b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', paddingRight: '2.4rem' }}
+            >
+              <option value="" disabled>Property size</option>
+              <option value="1bhk">1 BHK</option>
+              <option value="2bhk">2 BHK</option>
+              <option value="3bhk">3 BHK</option>
+              <option value="4bhk">4 BHK</option>
+              <option value="villa">Villa</option>
+              <option value="office">Office</option>
+            </select>
+            <div style={{ position: 'relative' }}>
+              <Calendar size={16} color="#c6a15b" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <input
+                type="date"
+                required
+                value={moversForm.date}
+                onChange={(e) => setMoversForm({ ...moversForm, date: e.target.value })}
+                className="movers-input"
+                style={{ paddingLeft: '2.4rem' }}
+              />
+            </div>
+            <button type="submit" disabled={moversSubmitting} className="movers-submit">
+              {moversSubmitting ? 'Submitting...' : 'Schedule Concierge Call'} <ArrowRight size={16} />
+            </button>
+            {moversStatus && (
+              <div className="movers-status" style={{ color: moversStatus.type === 'success' ? '#86efac' : '#fca5a5' }}>
+                {moversStatus.message}
+              </div>
+            )}
+          </form>
+        </div>
+      </section>
+
       <TestimonialPanel />
 
       <section className="container" style={{ padding: 'clamp(4rem, 9vw, 6.5rem) 1.5rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <p className="eyebrow">Knowledge Hub</p>
           <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)', marginBottom: '1rem' }}>Latest Articles & Insights</h2>
           <p style={{ color: 'var(--text-muted)', maxWidth: '560px', margin: '0 auto' }}>
@@ -483,7 +744,7 @@ const Home = () => {
 
       <section style={{ background: 'rgba(198,161,91,0.04)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
         <div className="container" style={{ padding: 'clamp(4rem, 9vw, 6.5rem) 1.5rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <p className="eyebrow">Category Listings</p>
             <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}>Properties by Bedroom</h2>
           </div>
