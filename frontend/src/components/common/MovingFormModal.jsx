@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   X,
   AlertCircle,
@@ -41,6 +42,7 @@ const MovingFormModal = ({
   user = null,
   storeLeadBeforeRedirect = true
 }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     moveFrom: initialData.moveFrom || '',
     moveTo: initialData.moveTo || '',
@@ -124,24 +126,9 @@ const MovingFormModal = ({
         onSubmit(formData);
       }
 
-      // Build NoBroker URL and redirect
-      const nobrokerUrl = buildNoBrokerURL(formData, {
-        platformName,
-        affiliateId: null // Can be passed from parent component
-      });
-
-      // Track redirect event
-      trackPackersMoversEvent(
-        'redirect_clicked',
-        { url: nobrokerUrl },
-        analyticsTracker
-      );
-
-      // Redirect to NoBroker in new tab
-      window.open(nobrokerUrl, '_blank');
-
-      // Close modal after successful redirect
+      // Redirect to admin page instead of NoBroker
       setTimeout(() => {
+        navigate('/dashboard/admin');
         onClose();
       }, 500);
     } catch (error) {

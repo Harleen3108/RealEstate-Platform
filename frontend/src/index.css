@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   --primary: #C6A15B;         /* gold accent */
@@ -13,8 +13,9 @@
   --radius-sm: 2px;
   --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
-  --font-display: 'Playfair Display', 'Georgia', serif;
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 [data-theme='dark'] {
@@ -62,7 +63,7 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -1504,9 +1505,12 @@ h1, h2, h3, h4 {
 
 .main-category-card {
   position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
   border: 1px solid rgba(198, 161, 91, 0.25);
   background: var(--surface);
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
   padding: 0;
@@ -1520,8 +1524,8 @@ h1, h2, h3, h4 {
 }
 .main-category-card__media {
   position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
 }
 .main-category-card__media img {
@@ -1535,6 +1539,7 @@ h1, h2, h3, h4 {
 }
 .main-category-card__body {
   display: flex; align-items: center; gap: 0.7rem;
+  flex: 0 0 auto;
   padding: 0.85rem 1rem;
 }
 .main-category-card__icon {

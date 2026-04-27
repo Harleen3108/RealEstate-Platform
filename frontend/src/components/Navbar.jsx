@@ -307,7 +307,7 @@ const Navbar = () => {
                 style={{ zIndex: 1100 }}
             />
             
-            <div className={`mobile-only mobile-menu ${isMenuOpen ? 'active' : ''}`} style={{ zIndex: 1200, paddingTop: '1rem' }}>
+            <div className={`mobile-only mobile-menu ${isMenuOpen ? 'active' : ''}`} style={{ zIndex: 1200, paddingTop: '1rem', fontFamily: 'var(--font-sans)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.5rem 1.5rem 2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <img src="/logo.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '3px' }} />

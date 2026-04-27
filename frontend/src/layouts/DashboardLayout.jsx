@@ -139,6 +139,7 @@ const DashboardLayout = () => {
                 width: windowWidth <= 768 ? 'clamp(280px, 85vw, 320px)' : (isCollapsed ? '80px' : '260px'), 
                 minWidth: windowWidth <= 768 ? 'auto' : (isCollapsed ? '80px' : '260px'),
                 background: 'var(--sidebar-bg)', 
+                fontFamily: 'var(--font-sans)',
                 display: 'flex', 
                 flexDirection: 'column',
                 borderRight: '1px solid var(--border)',
@@ -344,6 +345,7 @@ const DashboardLayout = () => {
                 <header style={{ 
                     height: '70px', 
                     background: 'var(--header-bg)', 
+                    fontFamily: 'var(--font-sans)',
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'space-between',

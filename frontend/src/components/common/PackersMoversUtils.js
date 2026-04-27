@@ -7,14 +7,16 @@
  * Get the proper API endpoint with full backend URL
  * Supports both localhost and production
  */
+import API_BASE_URL from '../../apiConfig';
+
 const getApiEndpoint = () => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:5001/api/packers-movers/leads';
-    }
+  // Prefer configured API base URL from frontend config to avoid hostname edge cases
+  try {
+    if (API_BASE_URL) return `${API_BASE_URL}/packers-movers/leads`;
+  } catch (e) {
+    // Fallback to localhost
   }
-  return 'https://realestate-platform-r94s.onrender.com/api/packers-movers/leads';
+  return 'http://localhost:5001/api/packers-movers/leads';
 };
 
 /**
@@ -243,7 +245,7 @@ export const storePackersMoversLead = async (
     const endpoint = apiEndpoint || getApiEndpoint();
     
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 7000); // 7 second timeout
     
     const response = await fetch(endpoint, {
       method: 'POST',

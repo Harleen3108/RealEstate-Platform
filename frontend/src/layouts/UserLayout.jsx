@@ -95,6 +95,7 @@ const UserLayout = () => {
                 width: '280px', 
                 minWidth: '280px',
                 background: 'var(--sidebar-bg)', 
+                fontFamily: 'var(--font-sans)',
                 display: 'flex', 
                 flexDirection: 'column',
                 borderRight: '1px solid var(--border)',
@@ -218,6 +219,7 @@ const UserLayout = () => {
                 <header style={{ 
                     height: '70px', 
                     background: 'var(--header-bg)', 
+                    fontFamily: 'var(--font-sans)',
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'space-between',

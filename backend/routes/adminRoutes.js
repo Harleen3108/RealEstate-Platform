@@ -38,10 +38,11 @@ router.delete('/properties/:id', protect, requireRole('admin', 'teamlead'), asyn
 router.get('/stats', protect, requireRole('admin', 'teamlead'), async (req, res) => {
     try {
         const totalProperties = await Property.countDocuments();
-        const totalAgencies = await User.countDocuments({ role: 'agency' });
-        const totalInvestors = await User.countDocuments({ role: 'investor' });
+        // Use case-insensitive role matching to avoid mismatches from varied capitalization
+        const totalAgencies = await User.countDocuments({ role: { $regex: /^agency$/i } });
+        const totalInvestors = await User.countDocuments({ role: { $regex: /^investor$/i } });
         const totalLeads = await Lead.countDocuments();
-        const totalUsers = await User.countDocuments({ role: 'buyer' });
+        const totalUsers = await User.countDocuments({ role: { $regex: /^buyer$/i } });
         
         // Dynamic financial metrics
         const propertyValues = await Property.aggregate([
