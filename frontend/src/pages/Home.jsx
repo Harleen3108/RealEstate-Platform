@@ -70,6 +70,13 @@ const Home = () => {
   const [verifiedAgencies, setVerifiedAgencies] = useState([]);
 
   useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     (async () => {
       try {
         const [propertiesRes, articlesRes, agenciesRes] = await Promise.all([
@@ -177,7 +184,7 @@ const Home = () => {
       <section
         style={{
           position: 'relative',
-          minHeight: 'clamp(560px, 88vh, 780px)',
+          minHeight: '100vh',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
@@ -213,10 +220,11 @@ const Home = () => {
 
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: '760px' }}>
-            <p className="eyebrow" style={{ color: '#C6A15B' }}>
+            <p className="eyebrow hero-label" style={{ color: '#C6A15B' }}>
               {heroSlides[0].eyebrow}
             </p>
             <h1
+              className="hero-title"
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(2.4rem, 6vw, 4.5rem)',
@@ -230,6 +238,7 @@ const Home = () => {
               {heroSlides[0].title}
             </h1>
             <p
+              className="hero-subtitle"
               style={{
                 fontSize: 'clamp(1rem, 1.6vw, 1.15rem)',
                 color: 'rgba(248,250,252,0.82)',
@@ -241,9 +250,9 @@ const Home = () => {
               A discreetly curated platform for exceptional residences, trusted agents, and discerning investors across the globe.
             </p>
 
-            <form onSubmit={handleSearch} className="search-bar-shell" style={{ maxWidth: '860px' }}>
-              <div className="search-bar-grid">
-                <div style={{ position: 'relative' }}>
+            <form onSubmit={handleSearch} className="search-bar-shell search-bar-shell--hero hero-search search-bar-container" style={{ maxWidth: '860px' }}>
+              <div className="search-bar-hero">
+                <div className="search-bar-hero__segment search-bar-hero__segment--select">
                   <MapPin size={16} color="#c6a15b" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }} />
                   <select
                     className="search-bar-select"
@@ -263,36 +272,38 @@ const Home = () => {
                   </select>
                 </div>
 
-                <select
-                  className="search-bar-select"
-                  value={selectedCity}
-                  onChange={(event) => setSelectedCity(event.target.value)}
-                  disabled={!selectedState}
-                >
-                  <option value="">Select City</option>
-                  {selectedStateCities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="search-bar-grid__search-row">
-                  <div style={{ position: 'relative', flex: 1 }}>
-                    <Search size={16} color="#c6a15b" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }} />
-                    <input
-                      type="text"
-                      className="search-bar-input"
-                      placeholder="Search locality, project, or builder"
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      style={{ paddingLeft: '2.4rem' }}
-                    />
-                  </div>
-                  <button type="submit" className="search-bar-submit" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                    Search
-                  </button>
+                <div className="search-bar-hero__segment search-bar-hero__segment--select">
+                  <select
+                    className="search-bar-select"
+                    value={selectedCity}
+                    onChange={(event) => setSelectedCity(event.target.value)}
+                    disabled={!selectedState}
+                  >
+                    <option value="">Select City</option>
+                    {selectedStateCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+
+                <div className="search-bar-hero__segment search-bar-hero__segment--search">
+                  <Search size={16} color="#c6a15b" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }} />
+                  <input
+                    type="text"
+                    className="search-bar-input"
+                    placeholder="Search locality, project, or builder"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    style={{ paddingLeft: '2.4rem' }}
+                  />
+                </div>
+
+                <button type="submit" className="search-bar-submit search-bar-submit--hero" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  <Search size={16} />
+                  <span>Search</span>
+                </button>
               </div>
 
               <div className="state-chip-row" aria-label="Popular states">
@@ -317,7 +328,7 @@ const Home = () => {
               </div>
             </form>
 
-            <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1.8rem', flexWrap: 'wrap' }}>
+            <div className="hero-tabs" style={{ display: 'flex', gap: '1.25rem', marginTop: '1.8rem', flexWrap: 'wrap' }}>
               {[
                 { label: 'Buy', to: '/marketplace?intent=buy' },
                 { label: 'Rent', to: '/marketplace?intent=rent' },
@@ -346,7 +357,7 @@ const Home = () => {
       </section>
 
       {/* Trusted by Indian Families — social proof */}
-      <section className="container trusted-section" style={{ padding: 'clamp(3rem, 7vw, 5rem) 1.5rem 1rem' }}>
+      <section className="container trusted-section" style={{ padding: 'clamp(1.25rem, 3vw, 2rem) 1.5rem 1rem' }}>
         <div className="trusted-grid">
           <div className="trusted-copy reveal">
             <p className="eyebrow">Building Trust</p>
@@ -363,7 +374,7 @@ const Home = () => {
                 { label: 'Verified Agencies', value: formatMetric(verifiedAgencies.length) },
               ].map((s, i) => (
                 <div key={s.label} className="reveal" data-reveal-delay={i + 1}>
-                  <div className="trusted-stats__value">{s.value}</div>
+                  <div className="trusted-stats__value stat-number" data-target={s.value}>{s.value}</div>
                   <div className="trusted-stats__label">{s.label}</div>
                 </div>
               ))}
@@ -371,16 +382,16 @@ const Home = () => {
           </div>
 
           <div className="trusted-collage reveal" data-reveal-delay="1">
-            <div className="trusted-tile trusted-tile--lg">
+            <div className="trusted-tile trusted-tile--lg photo-grid-item">
               <img src="https://images.unsplash.com/photo-1611095973763-414019e72400?q=80&w=900&auto=format&fit=crop" alt="Happy Indian family at home" loading="lazy" />
             </div>
-            <div className="trusted-tile">
+            <div className="trusted-tile photo-grid-item">
               <img src="https://images.unsplash.com/photo-1607863680198-23d4b2565df0?q=80&w=700&auto=format&fit=crop" alt="Indian couple receiving keys" loading="lazy" />
             </div>
-            <div className="trusted-tile">
+            <div className="trusted-tile photo-grid-item">
               <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?q=80&w=700&auto=format&fit=crop" alt="Family with kids in new home" loading="lazy" />
             </div>
-            <div className="trusted-tile trusted-tile--wide">
+            <div className="trusted-tile trusted-tile--wide photo-grid-item">
               <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1200&auto=format&fit=crop" alt="Luxury lifestyle interior" loading="lazy" />
             </div>
           </div>
@@ -399,7 +410,7 @@ const Home = () => {
               key={cat.label}
               type="button"
               onClick={() => handleCategoryClick(cat)}
-              className="main-category-card reveal"
+              className="main-category-card property-type-card reveal"
               data-reveal-delay={Math.min(idx, 4)}
             >
               <div className="main-category-card__media">
@@ -798,7 +809,7 @@ const Home = () => {
         </div>
       </section>
 
-      <footer style={{ background: 'var(--background)', borderTop: '1px solid var(--border)', padding: '4rem 0 2rem' }}>
+      <footer style={{ borderTop: '1px solid var(--border)', padding: '4rem 0 2rem' }}>
         <div className="container footer-grid">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>

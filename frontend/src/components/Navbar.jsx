@@ -14,11 +14,19 @@ const Navbar = () => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 40);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
     const fetchUnreadCount = async () => {
@@ -55,47 +63,50 @@ const Navbar = () => {
 
     const isMobile = windowWidth <= 768;
     const navHeight = isMobile ? '54px' : '68px';
+    const isHome = location.pathname === '/';
+    const transparent = isHome && !scrolled;
+    const navTextColor = transparent ? '#FFFFFF' : '#0F172A';
 
     return (
         <>
-            <nav style={{ 
+            <nav className="nav-slide-down" style={{
                 height: navHeight,
                 width: '100%',
                 left: 0,
                 right: 0,
-                display: 'flex', 
-                alignItems: 'center', 
-                position: 'fixed', 
-                top: 0, 
+                display: 'flex',
+                alignItems: 'center',
+                position: 'fixed',
+                top: 0,
                 zIndex: 1000,
-                background: 'var(--header-bg)', 
-                backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid var(--border)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                transition: 'var(--transition)',
+                background: transparent ? 'transparent' : '#fff',
+                backdropFilter: transparent ? 'none' : 'blur(20px)',
+                borderBottom: 'none',
+                boxShadow: transparent ? 'none' : '0 2px 20px rgba(0,0,0,0.08)',
+                transition: 'background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
                 boxSizing: 'border-box'
             }}>
-                <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '8px' }}>
+                <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '8px', maxWidth: 'none', padding: isMobile ? '0 0.75rem' : '0 1.25rem' }}>
                     {/* Logo Section */}
                     <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flexShrink: 1, minWidth: 0 }}>
-                        <div style={{ 
-                            width: isMobile ? '35px' : '45px', 
-                            height: isMobile ? '35px' : '45px', 
-                            borderRadius: '3px', 
-                            overflow: 'hidden', 
-                            border: '1px solid var(--border)', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <div style={{
+                            width: isMobile ? '35px' : '45px',
+                            height: isMobile ? '35px' : '45px',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'center',
-                            flexShrink: 0 
+                            flexShrink: 0
                         }}>
                             <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                            <div style={{ 
-                                fontSize: isMobile ? '1.1rem' : '1.4rem', 
-                                fontWeight: '800', 
-                                color: 'var(--text)', 
+                            <div style={{
+                                fontSize: isMobile ? '1.1rem' : '1.4rem',
+                                fontWeight: '800',
+                                color: navTextColor,
                                 lineHeight: '1.1',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
@@ -108,37 +119,37 @@ const Navbar = () => {
                     
                     {/* Actions Section - Desktop */}
                     <div className="desktop-only" style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexShrink: 0 }}>
-                        <Link to="/marketplace" style={{ 
-                            textDecoration: 'none', 
-                            fontSize: '1rem', 
-                            fontWeight: '700', 
-                            color: 'var(--text)', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <Link to="/marketplace" style={{
+                            textDecoration: 'none',
+                            fontSize: '1rem',
+                            fontWeight: '700',
+                            color: navTextColor,
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: '8px',
                             paddingBottom: '2px'
                         }}>
                             <Search size={18} /> Find Property
                         </Link>
 
-                        <Link to="/about" style={{ 
-                            textDecoration: 'none', 
-                            fontSize: '1rem', 
-                            fontWeight: '700', 
-                            color: 'var(--text)', 
+                        <Link to="/about" style={{
+                            textDecoration: 'none',
+                            fontSize: '1rem',
+                            fontWeight: '700',
+                            color: navTextColor,
                             paddingBottom: '2px'
                         }}>
                             About Us
                         </Link>
 
                         {user && (
-                            <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} style={{ 
-                                textDecoration: 'none', 
-                                fontSize: '1rem', 
-                                fontWeight: '700', 
-                                color: 'var(--text)', 
-                                display: 'flex', 
-                                alignItems: 'center', 
+                            <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} style={{
+                                textDecoration: 'none',
+                                fontSize: '1rem',
+                                fontWeight: '700',
+                                color: navTextColor,
+                                display: 'flex',
+                                alignItems: 'center',
                                 gap: '8px',
                                 paddingBottom: '2px'
                             }}>
@@ -147,12 +158,12 @@ const Navbar = () => {
                         )}
 
                         {user && (
-                            <button 
+                            <button
                                 onClick={() => navigate(`/dashboard/${user.role.toLowerCase()}/notifications`)}
-                                style={{ 
-                                    background: 'transparent', 
-                                    border: 'none', 
-                                    color: unreadCount > 0 ? 'var(--primary)' : 'var(--text)', 
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: unreadCount > 0 ? 'var(--primary)' : navTextColor,
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -185,12 +196,12 @@ const Navbar = () => {
                             </button>
                         )}
 
-                        <button 
+                        <button
                             onClick={toggleTheme}
-                            style={{ 
-                                background: 'transparent', 
-                                border: 'none', 
-                                color: 'var(--text)', 
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: navTextColor,
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -201,30 +212,30 @@ const Navbar = () => {
                         >
                             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
                         </button>
-                        
+
                         {user ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
                                 <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} style={{ width: '40px', height: '40px', borderRadius: '3px', overflow: 'hidden', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                                    <div style={{ width: '100%', height: '100%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '800' }}>
+                                    <div style={{ width: '100%', height: '100%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0F172A', fontWeight: '800' }}>
                                         {user.name.slice(0,1).toUpperCase()}
                                     </div>
                                 </Link>
-                                <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: navTextColor, cursor: 'pointer' }}>
                                     <LogOut size={20} />
                                 </button>
                             </div>
                         ) : (
                             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                                <Link to="/login" style={{ 
-                                    textDecoration: 'none', 
-                                    fontSize: '1rem', 
-                                    fontWeight: '700', 
-                                    color: 'var(--text)',
+                                <Link to="/login" style={{
+                                    textDecoration: 'none',
+                                    fontSize: '1rem',
+                                    fontWeight: '700',
+                                    color: navTextColor,
                                     paddingBottom: '2px'
                                 }}>
                                     Login
                                 </Link>
-                                <Link to="/register" className="btn btn-primary" style={{ padding: '0.8rem 2.2rem', fontSize: '1rem', borderRadius: '3px', fontWeight: '800', textDecoration: 'none' }}>
+                                <Link to="/register" className="btn btn-primary" style={{ padding: '0.8rem 2.2rem', fontSize: '1rem', borderRadius: '3px', fontWeight: '800', textDecoration: 'none', color: '#0F172A' }}>
                                     Join Now
                                 </Link>
                             </div>
@@ -234,13 +245,13 @@ const Navbar = () => {
                     {/* Mobile Menu Toggle & Theme Button */}
                     <div className="mobile-only" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                         {user && (
-                            <button 
+                            <button
                                 onClick={() => navigate(`/dashboard/${user.role.toLowerCase()}/notifications`)}
-                                style={{ 
-                                    background: 'var(--surface-light)', 
-                                    border: '1px solid var(--border)', 
-                                    color: unreadCount > 0 ? 'var(--primary)' : 'var(--text)', 
-                                    cursor: 'pointer', 
+                                style={{
+                                    background: transparent ? 'rgba(255,255,255,0.85)' : 'var(--surface-light)',
+                                    border: '1px solid var(--border)',
+                                    color: unreadCount > 0 ? 'var(--primary)' : navTextColor,
+                                    cursor: 'pointer',
                                     padding: '8px',
                                     borderRadius: '3px',
                                     display: 'flex',
@@ -250,26 +261,26 @@ const Navbar = () => {
                             >
                                 <Bell size={18} />
                                 {unreadCount > 0 && (
-                                    <div style={{ 
-                                        position: 'absolute', 
-                                        top: '-2px', 
-                                        right: '-2px', 
-                                        width: '8px', 
-                                        height: '8px', 
-                                        background: 'var(--primary)', 
-                                        borderRadius: '3px', 
-                                        border: '1.5px solid var(--header-bg)' 
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-2px',
+                                        right: '-2px',
+                                        width: '8px',
+                                        height: '8px',
+                                        background: 'var(--primary)',
+                                        borderRadius: '3px',
+                                        border: '1.5px solid #fff'
                                     }} />
                                 )}
                             </button>
                         )}
-                         <button 
+                         <button
                             onClick={toggleTheme}
-                            style={{ 
-                                background: 'var(--surface-light)', 
-                                border: '1px solid var(--border)', 
-                                color: 'var(--text)', 
-                                cursor: 'pointer', 
+                            style={{
+                                background: transparent ? 'rgba(255,255,255,0.85)' : 'var(--surface-light)',
+                                border: '1px solid var(--border)',
+                                color: navTextColor,
+                                cursor: 'pointer',
                                 padding: '8px',
                                 borderRadius: '3px',
                                 display: 'flex',
@@ -297,8 +308,8 @@ const Navbar = () => {
                 </div>
             </nav>
 
-            {/* Layout Spacer - Necessary when using fixed positioning */}
-            <div style={{ height: navHeight, width: '100%' }} />
+            {/* Layout Spacer - skipped on home so the navbar overlays the hero */}
+            {!isHome && <div style={{ height: navHeight, width: '100%' }} />}
 
             {/* Mobile Sidebar Menu */}
             <div 

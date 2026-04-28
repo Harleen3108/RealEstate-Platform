@@ -23,6 +23,9 @@ Thumbs.db
 *.sw?
 *.suo
 
+# Claude Code (local tooling config)
+.claude/
+
 # Build output
 dist/
 build/
