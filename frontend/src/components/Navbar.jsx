@@ -15,6 +15,9 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
     const [scrolled, setScrolled] = useState(false);
+    const [hidden, setHidden] = useState(false);
+    const [entranceDone, setEntranceDone] = useState(false);
+    const isHomePage = location.pathname === '/';
 
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
@@ -23,11 +26,78 @@ const Navbar = () => {
     }, []);
 
     useEffect(() => {
+        // Always track scroll position for the white-background toggle.
         const onScroll = () => setScrolled(window.scrollY > 40);
         onScroll();
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
+
+    useEffect(() => {
+        // Fallback in case onAnimationEnd never fires (reduced-motion users,
+        // browser quirks, etc.) — guarantees the entrance class drops so the
+        // hide/show transitions aren't blocked by the animation's forwards fill.
+        const t = setTimeout(() => setEntranceDone(true), 1000);
+        return () => clearTimeout(t);
+    }, []);
+
+    useEffect(() => {
+        // Past-hero auto-hide. Only applies on the home page — everywhere else
+        // the navbar stays visible because there's no hero to scroll past.
+        if (!isHomePage) {
+            setHidden(false);
+            return;
+        }
+
+        let hideTimer = null;
+
+        // Hero is `minHeight: 100vh` on the home page, so "past hero" ≈
+        // scrollY past viewport height (with a small buffer).
+        const isPastHero = () => window.scrollY > window.innerHeight - 100;
+
+        const startHideTimer = () => {
+            if (hideTimer) clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => {
+                if (isPastHero()) setHidden(true);
+            }, 1000);
+        };
+
+        const onScroll = () => {
+            if (!isPastHero()) {
+                setHidden(false);
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    hideTimer = null;
+                }
+            } else {
+                setHidden(false);
+                startHideTimer();
+            }
+        };
+
+        const onMouseMove = (e) => {
+            if (!isPastHero()) return;
+            if (e.clientY < 80) {
+                setHidden(false);
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    hideTimer = null;
+                }
+            } else if (e.clientY > 120) {
+                startHideTimer();
+            }
+        };
+
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        document.addEventListener('mousemove', onMouseMove);
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            document.removeEventListener('mousemove', onMouseMove);
+            if (hideTimer) clearTimeout(hideTimer);
+        };
+    }, [isHomePage]);
 
     const fetchUnreadCount = async () => {
         try {
@@ -69,23 +139,29 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="nav-slide-down" style={{
-                height: navHeight,
-                width: '100%',
-                left: 0,
-                right: 0,
-                display: 'flex',
-                alignItems: 'center',
-                position: 'fixed',
-                top: 0,
-                zIndex: 1000,
-                background: transparent ? 'transparent' : '#fff',
-                backdropFilter: transparent ? 'none' : 'blur(20px)',
-                borderBottom: 'none',
-                boxShadow: transparent ? 'none' : '0 2px 20px rgba(0,0,0,0.08)',
-                transition: 'background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
-                boxSizing: 'border-box'
-            }}>
+            <nav
+                className={entranceDone ? '' : 'nav-slide-down'}
+                onAnimationEnd={(e) => {
+                    if (e.animationName === 'navSlideDown') setEntranceDone(true);
+                }}
+                style={{
+                    height: navHeight,
+                    width: '100%',
+                    left: 0,
+                    right: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    position: 'fixed',
+                    top: 0,
+                    zIndex: 1000,
+                    background: transparent ? 'transparent' : '#fff',
+                    backdropFilter: transparent ? 'none' : 'blur(20px)',
+                    borderBottom: 'none',
+                    boxShadow: transparent ? 'none' : '0 2px 20px rgba(0,0,0,0.08)',
+                    transform: hidden ? 'translateY(-100%)' : 'translateY(0)',
+                    transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
+                    boxSizing: 'border-box'
+                }}>
                 <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '8px', maxWidth: 'none', padding: isMobile ? '0 0.75rem' : '0 1.25rem' }}>
                     {/* Logo Section */}
                     <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flexShrink: 1, minWidth: 0 }}>

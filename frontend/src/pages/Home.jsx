@@ -205,6 +205,10 @@ const Home = () => {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            // Scale slightly from top-left so the bottom-right of the source
+            // video (Veo watermark) is cropped off-screen.
+            transform: 'scale(1.08)',
+            transformOrigin: '0 0',
           }}
         >
           <source src="/hero-video.mp4" type="video/mp4" />
