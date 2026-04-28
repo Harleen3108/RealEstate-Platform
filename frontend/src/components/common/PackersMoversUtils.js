@@ -1,6 +1,6 @@
 /**
  * Packers & Movers Integration Utilities
- * Handles URL building, validation, analytics, and NoBroker redirects
+ * Handles URL building, validation, analytics, and lead storage
  */
 
 /**
@@ -280,7 +280,7 @@ export const storePackersMoversLead = async (
  * @returns {string} - Disclaimer text
  */
 export const getDisclaimerText = () => {
-  return 'You will be redirected to NoBroker\'s website to complete your moving service booking. Please ensure all information is correct before proceeding.';
+  return 'Your request will be shared with our team for follow-up. Please ensure all information is correct before submitting.';
 };
 
 /**

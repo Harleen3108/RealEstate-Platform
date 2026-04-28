@@ -24,8 +24,7 @@ router.post('/leads', async (req, res) => {
       listingId,
       listingTitle,
       listingPrice,
-      platformName = 'RealEstatePlatform',
-      nobrokerUrl
+      platformName = 'RealEstatePlatform'
     } = req.body;
 
     // Validation
@@ -51,7 +50,6 @@ router.post('/leads', async (req, res) => {
       listingTitle,
       listingPrice,
       platformName,
-      nobrokerUrl,
       source: 'packers_movers_integration'
     });
 

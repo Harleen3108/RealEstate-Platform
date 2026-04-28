@@ -63,10 +63,10 @@ const packersMoversLeadSchema = new mongoose.Schema({
     default: 'RealEstatePlatform'
   },
   
-  // NoBroker redirect status
+  // Lead routing status
   redirectedToNoBroker: { 
     type: Boolean, 
-    default: true 
+    default: false 
   },
   nobrokerUrl: {
     type: String

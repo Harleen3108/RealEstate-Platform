@@ -144,10 +144,53 @@ const AdminDashboard = () => {
   const [paymentFormData, setPaymentFormData] = useState({
     totalProjectValue: 0,
     advanceReceived: 0,
+    finalPayment: 0,
+    collectedAmount: 0,
+    balanceDue: 0,
     purposeOrScopeOfWork: "",
     onboardingDate: "",
     status: "Pending",
   });
+
+  const normalizeMoney = (value) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  };
+
+  const handlePaymentValueChange = (field, value) => {
+    const numericValue = normalizeMoney(value);
+    setPaymentFormData((prev) => {
+      const next = { ...prev, [field]: numericValue };
+      const total = normalizeMoney(next.totalProjectValue);
+      const advance = normalizeMoney(next.advanceReceived);
+      const final = normalizeMoney(next.finalPayment);
+      const collectedAmount = advance + final;
+      const balanceDue = Math.max(total - collectedAmount, 0);
+      return { ...next, totalProjectValue: total, advanceReceived: advance, finalPayment: final, collectedAmount, balanceDue };
+    });
+  };
+
+  const handleCollectedChange = (value) => {
+    const collectedAmount = normalizeMoney(value);
+    setPaymentFormData((prev) => {
+      const total = normalizeMoney(prev.totalProjectValue);
+      const advance = normalizeMoney(prev.advanceReceived);
+      const finalPayment = Math.max(collectedAmount - advance, 0);
+      const balanceDue = Math.max(total - collectedAmount, 0);
+      return { ...prev, finalPayment, collectedAmount, balanceDue };
+    });
+  };
+
+  const handleBalanceChange = (value) => {
+    const balanceDue = normalizeMoney(value);
+    setPaymentFormData((prev) => {
+      const total = normalizeMoney(prev.totalProjectValue);
+      const advance = normalizeMoney(prev.advanceReceived);
+      const collectedAmount = Math.max(total - balanceDue, 0);
+      const finalPayment = Math.max(collectedAmount - advance, 0);
+      return { ...prev, finalPayment, collectedAmount, balanceDue };
+    });
+  };
 
   const agencies = users.filter((u) => u.role === "Agency");
 
@@ -291,6 +334,18 @@ const AdminDashboard = () => {
       setMoversLeads((list) => list.filter((l) => l._id !== id));
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete');
+    }
+  };
+
+  const handleUpdateMoversLeadStatus = async (id, status) => {
+    try {
+      const { data } = await axios.patch(`${API_BASE_URL}/packers-movers/leads/${id}`, { status });
+      setMoversLeads((list) => list.map((l) => (l._id === id ? { ...l, status: data.status || status } : l)));
+      // Inform admin
+      alert(`Lead status updated to ${data.status || status}`);
+    } catch (err) {
+      console.error('Failed to update movers lead status', err);
+      alert(err.response?.data?.message || 'Failed to update status');
     }
   };
 
@@ -447,11 +502,22 @@ const AdminDashboard = () => {
   const handleUpdatePayment = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`${API_BASE_URL}/leads/${selectedLead._id}/payment`, paymentFormData);
+      const payload = {
+        totalProjectValue: normalizeMoney(paymentFormData.totalProjectValue),
+        advanceReceived: normalizeMoney(paymentFormData.advanceReceived),
+        finalPayment: normalizeMoney(paymentFormData.finalPayment),
+        totalCollected: normalizeMoney(paymentFormData.collectedAmount),
+        balanceDue: normalizeMoney(paymentFormData.balanceDue),
+        purposeOrScopeOfWork: paymentFormData.purposeOrScopeOfWork,
+        onboardingDate: paymentFormData.onboardingDate,
+        status: paymentFormData.status,
+      };
+
+      await axios.patch(`${API_BASE_URL}/leads/${selectedLead._id}/payment`, payload);
       setShowPaymentModal(false);
       fetchAdminData();
       // Update local state if needed
-      const updatedLead = { ...selectedLead, paymentDetails: { ...selectedLead.paymentDetails, ...paymentFormData } };
+      const updatedLead = { ...selectedLead, paymentDetails: { ...selectedLead.paymentDetails, ...payload } };
       setSelectedLead(updatedLead);
       alert("Payment details updated successfully");
     } catch (error) {
@@ -6004,6 +6070,9 @@ const AdminDashboard = () => {
                         setPaymentFormData({
                           totalProjectValue: selectedLead.paymentDetails?.totalProjectValue || 0,
                           advanceReceived: selectedLead.paymentDetails?.advanceReceived || 0,
+                          finalPayment: selectedLead.paymentDetails?.finalPayment || 0,
+                          collectedAmount: selectedLead.paymentDetails?.totalCollected || ((selectedLead.paymentDetails?.advanceReceived || 0) + (selectedLead.paymentDetails?.finalPayment || 0)),
+                          balanceDue: selectedLead.paymentDetails?.balanceDue || Math.max((selectedLead.paymentDetails?.totalProjectValue || 0) - (selectedLead.paymentDetails?.totalCollected || ((selectedLead.paymentDetails?.advanceReceived || 0) + (selectedLead.paymentDetails?.finalPayment || 0))), 0),
                           purposeOrScopeOfWork: selectedLead.paymentDetails?.purposeOrScopeOfWork || "",
                           onboardingDate: selectedLead.paymentDetails?.onboardingDate ? new Date(selectedLead.paymentDetails.onboardingDate).toISOString().split('T')[0] : "",
                           status: selectedLead.paymentDetails?.status || "Pending",
@@ -6647,12 +6716,26 @@ const AdminDashboard = () => {
                       </td>
                       <td style={{ padding: "0.85rem 1rem", color: "var(--text-muted)", fontSize: "0.82rem", textTransform: "uppercase", fontWeight: 700 }}>{lead.propertySize || '—'}</td>
                       <td style={{ padding: "0.85rem 1rem" }}>
-                        <span style={{
-                          padding: "3px 10px", borderRadius: 999, fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase",
-                          background: lead.status === 'new' ? 'rgba(59,130,246,0.14)' : lead.status === 'contacted' ? 'rgba(245,158,11,0.14)' : lead.status === 'completed' ? 'rgba(16,185,129,0.14)' : 'rgba(239,68,68,0.14)',
-                          color: lead.status === 'new' ? '#3b82f6' : lead.status === 'contacted' ? '#f59e0b' : lead.status === 'completed' ? '#10b981' : '#ef4444',
-                          border: '1px solid currentColor',
-                        }}>{lead.status || 'new'}</span>
+                        <select
+                          value={lead.status || 'new'}
+                          onChange={(e) => handleUpdateMoversLeadStatus(lead._id, e.target.value)}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: 8,
+                            fontSize: "0.78rem",
+                            fontWeight: 800,
+                            textTransform: "uppercase",
+                            border: "1px solid var(--border)",
+                            background: "transparent",
+                            color: "var(--text)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option value="new">New</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
                       </td>
                       <td style={{ padding: "0.85rem 1rem", color: "var(--text-muted)", fontSize: "0.78rem", whiteSpace: "nowrap" }}>
                         {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : '—'}
@@ -6746,7 +6829,7 @@ const AdminDashboard = () => {
                       key={lead._id} 
                       style={{ 
                         borderBottom: '1px solid var(--border)',
-                        background: lead.paymentDetails?.status === 'Completed' ? 'rgba(16, 185, 129, 0.03)' : 'transparent'
+                        background: ['complete', 'completed'].includes((lead.paymentDetails?.status || '').toLowerCase()) ? 'rgba(16, 185, 129, 0.03)' : 'transparent'
                       }}
                     >
                       <td style={{ padding: '1rem 1.5rem' }}>
@@ -6773,8 +6856,8 @@ const AdminDashboard = () => {
                           fontSize: '0.65rem',
                           padding: '4px 10px',
                           borderRadius: '6px',
-                          background: lead.paymentDetails?.status === 'Completed' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                          color: lead.paymentDetails?.status === 'Completed' ? '#10b981' : '#f59e0b',
+                          background: ['complete', 'completed'].includes((lead.paymentDetails?.status || '').toLowerCase()) ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                          color: ['complete', 'completed'].includes((lead.paymentDetails?.status || '').toLowerCase()) ? '#10b981' : '#f59e0b',
                           fontWeight: '800',
                           textTransform: 'uppercase'
                         }}>
@@ -6828,12 +6911,12 @@ const AdminDashboard = () => {
           position: "fixed",
           top: 0, left: 0, width: "100%", height: "100%",
           background: "rgba(0,0,0,0.8)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          zIndex: 1100, padding: "2rem", backdropFilter: "blur(10px)"
+          display: "flex", alignItems: "flex-start", justifyContent: "center",
+          zIndex: 1100, padding: "2rem", paddingTop: "4rem", paddingBottom: "4rem", backdropFilter: "blur(10px)"
         }}>
           <div className="glass-card animate-fade" style={{
-            width: "100%", maxWidth: "500px", background: "var(--surface)",
-            border: "1px solid var(--border)", borderRadius: "1.5rem"
+            width: "100%", maxWidth: "560px", background: "var(--surface)",
+            border: "1px solid var(--border)", borderRadius: "1.5rem", maxHeight: 'calc(100% - 8rem)', overflowY: 'auto'
           }}>
             <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--border)", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontWeight: '900' }}>Update Payment Metrics</h3>
@@ -6859,7 +6942,7 @@ const AdminDashboard = () => {
                       type="number" 
                       className="input-control"
                       value={paymentFormData.totalProjectValue}
-                      onChange={(e) => setPaymentFormData({ ...paymentFormData, totalProjectValue: Number(e.target.value) })}
+                      onChange={(e) => handlePaymentValueChange('totalProjectValue', e.target.value)}
                     />
                   </div>
                   <div className="input-group">
@@ -6868,7 +6951,36 @@ const AdminDashboard = () => {
                       type="number" 
                       className="input-control"
                       value={paymentFormData.advanceReceived}
-                      onChange={(e) => setPaymentFormData({ ...paymentFormData, advanceReceived: Number(e.target.value) })}
+                      onChange={(e) => handlePaymentValueChange('advanceReceived', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>FINAL PAYMENT (₹)</label>
+                  <input
+                    type="number"
+                    className="input-control"
+                    value={paymentFormData.finalPayment || 0}
+                    onChange={(e) => handlePaymentValueChange('finalPayment', e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>COLLECTED (₹)</label>
+                    <input
+                      type="number"
+                      className="input-control"
+                      value={paymentFormData.collectedAmount || 0}
+                      onChange={(e) => handleCollectedChange(e.target.value)}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)' }}>BALANCE (₹)</label>
+                    <input
+                      type="number"
+                      className="input-control"
+                      value={paymentFormData.balanceDue || 0}
+                      onChange={(e) => handleBalanceChange(e.target.value)}
                     />
                   </div>
                 </div>
@@ -6889,13 +7001,18 @@ const AdminDashboard = () => {
                     onChange={(e) => setPaymentFormData({ ...paymentFormData, status: e.target.value })}
                   >
                     <option value="Pending">Pending</option>
-                    <option value="Completed">Completed</option>
+                    <option value="Active">Active</option>
+                    <option value="Complete">Complete</option>
                   </select>
                 </div>
                 <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--surface-light)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: '700', marginBottom: '0.45rem' }}>
+                    <span>Calculated Collected:</span>
+                    <span style={{ color: '#10b981' }}>₹{(paymentFormData.collectedAmount || 0).toLocaleString()}</span>
+                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: '700' }}>
                     <span>Calculated Balance:</span>
-                    <span style={{ color: '#ef4444' }}>₹{(paymentFormData.totalProjectValue - paymentFormData.advanceReceived).toLocaleString()}</span>
+                    <span style={{ color: '#ef4444' }}>₹{(paymentFormData.balanceDue || 0).toLocaleString()}</span>
                   </div>
                 </div>
                 <button type="submit" className="btn btn-primary" style={{ padding: '1rem', fontWeight: '800', marginTop: '1rem' }}>

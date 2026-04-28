@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { Truck, Package, MapPin, Calendar, Phone, AlertCircle, CheckCircle, Shield, Clock } from 'lucide-react';
+import { Truck, CheckCircle, Shield, Clock } from 'lucide-react';
 import { usePackersMoversAutoFill } from '../../hooks/usePackersMoversAutoFill';
 import MovingFormModal from './MovingFormModal';
 import {
   trackPackersMoversEvent,
-  PROPERTY_SIZE_OPTIONS,
-  SERVICE_TYPE_OPTIONS
 } from './PackersMoversUtils';
 import './PackersMovers.css';
 
@@ -91,8 +89,6 @@ const PackersMoversSection = ({
     if (onFormSubmit) {
       onFormSubmit(formData);
     }
-
-    setIsModalOpen(false);
   };
 
   return (
@@ -106,7 +102,7 @@ const PackersMoversSection = ({
           <div className="banner-text">
             <h3 className="banner-title">Need Help Moving?</h3>
             <p className="banner-subtitle">
-              Get verified movers and easy relocation services with NoBroker
+              Get verified movers and a quick callback from our relocation team
             </p>
           </div>
           <button className="banner-cta-btn">
