@@ -25,7 +25,16 @@ const upload = require('./middleware/uploadMiddleware');
 const app = express();
 
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174', 'https://real-estate-platform-self.vercel.app'],
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'https://real-estate-platform-self.vercel.app',
+        'https://millionaireclub.avanienterprises.in',
+        'http://millionaireclub.avanienterprises.in',
+    ],
     credentials: true
 }));
 app.use(express.json());
