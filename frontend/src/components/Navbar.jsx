@@ -423,7 +423,7 @@ const Navbar = () => {
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
                     <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', opacity: 0.8 }}>Account</div>
                     {user ? (
-                    <>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <Link to={user.role === 'Buyer' ? '/dashboard/user/dashboard' : `/dashboard/${user.role.toLowerCase()}`} className="mobile-menu-item">
                                 <User size={20} /> My Dashboard
                             </Link>
@@ -431,7 +431,7 @@ const Navbar = () => {
                             <button onClick={handleLogout} className="mobile-menu-item" style={{ border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', background: 'var(--surface-light)' }}>
                                 <LogOut size={20} /> Logout
                             </button>
-                    </>
+                        </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <Link to="/login" className="mobile-menu-item" style={{ background: 'var(--surface-light)' }}>
@@ -442,7 +442,7 @@ const Navbar = () => {
                     )}
                 </div>
 
-                <div style={{ marginTop: 'auto', padding: '1.5rem', background: 'var(--surface-light)', borderRadius: '3px', textAlign: 'center', border: '1px solid var(--border)' }}>
+                <div style={{ marginTop: 'auto', padding: '1.5rem', background: 'var(--surface-light)', borderRadius: '3px', textAlign: 'center', border: '1px solid var(--border)', flexShrink: 0 }}>
                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Expertly Curated</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: '900', color: 'var(--text)' }}>
                         Millionaire <span style={{ color: 'var(--primary)' }}>Club</span>

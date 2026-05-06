@@ -340,7 +340,7 @@ const DashboardLayout = () => {
             </aside>
 
             {/* Main Content Area */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%', maxWidth: '100%', overflowX: 'clip' }}>
                 {/* HeaderBar */}
                 <header style={{ 
                     height: '70px', 

@@ -459,7 +459,9 @@ const AdminDashboard = () => {
         });
       }
     } catch (error) {
-      alert("Failed to update block status");
+      const reason = error?.response?.data?.message || error?.message || 'Unknown error';
+      alert(`Failed to update block status: ${reason}`);
+      console.error('Block user error:', error);
     }
   };
 
@@ -691,8 +693,11 @@ const AdminDashboard = () => {
           agency: { ...agencyDetails.agency, isApproved },
         });
       }
+      alert(isApproved ? 'Agency approved.' : 'Agency access revoked.');
     } catch (error) {
-      console.error(error);
+      const reason = error?.response?.data?.message || error?.message || 'Unknown error';
+      alert(`Failed to ${isApproved ? 'approve' : 'revoke'} agency: ${reason}`);
+      console.error('Approve/revoke agency error:', error);
     }
   };
 
