@@ -132,7 +132,7 @@ const Navbar = () => {
     if (location.pathname.startsWith('/dashboard')) return null;
 
     const isMobile = windowWidth <= 768;
-    const navHeight = isMobile ? '54px' : '68px';
+    const navHeight = isMobile ? '48px' : '60px';
     const isHome = location.pathname === '/';
     const transparent = isHome && !scrolled;
     const navTextColor = transparent ? '#FFFFFF' : '#0F172A';
@@ -166,8 +166,8 @@ const Navbar = () => {
                     {/* Logo Section */}
                     <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px', flexShrink: 1, minWidth: 0 }}>
                         <div style={{
-                            width: isMobile ? '35px' : '45px',
-                            height: isMobile ? '35px' : '45px',
+                            width: isMobile ? '30px' : '38px',
+                            height: isMobile ? '30px' : '38px',
                             borderRadius: '3px',
                             overflow: 'hidden',
                             border: 'none',
@@ -180,7 +180,7 @@ const Navbar = () => {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                             <div style={{
-                                fontSize: isMobile ? '1.1rem' : '1.4rem',
+                                fontSize: isMobile ? '0.98rem' : '1.2rem',
                                 fontWeight: '800',
                                 color: navTextColor,
                                 lineHeight: '1.1',
@@ -311,7 +311,7 @@ const Navbar = () => {
                                 }}>
                                     Login
                                 </Link>
-                                <Link to="/register" className="btn btn-primary" style={{ padding: '0.8rem 2.2rem', fontSize: '1rem', borderRadius: '3px', fontWeight: '800', textDecoration: 'none', color: '#0F172A' }}>
+                                <Link to="/register" className="btn btn-primary" style={{ padding: '0.55rem 1.6rem', fontSize: '0.85rem', borderRadius: '3px', fontWeight: '800', textDecoration: 'none', color: '#0F172A' }}>
                                     Join Now
                                 </Link>
                             </div>
